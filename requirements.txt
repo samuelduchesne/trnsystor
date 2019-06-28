@@ -1,2 +1,3 @@
+lxml
 pint
 beautifulsoup4
