@@ -188,6 +188,9 @@ def parse_unit(unit):
     elif unit.lower() == 'c':
         Q_ = ureg.Quantity
         return Q_, ureg.degC
+    elif unit.lower() == 'deltac':
+        Q_ = ureg.Quantity
+        return Q_, ureg.delta_degC
     else:
         return Q_, ureg.parse_expression(unit)
 
