@@ -249,7 +249,10 @@ class InputCollection(VariableCollection):
         pass
 
     def __repr__(self):
-        return '{} Inputs'.format(self.size)
+        num_inputs = '{} Inputs:\n'.format(self.size)
+        inputs = '\n'.join(['"{}": {}'.format(key, value.value)
+                            for key, value in self.data.items()])
+        return num_inputs + inputs
 
 
 class OutputCollection(VariableCollection):
@@ -258,7 +261,10 @@ class OutputCollection(VariableCollection):
         pass
 
     def __repr__(self):
-        return '{} Outputs'.format(self.size)
+        num_inputs = '{} Outputs:\n'.format(self.size)
+        inputs = '\n'.join(['"{}": {}'.format(key, value.value)
+                            for key, value in self.data.items()])
+        return num_inputs + inputs
 
 
 class ParameterCollection(VariableCollection):
@@ -267,4 +273,7 @@ class ParameterCollection(VariableCollection):
         pass
 
     def __repr__(self):
-        return '{} Parameters'.format(self.size)
+        num_inputs = '{} Parameters:\n'.format(self.size)
+        inputs = '\n'.join(['"{}": {}'.format(key, value.value)
+                            for key, value in self.data.items()])
+        return num_inputs + inputs
