@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrnsysModel>
+    <object>Single Speed Fan/Blower</object>
+    <author>Jeff Thornton</author>
+    <organization>Thermal Energy System Specialists</organization>
+    <editor>Jeff Thornton</editor>
+    <creationDate>August 2005</creationDate>
+    <modifictionDate>July 2010</modifictionDate>
+    <mode>2</mode>
+    <validation>34</validation>
+    <icon>C:\Users\saleta\Desktop\Type146.bmp</icon>
+    <type>146</type>
+    <maxInstance>9999</maxInstance>
+    <keywords>
+        <keyword>Fan</keyword>
+        <keyword>Blower</keyword>
+    </keywords>
+    <details>Type 146 models a fan that is able to spin at a single speed and thereby maintain a constant volumetric
+        flow rate of air. As with most pumps and fans in TRNSYS, Type 146 takes mass flow rate as an input but ignores
+        the value except in order to perform mass balance checks. Type 146 sets the downstream flow rate based on its
+        rated flow rate parameter and the current value of its control signal input.
+    </details>
+    <comment>Single-Speed Fan</comment>
+    <variablesComment>Single-Speed Fan/Blower</variablesComment>
+    <variables>
+        <variable><!--parameter-1-->
+            <order>1</order>
+            <name>Humidity Mode</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>2</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>2</default>
+            <symbol>SN</symbol>
+            <definition>This parameter indicates whether the calculation will be based on the inlet humidity ratio input
+                (mode = 1) or the inlet relative humidity input (mode = 2).
+            </definition>
+        </variable>
+        <variable><!--parameter-2-->
+            <order>2</order>
+            <name>Rated Volumetric Flow Rate</name>
+            <role>parameter</role>
+            <dimension>Volumetric Flow Rate</dimension>
+            <unit>l/s</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>300.0</default>
+            <symbol>SN</symbol>
+            <definition>The rated volumetric flow rate of dry air through the fan when operating.</definition>
+        </variable>
+        <variable><!--parameter-3-->
+            <order>3</order>
+            <name>Rated Power</name>
+            <role>parameter</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>2684.0</default>
+            <symbol>SN</symbol>
+            <definition>The fan power consumption during operation.</definition>
+        </variable>
+        <variable><!--parameter-4-->
+            <order>4</order>
+            <name>Motor Efficiency</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>1.0</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.90</default>
+            <symbol>SN</symbol>
+            <definition>The efficiency of the fan motor. This efficiency is used to calculate the amount of heat added
+                to the air stream.
+            </definition>
+        </variable>
+        <variable><!--input-1-->
+            <order>5</order>
+            <name>Inlet Air Temperature</name>
+            <role>input</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>20.0</default>
+            <symbol>SN</symbol>
+            <definition>The drybulb temperature of the air entering the fan.</definition>
+        </variable>
+        <variable><!--input-2-->
+            <order>6</order>
+            <name>Inlet Air Humidity Ratio</name>
+            <role>input</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+0.45</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.008</default>
+            <symbol>SN</symbol>
+            <definition>The absolute humidity ratio of the air entering the fan.</definition>
+        </variable>
+        <variable><!--input-3-->
+            <order>7</order>
+            <name>Inlet Air % Relative Humidity</name>
+            <role>input</role>
+            <dimension>Percentage</dimension>
+            <unit>% (base 100)</unit>
+            <type>real</type>
+            <min>0.</min>
+            <max>100.</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>50.</default>
+            <symbol>SN</symbol>
+            <definition>The percent relative humidity of the air entering the fan.</definition>
+        </variable>
+        <variable><!--input-4-->
+            <order>8</order>
+            <name>Air Flow Rate</name>
+            <role>input</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>2000.0</default>
+            <symbol>SN</symbol>
+            <definition>The flow rate of the air (dry) entering the fan. This input is not used by this component except
+                for mass balance checking.
+            </definition>
+        </variable>
+        <variable><!--input-5-->
+            <order>9</order>
+            <name>Inlet Air Pressure</name>
+            <role>input</role>
+            <dimension>Pressure</dimension>
+            <unit>atm</unit>
+            <type>real</type>
+            <min>0.</min>
+            <max>5.</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1.</default>
+            <symbol>SN</symbol>
+            <definition>The inlet air pressure (absolute).</definition>
+        </variable>
+        <variable><!--input-6-->
+            <order>10</order>
+            <name>Control Signal</name>
+            <role>input</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>1.0</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1.0</default>
+            <symbol>SN</symbol>
+            <definition>The input control signal to the fan: &lt; 0.5 = the fan is off, &gt;= 0.5 = the fan in on.
+            </definition>
+        </variable>
+        <variable><!--output-1-->
+            <order>11</order>
+            <name>Outlet Air Temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The outlet air drybulb temperature from the fan.</definition>
+        </variable>
+        <variable><!--output-2-->
+            <order>12</order>
+            <name>Outlet Air Humidity Ratio</name>
+            <role>output</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>0.45</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The absolute humidity ratio of the air exiting the fan. In all cases, the exiting humidity ratio
+                is set to the inlet air humidity ratio.
+            </definition>
+        </variable>
+        <variable><!--output-3-->
+            <order>13</order>
+            <name>Outlet Air % Relative Humidity</name>
+            <role>output</role>
+            <dimension>Percentage</dimension>
+            <unit>% (base 100)</unit>
+            <type>real</type>
+            <min>0.</min>
+            <max>100.</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>50.</default>
+            <symbol>SN</symbol>
+            <definition>The percent relative humidity of the air exiting the fan.</definition>
+        </variable>
+        <variable><!--output-4-->
+            <order>14</order>
+            <name>Outlet Flow Rate</name>
+            <role>output</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The flow rate of dry air exiting the fan</definition>
+        </variable>
+        <variable><!--output-5-->
+            <order>15</order>
+            <name>Outlet Air Pressure</name>
+            <role>output</role>
+            <dimension>Pressure</dimension>
+            <unit>atm</unit>
+            <type>real</type>
+            <min>0.</min>
+            <max>5.</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1.</default>
+            <symbol>SN</symbol>
+            <definition>The absolute presure of the air exiting the fan.</definition>
+        </variable>
+        <variable><!--output-6-->
+            <order>16</order>
+            <name>Power Consumption</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The power consumed by the fan.</definition>
+        </variable>
+        <variable><!--output-7-->
+            <order>17</order>
+            <name>Air Heat Transfer</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which heat is transferred to the air by the fan operation. This value may include
+                motor heat loss if the motor is located within the air stream.
+            </definition>
+        </variable>
+        <variable><!--parameter-5-->
+            <order>18</order>
+            <name>Motor Heat Loss Fraction</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.</min>
+            <max>1.0</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.0</default>
+            <symbol>SN</symbol>
+            <definition>The fraction of the motor heat loss transferred to the air stream. The motor heat loss is
+                calculated by subtracting the efficiency of the motor from 1 and multiplying the resultant quantity by
+                the power consumption. Typical values are 0 for motors mounted outside the air stream and 1 for motors
+                mounted within the air stream.
+            </definition>
+        </variable>
+        <variable><!--input-7-->
+            <order>19</order>
+            <name>Air-Side Pressure Increase</name>
+            <role>input</role>
+            <dimension>Pressure</dimension>
+            <unit>atm</unit>
+            <type>real</type>
+            <min>0.</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.0</default>
+            <symbol>SN</symbol>
+            <definition>The increase in air-side pressure for the fan. This value should be set to zero when the fan is
+                off.
+            </definition>
+        </variable>
+        <variable><!--output-8-->
+            <order>20</order>
+            <name>Ambient Heat Transfer</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which energy is transferred to the environment from the fan. This value is
+                calculated by subtracting the heat transfer to the air stream from the total fan power.
+            </definition>
+        </variable>
+    </variables>
+    <cycles/>
+    <source>.\SourceCode\Types\Type146.f90</source>
+</TrnsysModel>
