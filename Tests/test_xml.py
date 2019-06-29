@@ -10,6 +10,19 @@ def fan_type():
     yield fan1
 
 
+@pytest.fixture()
+def pipe_type():
+    """Fixture to create a TrnsysModel from xml"""
+    from pyTrnsysType import TrnsysModel
+    with open("Tests/input_files/Type951.xml") as xml:
+        fan1 = TrnsysModel.from_xml(xml.read())
+    yield fan1
+
+
+def test_cycles(pipe_type):
+    a = pipe_type.parameters["Number_of_Radial_Soil_Nodes"] = 10
+
+
 def test_get_attr(fan_type):
     """Test getter for class TypeVariable"""
     in_air_temp = fan_type.inputs['Inlet_Air_Temperature']
