@@ -18,4 +18,8 @@ install:
   - pip install --no-cache-dir .
 
 script:
-  - pytest --cov pyTrnsysType --cov-report term-missing
+  - pytest --cov=pyTrnsysType --verbose tests/
+
+after_success:
+  - coverage report -m
+  - coveralls
