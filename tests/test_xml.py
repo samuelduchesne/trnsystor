@@ -1,4 +1,5 @@
 import pytest
+from mock import patch
 
 
 @pytest.fixture()
@@ -19,8 +20,10 @@ def pipe_type():
     yield fan1
 
 
-def test_chiller_type():
-    """Fixture to create a TrnsysModel from xml"""
+@patch('builtins.input', return_value='y')
+def test_chiller_type(input):
+    """Fixture to create a TrnsysModel from xml from an xml that contains
+    unknown tags. Should primpt user. Passes when input == 'y'"""
     from pyTrnsysType import TrnsysModel
     with open("tests/input_files/Type107-simplified.xml") as xml:
         fan1 = TrnsysModel.from_xml(xml.read())
