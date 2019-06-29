@@ -1,9 +1,11 @@
 import collections
 import copy
+import math
 import re
 
 from bs4 import BeautifulSoup, Tag
 from pint import UnitRegistry
+from pint.quantity import _Quantity
 
 
 class ArrayOfTrnsysType(object):
@@ -82,17 +84,20 @@ class TrnsysModel(object):
         type_vars = [TypeVariables.from_tag(tag)
                      for tag in kwargs['variables']
                      if isinstance(tag, Tag)]
-        type_cycles = [TypeCycle.from_tag(tag)
-                       for tag in kwargs.get('cycles').children
-                       if isinstance(tag, Tag)]
+        type_cycles = CycleCollection(TypeCycle.from_tag(tag)
+                                      for tag in kwargs.get('cycles').children
+                                      if isinstance(tag, Tag))
         model._meta.variables = type_vars
         model._meta.cycles = type_cycles
 
-        model.get_inputs()
-        model.get_outputs()
-        model.get_parameters()
+        model.trigger_variables()
 
         return model
+
+    def trigger_variables(self):
+        self.get_inputs()
+        self.get_outputs()
+        self.get_parameters()
 
     def get_inputs(self):
         input_dict = collections.OrderedDict(
@@ -167,7 +172,8 @@ class TypeVariables(object):
         self.default = default
         self.symbol = symbol
         self.definition = definition
-        self.value = parse(val, self.type, self.unit)
+        self.value = parse_value(val, self.type, self.unit,
+                                 (self.min, self.max))
 
     @classmethod
     def from_tag(cls, tag):
@@ -201,7 +207,8 @@ class TypeVariables(object):
     def _parse_types(self):
         for attr, value in self.__dict__.items():
             if attr in ['default', 'max', 'min']:
-                parsed_value = parse(value, self.type, self.unit)
+                parsed_value = parse_value(value, self.type, self.unit,
+                                           (self.min, self.max))
                 self.__setattr__(attr, parsed_value)
             if attr in ['order']:
                 self.__setattr__(attr, int(value))
@@ -246,14 +253,32 @@ class CycleCollection(collections.UserList):
 ureg = UnitRegistry()
 
 
-def parse(value, _type, unit):
+def resolve_type(args):
+    if isinstance(args, _Quantity):
+        return args.m
+    else:
+        return float(args)
+
+
+def parse_value(value, _type, unit, bounds=(-math.inf, math.inf)):
     _type = parse_type(_type)
     Q_, unit_ = parse_unit(unit)
 
-    if unit_:
-        return Q_(_type(value), unit_)
+    f = _type(value)
+    xmin, xmax = map(resolve_type, bounds)
+    is_bound = xmin <= f <= xmax
+    if is_bound:
+        if unit_:
+            return Q_(f, unit_)
+        else:
+            return f
     else:
-        return _type(value)
+        # out of bounds
+        msg = 'Value is out of bounds. ' \
+              '{xmin} <= {value} <= {xmax}'.format(
+            xmin=xmin, value=f, xmax=xmax
+        )
+        raise ValueError(msg)
 
 
 def parse_type(_type):
@@ -313,12 +338,18 @@ class VariableCollection(collections.UserDict):
         return value.value
 
     def __setitem__(self, key, value):
-        # todo: implement value boundaries logic here
+        # todo: implement trigger recycle here
         if isinstance(value, TypeVariables):
+            """if a TypeVariable is given, simply set it"""
             super().__setitem__(key, value)
-        else:
-            value = parse(value, self.data[key].type, self.data[key].unit)
+        elif isinstance(value, (int, float)):
+            """a str, float, int, etc. is passed"""
+            value = parse_value(value, self.data[key].type, self.data[key].unit,
+                                (self.data[key].min, self.data[key].max))
             self.data[key].__setattr__('value', value)
+        else:
+            raise TypeError('Cannot set a value of type {} in this '
+                            'VariableCollection')
 
     @classmethod
     def from_dict(cls, dictionary):
@@ -331,6 +362,9 @@ class VariableCollection(collections.UserDict):
     @property
     def size(self):
         return len(self)
+
+    def trigger_variables(self):
+        pass
 
 
 class InputCollection(VariableCollection):

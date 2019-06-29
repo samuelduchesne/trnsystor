@@ -20,7 +20,13 @@ def pipe_type():
 
 
 def test_cycles(pipe_type):
-    a = pipe_type.parameters["Number_of_Radial_Soil_Nodes"] = 10
+    pipe_type.parameters["Number_of_Radial_Soil_Nodes"] = 10
+
+
+def test_out_of_bounds(pipe_type):
+    """should trigger ValueError because out of bounds"""
+    with pytest.raises(ValueError):
+        pipe_type.parameters["Number_of_Radial_Soil_Nodes"] = 21
 
 
 def test_get_attr(fan_type):
