@@ -1,0 +1,543 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrnsysModel>
+    <object>Hot Water-Fired Single-Effect Absorption Chiller</object>
+    <author>Jeff W. Thornton</author>
+    <organization>Thermal Energy System Specialists</organization>
+    <editor>TESS</editor>
+    <creationDate>6/28/01</creationDate>
+    <modifictionDate>September 2016</modifictionDate>
+    <mode>2</mode>
+    <validation>34</validation>
+    <icon>\\apollon.meca.polymtl.ca\usagers\saleta\profiles\Desktop\Type107-simplified.bmp</icon>
+    <type>107</type>
+    <maxInstance>100</maxInstance>
+    <keywords>
+        <keyword>Chiller</keyword>
+        <keyword>Absorption</keyword>
+        <keyword>Absorption Chiller</keyword>
+        <keyword>Indirect-Fired</keyword>
+        <keyword>Hot Water Fired</keyword>
+        <keyword>Single-Effect</keyword>
+    </keywords>
+    <details>Type107 uses a normalized catalog data lookup approach to model a single-effect hot-water fired absorption
+        chiller. 'Hot Water-Fired' indicates that the energy supplied to the machines generator comes from a hot water
+        stream. Because the data files are normalized, the user may model any size chiller using a given set of data
+        files. Example files are provided.
+    </details>
+    <comment>A comment writtent in the dck file</comment>
+    <plugin>//thisismypluginpath</plugin>
+    <variables>
+        <variable><!--parameter-1-->
+            <order>1</order>
+            <name>Rated capacity</name>
+            <role>parameter</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>5380000</default>
+            <symbol>SN</symbol>
+            <definition>The capacity of the machine at its rated condition (typically 30C (85 F) inlet cooling water
+                temperature and 7C (44 F) chilled water set point temperature). The data files associated with this
+                model should be consistent with the rating conditions.
+            </definition>
+        </variable>
+        <variable><!--parameter-2-->
+            <order>2</order>
+            <name>Rated COP</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.53</default>
+            <symbol>SN</symbol>
+            <definition>The COP of the chiller at its rated conditions (typically 30 C (85 F) inlet cooling water
+                temperature and 7C (44 F) chilled water set point temperature). Make sure that the associated files for
+                this component are consistent with the rating conditions.
+            </definition>
+        </variable>
+        <variable><!--parameter-3-->
+            <order>3</order>
+            <name>Logical unit for the performance data file</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>10</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>20</default>
+            <symbol>SN</symbol>
+            <definition>The logical unit which will be assigned to the user-supplied data file containing the fraction
+                of nominal capacity and fraction of design energy input data as a function of the inlet hot water
+                temperature, the inlet cooling water temperature, the chilled water setpoint temperature, and the
+                fraction of design load.
+            </definition>
+        </variable>
+        <variable><!--parameter-4-->
+            <order>4</order>
+            <name>Number of HW temperatures in data file</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>2</min>
+            <max>20</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>5</default>
+            <symbol>SN</symbol>
+            <definition>The number of hot water inlet temperatures for which catalog data is supplied in the data
+                file.
+            </definition>
+        </variable>
+        <variable><!--parameter-5-->
+            <order>5</order>
+            <name>Number of CW steps in data file</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>2</min>
+            <max>20</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>3</default>
+            <symbol>SN</symbol>
+            <definition>The number of cooling water temperature steps contained in the required catalog data file.
+            </definition>
+        </variable>
+        <variable><!--parameter-6-->
+            <order>6</order>
+            <name>Number of CHW setpoints in data file</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>2</min>
+            <max>20</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>7</default>
+            <symbol>SN</symbol>
+            <definition>The number of chilled water setpoints for which catalog data is provided in the required data
+                file.
+            </definition>
+        </variable>
+        <variable><!--parameter-7-->
+            <order>7</order>
+            <name>Number of load fractions in data file</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>2</min>
+            <max>20</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>11</default>
+            <symbol>SN</symbol>
+            <definition>The number of fractions of design load for which catalog data is provided in the required data
+                file.
+            </definition>
+        </variable>
+        <variable><!--parameter-8-->
+            <order>8</order>
+            <name>HW fluid specific heat</name>
+            <role>parameter</role>
+            <dimension>Specific Heat</dimension>
+            <unit>kJ/kg.K</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>4.190</default>
+            <symbol>SN</symbol>
+            <definition>The specific heat of the fluid (typically hot water) which will be used by the absorption
+                chiller as the energy source for chiller operation.
+            </definition>
+        </variable>
+        <variable><!--parameter-9-->
+            <order>9</order>
+            <name>CHW fluid specific heat</name>
+            <role>parameter</role>
+            <dimension>Specific Heat</dimension>
+            <unit>kJ/kg.K</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>4.190</default>
+            <symbol>SN</symbol>
+            <definition>The specific heat of the chilled water stream flowing through the chiller.</definition>
+        </variable>
+        <variable><!--parameter-10-->
+            <order>10</order>
+            <name>CW fluid specific heat</name>
+            <role>parameter</role>
+            <dimension>Specific Heat</dimension>
+            <unit>kJ/kg.K</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>4.190</default>
+            <symbol>SN</symbol>
+            <definition>The specific heat of the cooling water flow stream.</definition>
+        </variable>
+        <variable><!--parameter-11-->
+            <order>11</order>
+            <name>Auxiliary electrical power</name>
+            <role>parameter</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>20000.0</default>
+            <symbol>SN</symbol>
+            <definition>The auxiliary electrical power required by the absorption chiller while its operating (solution
+                pumps, refrigerant pumps, etc).
+            </definition>
+        </variable>
+        <variable><!--input-1-->
+            <order>12</order>
+            <name>Chilled water inlet temperature</name>
+            <role>input</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>12.22</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the chilled water stream entering the chiller.</definition>
+        </variable>
+        <variable><!--input-2-->
+            <order>13</order>
+            <name>Chilled water flow rate</name>
+            <role>input</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>232000.0</default>
+            <symbol>SN</symbol>
+            <definition>The mass flow rate at which chilled water enters the chiller.</definition>
+        </variable>
+        <variable><!--input-3-->
+            <order>14</order>
+            <name>Cooling water inlet temperature</name>
+            <role>input</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>30.0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature at which the cooling water flow stream enters the chiller.</definition>
+        </variable>
+        <variable><!--input-4-->
+            <order>15</order>
+            <name>Cooling water flow rate</name>
+            <role>input</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>279000.0</default>
+            <symbol>SN</symbol>
+            <definition>The mass flow rate at which the cooling fluid (typically water) enters the chiller.</definition>
+        </variable>
+        <variable><!--input-5-->
+            <order>16</order>
+            <name>Hot water inlet temperature</name>
+            <role>input</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>112.0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the inlet stream (typically hot water) which will be used as the energy
+                source for chiller operation.
+            </definition>
+        </variable>
+        <variable><!--input-6-->
+            <order>17</order>
+            <name>Hot water flow rate</name>
+            <role>input</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>58000.0</default>
+            <symbol>SN</symbol>
+            <definition>The flow rate of fluid (typically hot water) used as the energy source for chiller operation.
+            </definition>
+        </variable>
+        <variable><!--input-7-->
+            <order>18</order>
+            <name>CHW setpoint</name>
+            <role>input</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>6.667</default>
+            <symbol>SN</symbol>
+            <definition>The setpoint temperature for the chilled water stream. If the chiller has the capacity to meet
+                the current load, the chiller will modulate to meet the load and chilled water stream will leave at this
+                temperature.
+            </definition>
+        </variable>
+        <variable><!--input-8-->
+            <order>19</order>
+            <name>Chiller control signal</name>
+            <role>input</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>0.0</min>
+            <max>1.0</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1.0</default>
+            <symbol>SN</symbol>
+            <definition>The control signal for the operation of the chiller. CTRL &lt; 0.5 : chiller is OFF, CTRL &gt;=
+                0.5 : chiller is ON
+            </definition>
+        </variable>
+        <variable><!--output-1-->
+            <order>20</order>
+            <name>Chilled water temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the chilled water stream exiting the chiller.</definition>
+        </variable>
+        <variable><!--output-2-->
+            <order>21</order>
+            <name>Chilled water flow rate</name>
+            <role>output</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.0</default>
+            <symbol>SN</symbol>
+            <definition>The flow rate of the chilled water stream exiting the chiller.</definition>
+        </variable>
+        <variable><!--output-3-->
+            <order>22</order>
+            <name>Cooling water temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>20.0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the cooling flow stream exiting the chiller.</definition>
+        </variable>
+        <variable><!--output-4-->
+            <order>23</order>
+            <name>Cooling water flow rate</name>
+            <role>output</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.0</default>
+            <symbol>SN</symbol>
+            <definition>The mass flow rate at which the cooling stream exits the chiller.</definition>
+        </variable>
+        <variable><!--output-5-->
+            <order>24</order>
+            <name>Hot water outlet temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>96.0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the hot water stream exiting the absorption chiller.</definition>
+        </variable>
+        <variable><!--output-6-->
+            <order>25</order>
+            <name>Hot water flow rate</name>
+            <role>output</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.0</default>
+            <symbol>SN</symbol>
+            <definition>The flow rate of fluid (typically hot water) exiting the chiller and used by the chiller for an
+                energy source for chiller operation.
+            </definition>
+        </variable>
+        <variable><!--output-7-->
+            <order>26</order>
+            <name>Chilled water energy</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which energy was removed from the chilled water flow stream during the timestep.
+            </definition>
+        </variable>
+        <variable><!--output-8-->
+            <order>27</order>
+            <name>Cooling water energy</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which energy is rejected to the cooling water flow stream by the chiller.
+            </definition>
+        </variable>
+        <variable><!--output-9-->
+            <order>28</order>
+            <name>Hot water energy</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which energy was removed from the hot water flow in order to operate the absorption
+                chiller.
+            </definition>
+        </variable>
+        <variable><!--output-10-->
+            <order>29</order>
+            <name>Electrical energy required</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which electrical energy was required in order to operate the absorption chiller
+                (solution pumps, refrigerant pumps, etc).
+            </definition>
+        </variable>
+        <variable><!--output-11-->
+            <order>30</order>
+            <name>Fraction of nominal capacity</name>
+            <role>output</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.0</default>
+            <symbol>SN</symbol>
+            <definition>The fraction of nominal capacity available to the chiller at the current timestep. The fraction
+                of nominal capacity is interpolated from the required data file for this component as a function of the
+                entering cooling water temperature, the chilled water setpoint temperature, the hot water inlet
+                temperature, and the fraction of design load.
+            </definition>
+        </variable>
+        <variable><!--output-12-->
+            <order>31</order>
+            <name>Fraction of design energy input</name>
+            <role>output</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>1.0</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.0</default>
+            <symbol>SN</symbol>
+            <definition>The fraction of design energy input required by the chiller at the current timestep. The
+                fraction of the energy input as compared to design conditions is interpolated from the required data
+                file for this component as a function of the entering cooling water temperature, the fraction of design
+                load to be met by the chiller at the current timestep, the entering hot water temperature, and the
+                chilled water setpoint temperature.
+            </definition>
+        </variable>
+        <variable><!--output-13-->
+            <order>32</order>
+            <name>COP</name>
+            <role>output</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1.21</default>
+            <symbol>SN</symbol>
+            <definition>The coefficient of performane (COP) of the chiller at current conditions. The COP for this model
+                is defined as the energy transferred from the chilled water stream divided by the sum of the electrical
+                energy required by the chiller and the energy provided to the chiller by the inlet hot water flow
+                stream.
+            </definition>
+        </variable>
+    </variables>
+    <cycles/>
+    <externalFiles>
+        <externalFile>
+            <question>File with fraction of design energy input data</question>
+            <answer>.\Examples\Data Files\Type107-HotWaterFiredAbsorptionChiller.dat</answer>
+            <answers>
+                <answer>.\Examples\Data Files\Type107-HotWaterFiredAbsorptionChiller.dat</answer>
+            </answers>
+            <parameter>Logical unit for the performance data file</parameter>
+            <designate>no</designate>
+        </externalFile>
+    </externalFiles>
+    <compileCommand>df /c</compileCommand>
+    <source>.\SourceCode\Types\Type107.f90</source>
+</TrnsysModel>

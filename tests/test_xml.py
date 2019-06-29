@@ -19,6 +19,14 @@ def pipe_type():
     yield fan1
 
 
+def test_chiller_type():
+    """Fixture to create a TrnsysModel from xml"""
+    from pyTrnsysType import TrnsysModel
+    with open("tests/input_files/Type107-simplified.xml") as xml:
+        fan1 = TrnsysModel.from_xml(xml.read())
+    return fan1
+
+
 def test_cycles(pipe_type):
     n_nodes = 20
     pipe_type.parameters["Number_of_Radial_Soil_Nodes"] = n_nodes
