@@ -20,7 +20,30 @@ def pipe_type():
 
 
 def test_cycles(pipe_type):
-    pipe_type.parameters["Number_of_Radial_Soil_Nodes"] = 10
+    n_nodes = 20
+    pipe_type.parameters["Number_of_Radial_Soil_Nodes"] = n_nodes
+
+    mylist = list(pipe_type.parameters.data.keys())
+    sub = 'Radial_Distance_of_Node'
+    expected = len([s for s in mylist if sub.lower() in s.lower()])
+
+    assert n_nodes == expected
+
+
+def test_cycles_2(pipe_type):
+    """changing number of fluid nodes from 10 to 20 should create 20 outputs
+    for pipe 2 and 20 outputs for pipe 1"""
+    n_nodes = 20
+    pipe_type.parameters['Number_of_Fluid_Nodes'] = n_nodes
+
+    mylist = list(pipe_type.outputs.data.keys())
+    sub_1 = 'Average_Fluid_Temperature_Pipe_1_'
+    sub_2 = 'Average_Fluid_Temperature_Pipe_2_'
+    expected_1 = len([s for s in mylist if sub_1.lower() in s.lower()])
+    expected_2 = len([s for s in mylist if sub_2.lower() in s.lower()])
+
+    assert n_nodes == expected_1
+    assert n_nodes == expected_2
 
 
 def test_out_of_bounds(pipe_type):

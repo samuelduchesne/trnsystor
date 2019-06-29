@@ -90,14 +90,26 @@ class TrnsysModel(object):
         model._meta.variables = type_vars
         model._meta.cycles = type_cycles
 
-        model.trigger_variables()
+        # model.trigger_variables()
 
         return model
 
     def trigger_variables(self):
-        self.get_inputs()
-        self.get_outputs()
-        self.get_parameters()
+        self._inputs = self.get_inputs()
+        self._outputs = self.get_outputs()
+        self._paramters = self.get_parameters()
+
+    @property
+    def inputs(self):
+        return self.get_inputs()
+
+    @property
+    def outputs(self):
+        return self.get_outputs()
+
+    @property
+    def parameters(self):
+        return self.get_parameters()
 
     def get_inputs(self):
         input_dict = collections.OrderedDict(
@@ -107,7 +119,7 @@ class TrnsysModel(object):
                    key=lambda key: key.order)
         )
         self.resolve_cycles(input_dict, 'input')
-        self.inputs = InputCollection.from_dict(input_dict)
+        return InputCollection.from_dict(input_dict)
 
     def get_outputs(self):
         output_dict = collections.OrderedDict(
@@ -117,7 +129,7 @@ class TrnsysModel(object):
                    key=lambda key: key.order)
         )
         self.resolve_cycles(output_dict, 'output')
-        self.outputs = OutputCollection.from_dict(output_dict)
+        return OutputCollection.from_dict(output_dict)
 
     def get_parameters(self):
         param_dict = collections.OrderedDict(
@@ -127,7 +139,7 @@ class TrnsysModel(object):
                    key=lambda key: key.order)
         )
         self.resolve_cycles(param_dict, 'parameter')
-        self.parameters = ParameterCollection.from_dict(param_dict)
+        return ParameterCollection.from_dict(param_dict)
 
     def resolve_cycles(self, output_dict, type_):
         cycles = {str(id(attr)): attr for attr in self._meta.cycles if
@@ -270,14 +282,11 @@ def parse_value(value, _type, unit, bounds=(-math.inf, math.inf)):
     if is_bound:
         if unit_:
             return Q_(f, unit_)
-        else:
-            return f
     else:
         # out of bounds
-        msg = 'Value is out of bounds. ' \
-              '{xmin} <= {value} <= {xmax}'.format(
-            xmin=xmin, value=f, xmax=xmax
-        )
+        msg = 'Value "{}" is out of bounds. ' \
+              '{xmin} <= value <= {xmax}'.format(f, xmin=Q_(xmin, unit_),
+                                                 xmax=Q_(xmax, unit_))
         raise ValueError(msg)
 
 
