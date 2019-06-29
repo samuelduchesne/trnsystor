@@ -1,8 +1,11 @@
 import collections
+import copy
+import math
 import re
 
 from bs4 import BeautifulSoup, Tag
 from pint import UnitRegistry
+from pint.quantity import _Quantity
 
 
 class ArrayOfTrnsysType(object):
@@ -37,16 +40,26 @@ class MetaData(object):
 
         self.variables = variables
 
+    @classmethod
+    def from_tag(cls, **kwargs):
+        return cls(**{attr: kwargs[attr].text for attr in kwargs})
+
 
 class TrnsysModel(object):
 
     def __init__(self, meta, name):
+        """
+
+        Args:
+            name (str):
+            meta (MetaData):
+        """
         self._meta = meta
         self.name = name
 
-        self.get_inputs()
-        self.get_outputs()
-        self.get_parameters()
+        # self.get_inputs()
+        # self.get_outputs()
+        # self.get_parameters()
 
     @classmethod
     def from_xml(cls, xml):
@@ -55,24 +68,9 @@ class TrnsysModel(object):
         my_objects = soup.findAll("TrnsysModel")
         for trnsystype in my_objects:
             t = TrnsysModel.from_tag(
-                **{child.name: child.text for child in trnsystype.children
-                   if
-                   isinstance(child, Tag)})
-            vars = trnsystype.find("variables")
+                **{child.name: child for child in trnsystype.children
+                   if isinstance(child, Tag)})
             all_types.append(t)
-            t._meta.variables = []
-            for var in vars:
-                if not isinstance(var, Tag):
-                    pass
-                else:
-                    v = TypeVariables.from_tag(
-                        **{child.name: child.text for child in var.children
-                           if
-                           isinstance(child, Tag)})
-                    t._meta.variables.append(v)
-            t.get_inputs()
-            t.get_outputs()
-            t.get_parameters()
         if len(all_types) > 1:
             return all_types
         else:
@@ -80,25 +78,89 @@ class TrnsysModel(object):
 
     @classmethod
     def from_tag(cls, **kwargs):
-        meta = MetaData(**kwargs)
-        name = kwargs.get('object')
+        meta = MetaData.from_tag(**kwargs)
+        name = kwargs.get('object').text
         model = TrnsysModel(meta, name)
+        type_vars = [TypeVariables.from_tag(tag)
+                     for tag in kwargs['variables']
+                     if isinstance(tag, Tag)]
+        type_cycles = CycleCollection(TypeCycle.from_tag(tag)
+                                      for tag in kwargs.get('cycles').children
+                                      if isinstance(tag, Tag))
+        model._meta.variables = type_vars
+        model._meta.cycles = type_cycles
+
+        # model.trigger_variables()
+
         return model
 
+    def trigger_variables(self):
+        self._inputs = self.get_inputs()
+        self._outputs = self.get_outputs()
+        self._paramters = self.get_parameters()
+
+    @property
+    def inputs(self):
+        return self.get_inputs()
+
+    @property
+    def outputs(self):
+        return self.get_outputs()
+
+    @property
+    def parameters(self):
+        return self.get_parameters()
+
     def get_inputs(self):
-        input_dict = {attr.name: attr for attr in self._meta.variables if
-                      isinstance(attr, Input)}
-        self.inputs = InputCollection.from_dict(input_dict)
+        input_dict = collections.OrderedDict(
+            (attr.name, attr) for attr in
+            sorted(filter(lambda x: isinstance(x, Input),
+                          self._meta.variables),
+                   key=lambda key: key.order)
+        )
+        self.resolve_cycles(input_dict, 'input')
+        return InputCollection.from_dict(input_dict)
 
     def get_outputs(self):
-        input_dict = {attr.name: attr for attr in self._meta.variables if
-                      isinstance(attr, Output)}
-        self.outputs = OutputCollection.from_dict(input_dict)
+        output_dict = collections.OrderedDict(
+            (id(attr), attr) for attr in
+            sorted(filter(lambda o: isinstance(o, Output),
+                          self._meta.variables),
+                   key=lambda key: key.order)
+        )
+        self.resolve_cycles(output_dict, 'output')
+        return OutputCollection.from_dict(output_dict)
 
     def get_parameters(self):
-        input_dict = {attr.name: attr for attr in self._meta.variables if
-                      isinstance(attr, Parameter)}
-        self.parameters = ParameterCollection.from_dict(input_dict)
+        param_dict = collections.OrderedDict(
+            (id(attr), attr) for attr in
+            sorted(filter(lambda o: isinstance(o, Parameter),
+                          self._meta.variables),
+                   key=lambda key: key.order)
+        )
+        self.resolve_cycles(param_dict, 'parameter')
+        return ParameterCollection.from_dict(param_dict)
+
+    def resolve_cycles(self, output_dict, type_):
+        cycles = {str(id(attr)): attr for attr in self._meta.cycles if
+                  attr.role == type_}
+        # repeat cycle variables n times
+        for _, cycle in cycles.items():
+            idxs = [(int(cycle.firstRow) - 1)
+                    for cycle in cycle.cycles]
+            items = [output_dict.pop(id(key))
+                     for key in [list(output_dict.values())[i] for i in idxs]]
+            n_times = [list(
+                filter(lambda o: o.name == cycle.paramName,
+                       self._meta.variables)
+            )[0].value.m for cycle in cycle.cycles]
+            for item, n_time in zip(items, n_times):
+                basename = item.name
+                for n, _ in enumerate(range(n_time), start=1):
+                    item = item.copy()
+                    item.name = basename + "-{}".format(n)
+                    item.order += len(idxs)  # so that oder number is unique
+                    output_dict.update({id(item): item})
 
     def __repr__(self):
         return 'Type{}: {}'.format(self._meta.type, self.name)
@@ -122,19 +184,22 @@ class TypeVariables(object):
         self.default = default
         self.symbol = symbol
         self.definition = definition
-        self.value = parse(val, self.type, self.unit)
+        self.value = parse_value(val, self.type, self.unit,
+                                 (self.min, self.max))
 
     @classmethod
-    def from_tag(cls, **kwargs):
-        role = kwargs.pop('role').lower()
-        val = kwargs.get('default')
-        _type = parse_type(kwargs.get('type'))
+    def from_tag(cls, tag):
+
+        role = tag.find('role').text
+        val = tag.find('default').text
+        _type = parse_type(tag.find('type').text)
+        attr = {attr.name: attr.text for attr in tag if isinstance(attr, Tag)}
         if role == 'parameter':
-            return Parameter(_type(val), **kwargs)
+            return Parameter(_type(val), **attr)
         elif role == 'input':
-            return Input(_type(val), **kwargs)
+            return Input(_type(val), **attr)
         elif role == 'output':
-            return Output(_type(val), **kwargs)
+            return Output(_type(val), **attr)
         else:
             raise NotImplementedError()
 
@@ -147,26 +212,82 @@ class TypeVariables(object):
     def __repr__(self):
         return '{}'.format(self.value)
 
+    def copy(self):
+        new_self = copy.copy(self)
+        return new_self
+
     def _parse_types(self):
         for attr, value in self.__dict__.items():
             if attr in ['default', 'max', 'min']:
-                parsed_value = parse(value, self.type, self.unit)
+                parsed_value = parse_value(value, self.type, self.unit,
+                                           (self.min, self.max))
                 self.__setattr__(attr, parsed_value)
             if attr in ['order']:
                 self.__setattr__(attr, int(value))
 
 
+class TypeCycle(object):
+    def __init__(self, role=None, firstRow=None, lastRow=None, cycles=None,
+                 minSize=None, maxSize=None, paramName=None,
+                 **kwargs):
+        super().__init__()
+        self.role = role
+        self.firstRow = firstRow
+        self.lastRow = lastRow
+        self.cycles = cycles
+        self.minSize = minSize
+        self.maxSize = maxSize
+        self.paramName = paramName
+
+    @classmethod
+    def from_tag(cls, tag_):
+        dict_ = collections.defaultdict(list)
+        for attr in filter(lambda x: isinstance(x, Tag), tag_):
+            if attr.name != 'cycles' and not attr.is_empty_element:
+                dict_[attr.name] = attr.text
+            elif attr.is_empty_element:
+                pass
+            else:
+                dict_['cycles'].extend([cls.from_tag(tag) for tag in attr
+                                        if isinstance(tag, Tag)])
+        return cls(**dict_)
+
+    def __repr__(self):
+        return self.role + " {} to {}".format(self.firstRow, self.lastRow)
+
+
+class CycleCollection(collections.UserList):
+    def __getitem__(self, key):
+        value = super().__getitem__(key)
+        return value
+
+
 ureg = UnitRegistry()
 
 
-def parse(value, _type, unit):
+def resolve_type(args):
+    if isinstance(args, _Quantity):
+        return args.m
+    else:
+        return float(args)
+
+
+def parse_value(value, _type, unit, bounds=(-math.inf, math.inf)):
     _type = parse_type(_type)
     Q_, unit_ = parse_unit(unit)
 
-    if unit_:
-        return Q_(_type(value), unit_)
+    f = _type(value)
+    xmin, xmax = map(resolve_type, bounds)
+    is_bound = xmin <= f <= xmax
+    if is_bound:
+        if unit_:
+            return Q_(f, unit_)
     else:
-        return _type(value)
+        # out of bounds
+        msg = 'Value "{}" is out of bounds. ' \
+              '{xmin} <= value <= {xmax}'.format(f, xmin=Q_(xmin, unit_),
+                                                 xmax=Q_(xmax, unit_))
+        raise ValueError(msg)
 
 
 def parse_type(_type):
@@ -226,24 +347,33 @@ class VariableCollection(collections.UserDict):
         return value.value
 
     def __setitem__(self, key, value):
-        # todo: implement value boundaries logic here
+        # todo: implement trigger recycle here
         if isinstance(value, TypeVariables):
+            """if a TypeVariable is given, simply set it"""
             super().__setitem__(key, value)
-        else:
-            value = parse(value, self.data[key].type, self.data[key].unit)
+        elif isinstance(value, (int, float)):
+            """a str, float, int, etc. is passed"""
+            value = parse_value(value, self.data[key].type, self.data[key].unit,
+                                (self.data[key].min, self.data[key].max))
             self.data[key].__setattr__('value', value)
+        else:
+            raise TypeError('Cannot set a value of type {} in this '
+                            'VariableCollection')
 
     @classmethod
     def from_dict(cls, dictionary):
         item = cls()
         for key in dictionary:
-            named_key = re.sub('[^0-9a-zA-Z]+', '_', key)
+            named_key = re.sub('[^0-9a-zA-Z]+', '_', dictionary[key].name)
             item.__setitem__(named_key, dictionary[key])
         return item
 
     @property
     def size(self):
         return len(self)
+
+    def trigger_variables(self):
+        pass
 
 
 class InputCollection(VariableCollection):

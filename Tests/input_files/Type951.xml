@@ -1,0 +1,810 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrnsysModel>
+    <object>Ecoflex 2-Pipe: Buried Piping System</object>
+    <author>Jeff Thornton</author>
+    <organization>Thermal Energy System Specialists</organization>
+    <editor>Jeff Thornton</editor>
+    <creationDate>February 2006</creationDate>
+    <modifictionDate>May 2010</modifictionDate>
+    <mode>1</mode>
+    <validation>34</validation>
+    <icon>C:\Users\saleta\Dropbox\Polytechnique\Doc\software\pyTrnsysType\Tests\input_files\Type951.bmp</icon>
+    <type>951</type>
+    <maxInstance>9999</maxInstance>
+    <keywords>
+        <keyword>Buried Pipe</keyword>
+        <keyword>Soil Losses</keyword>
+        <keyword>Geothermal</keyword>
+    </keywords>
+    <details>Refer to the document: ".\TESS Models\Documentation\04-GHPLibraryMathematicalReference.pdf" for a complete
+        technical description of this component.
+    </details>
+    <variablesComment>Ecoflex Twin Buried Pipe Model</variablesComment>
+    <variables>
+        <variable><!--parameter-1-->
+            <order>1</order>
+            <name>Length of Buried Pipe</name>
+            <role>parameter</role>
+            <dimension>Length</dimension>
+            <unit>m</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>24.384</default>
+            <symbol>SN</symbol>
+            <definition>The length of the buried horizontal pipe.</definition>
+        </variable>
+        <variable><!--parameter-2-->
+            <order>2</order>
+            <name>Inner Diameter of Pipes</name>
+            <role>parameter</role>
+            <dimension>Length</dimension>
+            <unit>m</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.02618</default>
+            <symbol>SN</symbol>
+            <definition>The inner diameter of the pipes containing the working fluid.</definition>
+        </variable>
+        <variable><!--parameter-3-->
+            <order>3</order>
+            <name>Outer Diameter of Pipes</name>
+            <role>parameter</role>
+            <dimension>Length</dimension>
+            <unit>m</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.03198</default>
+            <symbol>SN</symbol>
+            <definition>The outside diameter of the pipes containing the working fluid.</definition>
+        </variable>
+        <variable><!--parameter-4-->
+            <order>4</order>
+            <name>Thermal Conductivity of Pipe Material</name>
+            <role>parameter</role>
+            <dimension>Thermal Conductivity</dimension>
+            <unit>kJ/hr.m.K</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1.37067</default>
+            <symbol>SN</symbol>
+            <definition>The thermal conductivity of the fluid-filled pipe walls.</definition>
+        </variable>
+        <variable><!--parameter-5-->
+            <order>5</order>
+            <name>Buried Pipe Depth</name>
+            <role>parameter</role>
+            <dimension>Length</dimension>
+            <unit>m</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>3.0</default>
+            <symbol>SN</symbol>
+            <definition>The depth at which the horizontal pipe is buried. The depth should be measured from the surface
+                to the center of the pipe.
+            </definition>
+        </variable>
+        <variable><!--parameter-6-->
+            <order>6</order>
+            <name>Direction of Second Pipe Flow</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>2</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>2</default>
+            <symbol>SN</symbol>
+            <definition>The direction of flow of the second pipe relative to the first pipe: 1 = same direction, 2 =
+                opposite direction.
+            </definition>
+        </variable>
+        <variable><!--parameter-7-->
+            <order>7</order>
+            <name>Diameter of Casing Material</name>
+            <role>parameter</role>
+            <dimension>Length</dimension>
+            <unit>m</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.17526</default>
+            <symbol>SN</symbol>
+            <definition>The diameter of the casing material that holds the two fluid-filled pipes.</definition>
+        </variable>
+        <variable><!--parameter-8-->
+            <order>8</order>
+            <name>Thermal Conductivity of Fill Insulation</name>
+            <role>parameter</role>
+            <dimension>Thermal Conductivity</dimension>
+            <unit>kJ/hr.m.K</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.14537</default>
+            <symbol>SN</symbol>
+            <definition>The thermal conductivity of the material that used to fill the casing between the fluid filled
+                pipes.
+            </definition>
+        </variable>
+        <variable><!--parameter-9-->
+            <order>9</order>
+            <name>Center-to-Center Pipe Spacing</name>
+            <role>parameter</role>
+            <dimension>Length</dimension>
+            <unit>m</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.06911</default>
+            <symbol>SN</symbol>
+            <definition>The distance between the centers of the two fluid-filled pipes.</definition>
+        </variable>
+        <variable><!--parameter-10-->
+            <order>10</order>
+            <name>Thermal Conductivity of Gap Material</name>
+            <role>parameter</role>
+            <dimension>Thermal Conductivity</dimension>
+            <unit>kJ/hr.m.K</unit>
+            <type>real</type>
+            <min>0.</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>8.722</default>
+            <symbol>SN</symbol>
+            <definition>The thermal conductivity of the material (if any) located between the outside of the casing
+                material and the ground in which the pipe system is buried.
+            </definition>
+        </variable>
+        <variable><!--parameter-11-->
+            <order>11</order>
+            <name>Gap Thickness</name>
+            <role>parameter</role>
+            <dimension>Length</dimension>
+            <unit>m</unit>
+            <type>real</type>
+            <min>0.</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.0000</default>
+            <symbol>SN</symbol>
+            <definition>The thickness of the gap (air? insulation?) between the outside of the pipe casing and the
+                ground in which the piping system is buried.
+            </definition>
+        </variable>
+        <variable><!--parameter-12-->
+            <order>12</order>
+            <name>Density of Fluid</name>
+            <role>parameter</role>
+            <dimension>Density</dimension>
+            <unit>kg/m^3</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1000.0</default>
+            <symbol>SN</symbol>
+            <definition>The density of the working fluid flowing through the horizontal buried pipes.</definition>
+        </variable>
+        <variable><!--parameter-13-->
+            <order>13</order>
+            <name>Thermal Conductivity of Fluid</name>
+            <role>parameter</role>
+            <dimension>Thermal Conductivity</dimension>
+            <unit>kJ/hr.m.K</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>2.2068</default>
+            <symbol>SN</symbol>
+            <definition>The thermal conductivity of the working fluid flowing through the horizontal buried pipes.
+            </definition>
+        </variable>
+        <variable><!--parameter-14-->
+            <order>14</order>
+            <name>Specific Heat of Fluid</name>
+            <role>parameter</role>
+            <dimension>Specific Heat</dimension>
+            <unit>kJ/kg.K</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>4.19</default>
+            <symbol>SN</symbol>
+            <definition>The specific heat of the working fluid flowing through the buried pipes.</definition>
+        </variable>
+        <variable><!--parameter-15-->
+            <order>15</order>
+            <name>Viscosity of Fluid</name>
+            <role>parameter</role>
+            <dimension>Dynamic Viscosity</dimension>
+            <unit>kg/m.hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>3.078</default>
+            <symbol>SN</symbol>
+            <definition>The viscosity of the working fluid flowing through the buried pipes.</definition>
+        </variable>
+        <variable><!--parameter-16-->
+            <order>16</order>
+            <name>Initial Fluid Temperature - Pipe 1</name>
+            <role>parameter</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>10.0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the fluid in the first buried pipe at the beginning of the simulation.
+            </definition>
+        </variable>
+        <variable><!--parameter-17-->
+            <order>17</order>
+            <name>Initial Fluid Temperature - Pipe 2</name>
+            <role>parameter</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>10.0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the fluid in the second buried pipe at the beginning of the simulation.
+            </definition>
+        </variable>
+        <variable><!--parameter-18-->
+            <order>18</order>
+            <name>Thermal Conductivity of Soil</name>
+            <role>parameter</role>
+            <dimension>Thermal Conductivity</dimension>
+            <unit>kJ/hr.m.K</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>8.722</default>
+            <symbol>SN</symbol>
+            <definition>The thermal conductivity of the soil in which the horizontal pipes are buried.</definition>
+        </variable>
+        <variable><!--parameter-19-->
+            <order>19</order>
+            <name>Density of Soil</name>
+            <role>parameter</role>
+            <dimension>Density</dimension>
+            <unit>kg/m^3</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>2500.0</default>
+            <symbol>SN</symbol>
+            <definition>The density of the soil in which the horizontal pipes are buried.</definition>
+        </variable>
+        <variable><!--parameter-20-->
+            <order>20</order>
+            <name>Specific Heat of Soil</name>
+            <role>parameter</role>
+            <dimension>Specific Heat</dimension>
+            <unit>kJ/kg.K</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.84</default>
+            <symbol>SN</symbol>
+            <definition>The specific heat of the soil in which the horizontal pipes are buried.</definition>
+        </variable>
+        <variable><!--parameter-21-->
+            <order>21</order>
+            <name>Average Surface Temperature</name>
+            <role>parameter</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>7.96</default>
+            <symbol>SN</symbol>
+            <definition>The average surface temperature during the year. This temperature will be used as the deep earth
+                temperature for the calculations as is typically the average air temperature over the year at the
+                location.
+            </definition>
+        </variable>
+        <variable><!--parameter-22-->
+            <order>22</order>
+            <name>Amplitude of Surface Temperature</name>
+            <role>parameter</role>
+            <dimension>Temp. Difference</dimension>
+            <unit>deltaC</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>13.32</default>
+            <symbol>SN</symbol>
+            <definition>The difference in temperature between the maximum surface temperature and the average surface
+                temperature.
+            </definition>
+        </variable>
+        <variable><!--parameter-23-->
+            <order>23</order>
+            <name>Day of Minimum Surface Temperature</name>
+            <role>parameter</role>
+            <dimension>Time</dimension>
+            <unit>day</unit>
+            <type>real</type>
+            <min>1</min>
+            <max>365</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>36</default>
+            <symbol>SN</symbol>
+            <definition>The day of the year in which the minimum surface temperature occurs.</definition>
+        </variable>
+        <variable><!--parameter-24-->
+            <order>24</order>
+            <name>Number of Fluid Nodes</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>1000</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>100</default>
+            <symbol>SN</symbol>
+            <definition>The number of nodes into which each pipe will be divided. Increasing the number of nodes will
+                improve the accuracy but cost simulation run-time.
+            </definition>
+        </variable>
+        <variable><!--parameter-25-->
+            <order>25</order>
+            <name>Number of Radial Soil Nodes</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>2</min>
+            <max>20</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>8</default>
+            <symbol>SN</symbol>
+            <definition>The number of nodes in the radial direction for the finite difference calculations in the soil.
+                Increasing the number of radial nodes will increase the accuracy at the expense of simulation time.
+            </definition>
+        </variable>
+        <variable><!--parameter-26-->
+            <order>26</order>
+            <name>Number of Axial Soil Nodes</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>2</min>
+            <max>20</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>10</default>
+            <symbol>SN</symbol>
+            <definition>The number of nodes in the axial direction for the finite difference calculations in the soil.
+                Increasing the number of radial nodes will increase the accuracy at the expense of simulation time. This
+                number must be able to be evenly divided into the number of fluid nodes.
+            </definition>
+        </variable>
+        <variable><!--parameter-27-->
+            <order>27</order>
+            <name>Number of Circumferential Soil Nodes</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>2</min>
+            <max>20</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>4</default>
+            <symbol>SN</symbol>
+            <definition>The number of circumferential soil nodes. Increasing the number of soil nodes will increase the
+                accuracy of the calculations at the expense of simulation time.
+            </definition>
+        </variable>
+        <variable><!--parameter-28-->
+            <order>28</order>
+            <name>Radial Distance of Node</name>
+            <role>parameter</role>
+            <dimension>Length</dimension>
+            <unit>m</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.0254</default>
+            <symbol>SN</symbol>
+            <definition>The radial distance of the specified soil node. Typically, the nodes are smaller the closer they
+                are to the pipe. For example, a 5 node distribution may be: 0.0254 0.058 0.3084 0.6168 1.336.
+            </definition>
+        </variable>
+        <variable><!--input-1-->
+            <order>29</order>
+            <name>Inlet Fluid Temperature - Pipe 1</name>
+            <role>input</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>15.0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the fluid flowing into the first buried horizontal pipe.</definition>
+        </variable>
+        <variable><!--input-2-->
+            <order>30</order>
+            <name>Inlet Fluid Flowrate - Pipe 1</name>
+            <role>input</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.0</default>
+            <symbol>SN</symbol>
+            <definition>The flowrate of fluid into the first buried horizontal pipe.</definition>
+        </variable>
+        <variable><!--output-1-->
+            <order>31</order>
+            <name>Outlet Fluid Temperature - Pipe 1</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the fluid exiting the first buried horizontal pipe.</definition>
+        </variable>
+        <variable><!--output-2-->
+            <order>32</order>
+            <name>Outlet Fluid Flowrate - Pipe 1</name>
+            <role>output</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The flowrate of fluid exiting the first buried horizontal pipe.</definition>
+        </variable>
+        <variable><!--output-3-->
+            <order>33</order>
+            <name>Outlet Fluid Temperature - Pipe 2</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the fluid exiting the second buried horizontal pipe.</definition>
+        </variable>
+        <variable><!--output-4-->
+            <order>34</order>
+            <name>Outlet Fluid Flowrate - Pipe 2</name>
+            <role>output</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The flowrate of the fluid exiting the second buried horizontal pipe.</definition>
+        </variable>
+        <variable><!--output-5-->
+            <order>35</order>
+            <name>Average Fluid Temperature - Pipe 1</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The average temperature of the fluid in the first buried pipe.</definition>
+        </variable>
+        <variable><!--output-6-->
+            <order>36</order>
+            <name>Average Fluid Temperature - Pipe 2</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The average temperature of the fluid in the second buried pipe.</definition>
+        </variable>
+        <variable><!--output-7-->
+            <order>37</order>
+            <name>Delivered Energy - Pipe 1</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which energy is delivered from the first buried pipe.</definition>
+        </variable>
+        <variable><!--output-8-->
+            <order>38</order>
+            <name>Delivered Energy - Pipe 2</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which energy is delivered from the second buried pipe.</definition>
+        </variable>
+        <variable><!--output-9-->
+            <order>39</order>
+            <name>Stored Fluid Energy - Pipe 1</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which energy is stored in the fluid of the first buried pipe.</definition>
+        </variable>
+        <variable><!--output-10-->
+            <order>40</order>
+            <name>Stored Fluid Energy - Pipe 2</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which energy is stored in the fluid of the second buried pipe.</definition>
+        </variable>
+        <variable><!--output-11-->
+            <order>41</order>
+            <name>Thermal Losses - Pipe 1</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which energy is lost from the fluid in the first buried pipe to the soil.
+            </definition>
+        </variable>
+        <variable><!--output-12-->
+            <order>42</order>
+            <name>Thermal Losses - Pipe 2</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which energy is lost from the fluid in the second buried pipe to the soil.
+            </definition>
+        </variable>
+        <variable><!--output-13-->
+            <order>43</order>
+            <name>Pipe 1 --&gt; 2 Heat Transfer</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which energy is transferred from the fluid in the first buried pipe to the fluid in
+                the second buried pipe.
+            </definition>
+        </variable>
+        <variable><!--input-3-->
+            <order>44</order>
+            <name>Inlet Fluid Temperature - Pipe 2</name>
+            <role>input</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>15.0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the fluid flowing into the second buried horizontal pipe.</definition>
+        </variable>
+        <variable><!--input-4-->
+            <order>45</order>
+            <name>Inlet Fluid Flowrate - Pipe 2</name>
+            <role>input</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.0</default>
+            <symbol>SN</symbol>
+            <definition>The flowrate of fluid into the second buried horizontal pipe.</definition>
+        </variable>
+        <variable><!--output-14-->
+            <order>46</order>
+            <name>Casing Heat Loss</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which energy is transferred across the casing wall to the soil from the buried
+                pipes.
+            </definition>
+        </variable>
+        <variable><!--output-15-->
+            <order>47</order>
+            <name>Boundary Heat Transfer</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which energy is transferred across the boundaries of the soil storage.</definition>
+        </variable>
+        <variable><!--output-16-->
+            <order>48</order>
+            <name>Soil Storage Rate</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which energy is being stored in the soil.</definition>
+        </variable>
+        <variable><!--output-17-->
+            <order>49</order>
+            <name>Average Fluid Temperature - Pipe 1</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The average temperature of the fluid in the specified node of the first buried pipe.
+            </definition>
+        </variable>
+        <variable><!--output-18-->
+            <order>50</order>
+            <name>Average Fluid Temperature - Pipe 2</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The average temperature of the fluid in the specified node of the second buried pipe.
+            </definition>
+        </variable>
+    </variables>
+    <cycles>
+        <cycle>
+            <role>output</role>
+            <firstRow>1</firstRow>
+            <lastRow>18</lastRow>
+            <cycles>
+                <cycle>
+                    <role>output</role>
+                    <firstRow>17</firstRow>
+                    <lastRow>17</lastRow>
+                    <paramName>Number of Fluid Nodes</paramName>
+                    <cycles/>
+                    <minSize>1</minSize>
+                    <maxSize>100</maxSize>
+                </cycle>
+                <cycle>
+                    <role>output</role>
+                    <firstRow>18</firstRow>
+                    <lastRow>18</lastRow>
+                    <paramName>Number of Fluid Nodes</paramName>
+                    <cycles/>
+                    <minSize>1</minSize>
+                    <maxSize>100</maxSize>
+                </cycle>
+            </cycles>
+            <minSize>1</minSize>
+            <maxSize>50</maxSize>
+        </cycle>
+        <cycle>
+            <role>parameter</role>
+            <firstRow>1</firstRow>
+            <lastRow>28</lastRow>
+            <cycles>
+                <cycle>
+                    <role>parameter</role>
+                    <firstRow>28</firstRow>
+                    <lastRow>28</lastRow>
+                    <paramName>Number of Radial Soil Nodes</paramName>
+                    <cycles/>
+                    <minSize>1</minSize>
+                    <maxSize>100</maxSize>
+                </cycle>
+            </cycles>
+            <minSize>1</minSize>
+            <maxSize>50</maxSize>
+        </cycle>
+    </cycles>
+    <source>.\TESS Models\SourceCode\Type951.f90</source>
+</TrnsysModel>
