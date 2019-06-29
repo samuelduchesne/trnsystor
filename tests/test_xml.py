@@ -5,7 +5,7 @@ import pytest
 def fan_type():
     """Fixture to create a TrnsysModel from xml"""
     from pyTrnsysType import TrnsysModel
-    with open("test/input_files/Type146.xml") as xml:
+    with open("tests/input_files/Type146.xml") as xml:
         fan1 = TrnsysModel.from_xml(xml.read())
     yield fan1
 
@@ -14,7 +14,7 @@ def fan_type():
 def pipe_type():
     """Fixture to create a TrnsysModel from xml"""
     from pyTrnsysType import TrnsysModel
-    with open("test/input_files/Type951.xml") as xml:
+    with open("tests/input_files/Type951.xml") as xml:
         fan1 = TrnsysModel.from_xml(xml.read())
     yield fan1
 
