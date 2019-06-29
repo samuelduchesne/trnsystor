@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/samuelduchesne/pyTrnsysType.svg?branch=master)](https://travis-ci.com/samuelduchesne/pyTrnsysType)
+
 pyTrnsysType
 ============
 
