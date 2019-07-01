@@ -71,8 +71,19 @@ def test_get_attr(fan_type):
 
 def test_set_attr(fan_type):
     """Test setter for class TypeVariable"""
-    fan_type.inputs['Inlet_Air_Temperature'] = 12
+    new_value = 12
+    attr_name = 'Inlet_Air_Temperature'
+    fan_type.inputs[attr_name] = new_value
 
-    Q_ = fan_type.inputs['Inlet_Air_Temperature']
-    assert fan_type.inputs['Inlet_Air_Temperature'] == Q_.__class__(12,
-                                                                    Q_.units)
+    Q_ = fan_type.inputs[attr_name]
+    assert fan_type.inputs[attr_name] == Q_.__class__(new_value, Q_.units)
+
+
+def test_set_attr_cycle_parameters(pipe_type):
+    """Test setter for class TypeVariable"""
+    attr_name = 'Radial_Distance_of_Node_1'
+    new_value = 0.05
+    pipe_type.parameters[attr_name] = new_value
+
+    Q_ = pipe_type.parameters[attr_name]
+    assert pipe_type.parameters[attr_name] == Q_.__class__(new_value, Q_.units)
