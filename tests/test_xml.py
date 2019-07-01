@@ -87,3 +87,8 @@ def test_set_attr_cycle_parameters(pipe_type):
 
     Q_ = pipe_type.parameters[attr_name]
     assert pipe_type.parameters[attr_name] == Q_.__class__(new_value, Q_.units)
+
+
+def test_to_deck(fan_type):
+    """test to Input File representation of a TrnsysModel"""
+    print(fan_type.to_deck())

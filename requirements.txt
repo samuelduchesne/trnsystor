@@ -1,3 +1,4 @@
 lxml
 pint
 beautifulsoup4
+tabulate

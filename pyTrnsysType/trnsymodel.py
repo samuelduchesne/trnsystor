@@ -1,11 +1,14 @@
 import collections
 import copy
+import itertools
 import math
 import re
 
 from bs4 import BeautifulSoup, Tag
 from pint import UnitRegistry
 from pint.quantity import _Quantity
+
+import pyTrnsysType
 
 
 class MetaData(object):
@@ -116,17 +119,20 @@ class ExternalFile(object):
 
 
 class TrnsysModel(object):
+    new_id = itertools.count(start=1)
+
+    # todo: check what are the legal unit numbers
 
     def __init__(self, meta, name):
         """
         Todo:
-            - Add unique unit number generator.
             - Create to_deck functionality
 
         Args:
             meta (MetaData):
             name (str):
         """
+        self._unit = next(self.new_id)
         self._meta = meta
         self.name = name
 
@@ -189,6 +195,14 @@ class TrnsysModel(object):
     @property
     def parameters(self):
         return self.get_parameters()
+
+    @property
+    def unit_number(self):
+        return int(self._unit)
+
+    @property
+    def type_number(self):
+        return int(self._meta.type)
 
     def get_inputs(self):
         """inputs getter. Sorts by order number and resolves cycles each time it
@@ -259,7 +273,17 @@ class TrnsysModel(object):
                     output_dict.update({id(item): item})
 
     def __repr__(self):
-        return 'Type{}: {}'.format(self._meta.type, self.name)
+        return 'Type{}: {}'.format(self.type_number, self.name)
+
+    def to_deck(self):
+        """print the Input File (.dck) representation of this TrnsysModel"""
+        input = pyTrnsysType.UnitType(self.unit_number, self.type_number,
+                                      self.name)
+        params = pyTrnsysType.Parameters(self.parameters,
+                                         n=self.parameters.size)
+        inputs = pyTrnsysType.Inputs(self.inputs, n=self.inputs.size)
+
+        return str(input) + str(params) + str(inputs)
 
 
 class TypeVariable(object):
@@ -596,6 +620,7 @@ class VariableCollection(collections.UserDict):
 
     @property
     def size(self):
+        """The number of parameters"""
         return len(self)
 
     def trigger_variables(self):
