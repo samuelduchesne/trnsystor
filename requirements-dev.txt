@@ -1,2 +1,5 @@
 pytest
 mock
+pytest-cov
+coverage
+coveralls
