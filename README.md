@@ -19,29 +19,35 @@ Usage
 Since TRNSYS 18, type proformas can be exported to XML schemas.
 From the xml file representation of a type proforma, simply create a TrnsysModel object:
 
-```
+```python
 from pyTrnsysType import TrnsysModel
-with open("Tests/input_files/Type146.xml") as xml:
-    fan1 = TrnsysModel.from_xml(xml.read())
+with open("tests/input_files/Type951.xml") as xml:
+    pipe1 = TrnsysModel.from_xml(xml.read())
 ```
 
-Then, `fan1` can be used to get and set attributes such as inputs, outputs and parameters.
-Get/Set Inputs, Outputs and Parameters and more:
+Calling `pipe1` will display it's Type number and Name:
 
-```
-print(fan1.parameters['Humidity_Mode'])
-2 dimensionless
->>> 
+```python
+pipe1
+Type951: Ecoflex 2-Pipe: Buried Piping System
 ```
 
-Loop trough parameters:
+Then, `pipe1` can be used to **get** and **set** attributes such as inputs, outputs and parameters.
+For example, to set the *Number of Fluid Nodes*, simply set the new value as you would change a dict value:
 
+```python
+pipe1.parameters['Number_of_Fluid_Nodes'] = 50
+pipe1.parameters['Number_of_Fluid_Nodes']
+<Quantity(50, 'dimensionless')>
 ```
->>> for var in fan1.parameters.__dict__.items():
-...     print(var)
-...
-('data', {'Humidity_Mode': 2 dimensionless, 'Rated_Volumetric_Flow_Rate': 300.0 liter / second, 
-'Rated_Power': 2684.0 kilojoule / hour, 'Motor_Efficiency': 0.9 dimensionless, 
-'Motor_Heat_Loss_Fraction': 0.0 dimensionless})
->>>
+
+Since the *Number of Fluid Nodes* is a cycle parameter, the number of outputs is modified dynamically:
+
+calling `pipe1.outputs` should display 116 Outputs.
+
+The new outputs are now accessible and can also be accessed with loops:
+
+```python
+for i in range(1,50):
+    print(pipe1.outputs["Average_Fluid_Temperature_Pipe_1_{}".format(i)])
 ```
