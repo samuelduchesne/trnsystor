@@ -715,7 +715,7 @@ class InputCollection(VariableCollection):
 
     def __repr__(self):
         num_inputs = '{} Inputs:\n'.format(self.size)
-        inputs = '\n'.join(['"{}": {}'.format(key, value.value)
+        inputs = '\n'.join(['"{}": {:~P}'.format(key, value.value)
                             for key, value in self.data.items()])
         return num_inputs + inputs
 
@@ -729,7 +729,7 @@ class OutputCollection(VariableCollection):
 
     def __repr__(self):
         num_inputs = '{} Outputs:\n'.format(self.size)
-        inputs = '\n'.join(['"{}": {}'.format(key, value.value)
+        inputs = '\n'.join(['"{}": {:~P}'.format(key, value.value)
                             for key, value in self.data.items()])
         return num_inputs + inputs
 
@@ -743,6 +743,6 @@ class ParameterCollection(VariableCollection):
 
     def __repr__(self):
         num_inputs = '{} Parameters:\n'.format(self.size)
-        inputs = '\n'.join(['"{}": {}'.format(key, value.value)
+        inputs = '\n'.join(['"{}": {:~P}'.format(key, value.value)
                             for key, value in self.data.items()])
         return num_inputs + inputs
