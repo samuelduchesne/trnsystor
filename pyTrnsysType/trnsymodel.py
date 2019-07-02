@@ -367,11 +367,19 @@ class TrnsysModel(object):
         else:
             # loop over the mapping and assign :class:`TypeVariable` to
             # `_connected_to` attribute.
-            for from_, to_ in mapping.items():
-                if other.inputs[to_].is_connected:
-                    raise ValueError('This output is already connected')
+            for from_self, to_other in mapping.items():
+                if other.inputs[to_other].is_connected:
+                    input = other.inputs[to_other]
+                    output = other.inputs[to_other]._connected_to
+                    msg = 'The output "{}: {}" of model "{}" is already ' \
+                          'connected to the input "{}: {}" of model ' \
+                          '"{}"'.format(output.idx, output.name,
+                                        output.model.name, input.idx,
+                                        input.name, input.model.name)
+                    raise ValueError(msg)
                 else:
-                    other.inputs[to_]._connected_to = self.outputs[from_]
+                    other.inputs[to_other]._connected_to = self.outputs[
+                        from_self]
 
 
 class TypeVariable(object):
