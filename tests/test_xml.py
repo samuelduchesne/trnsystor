@@ -67,6 +67,14 @@ def test_cycles_2(pipe_type):
     assert n_nodes == expected_2
 
 
+def test_cancel_missing_tag(tank_type):
+    from pyTrnsysType import TrnsysModel
+    with pytest.raises(NotImplementedError):
+        with patch('builtins.input', return_value='N'):
+            with open("tests/input_files/Type4a.xml") as xml:
+                tank = TrnsysModel.from_xml(xml.read())
+
+
 def test_out_of_bounds(pipe_type):
     """should trigger ValueError because out of bounds"""
     with pytest.raises(ValueError):
@@ -122,3 +130,18 @@ def test_set_attr_cycle_question_2(tank_type):
 
     Q_ = tank_type.parameters[attr_name]
     assert tank_type.parameters[attr_name] == Q_.__class__(new_value, Q_.units)
+
+
+def test_trnsysmodel_repr(tank_type):
+    """test the __repr__ for :class:`TrnsysModel`"""
+    assert str(tank_type) == 'Type4: Storage Tank; Fixed Inlets, Uniform Losses'
+
+
+def test_typecycle_repr(tank_type):
+    assert repr(tank_type._meta.cycles[0]) == 'output 1 to 13'
+
+
+def test_collections_repr(tank_type):
+    assert repr(tank_type.inputs) == str(tank_type.inputs)
+    assert repr(tank_type.outputs) == str(tank_type.outputs)
+    assert repr(tank_type.parameters) == str(tank_type.parameters)
