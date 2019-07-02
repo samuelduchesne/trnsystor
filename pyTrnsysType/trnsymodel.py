@@ -423,12 +423,6 @@ class TypeVariable(object):
     def __int__(self):
         return int(self.value.m)
 
-    # def __str__(self):
-    #     return '{} = {}'.format(self.name, self.value)
-
-    def __repr__(self):
-        return '{}'.format(self.value)
-
     def _parse_types(self):
         for attr, value in self.__dict__.items():
             if attr in ['default', 'max', 'min']:
