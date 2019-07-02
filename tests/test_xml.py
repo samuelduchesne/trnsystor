@@ -207,3 +207,9 @@ def test_parse_type(type_):
 
 def test_int_indexing(fan_type):
     print(fan_type.inputs[0])
+def test_copy_trnsys_model(fan_type):
+    fan_1 = fan_type
+    fan_2 = fan_type.copy()
+
+    assert id(fan_1) != id(fan_2)
+

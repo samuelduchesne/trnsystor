@@ -335,6 +335,10 @@ class TrnsysModel(object):
 
         return str(input) + str(params) + str(inputs)
 
+    def copy(self):
+        """copy object"""
+        return copy.copy(self)
+
 
 class TypeVariable(object):
 
