@@ -203,3 +203,7 @@ def test_set_wrong_type(fan_type):
 def test_parse_type(type_):
     from pyTrnsysType import parse_type
     parse_type(type_)
+
+
+def test_int_indexing(fan_type):
+    print(fan_type.inputs[0])

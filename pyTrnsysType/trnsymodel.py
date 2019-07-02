@@ -668,7 +668,10 @@ class VariableCollection(collections.UserDict):
         Args:
             key:
         """
-        value = super(VariableCollection, self).__getitem__(key)
+        if isinstance(key, int):
+            value = list(self.data.values())[key]
+        else:
+            value = super(VariableCollection, self).__getitem__(key)
         return value.value
 
     def __setitem__(self, key, value):
