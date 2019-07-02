@@ -715,9 +715,6 @@ class VariableCollection(collections.UserDict):
         """The number of parameters"""
         return len(self)
 
-    def trigger_variables(self):
-        pass
-
 
 class InputCollection(VariableCollection):
     """Subclass of :class:`VariableCollection` specific to Inputs"""
