@@ -160,10 +160,7 @@ class TrnsysModel(object):
         for trnsystype in my_objects:
             t = cls._from_tag(trnsystype)
             all_types.append(t)
-        if len(all_types) > 1:
-            return all_types
-        else:
-            return all_types[0]
+        return all_types[0]
 
     @classmethod
     def _from_tag(cls, tag):
