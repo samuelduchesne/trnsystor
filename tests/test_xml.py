@@ -150,15 +150,33 @@ def test_collections_repr(tank_type):
 def test_TypeVariable_repr(tank_type):
     for _, a in tank_type.inputs.data.items():
         assert float(a) == 45.0
-        assert repr(a) == 'Hot-side temperature'
+        assert repr(a) == 'Hot-side temperature; units=C;\nThe temperature ' \
+                          'of the fluid flowing into the tank from the heat ' \
+                          'source. The inlet location for this hot-side fluid ' \
+                          '' \
+                          'is one element below the upper auxiliary heating ' \
+                          'element.'
         break
     for _, a in tank_type.outputs.data.items():
         assert float(a) == 0.0
-        assert repr(a) == 'Temperature to heat source'
+        assert repr(
+            a) == 'Temperature to heat source; units=C;\nThe temperature of ' \
+                  'the fluid flowing from the bottom of the storage tank and ' \
+                  'returning to the heat source (the temperature of the ' \
+                  'bottom node).'
         break
     for _, a in tank_type.parameters.data.items():
         assert int(a) == 1
-        assert repr(a) == 'Fixed inlet positions'
+        assert repr(a) == 'Fixed inlet positions; units=-;\n' \
+                          'The auxiliary storage tank may operate in one of ' \
+                          'three modes in determining the inlet positions of ' \
+                          'the flow streams. Mode 1 indicates that the heat ' \
+                          'source flow enters the tank in the node located ' \
+                          'just below the top auxiliary heating element. The ' \
+                          'cold source flow enters at the bottom of the tank. ' \
+                          '' \
+                          '' \
+                          'Do not change this parameter.'
         break
 
 

@@ -390,7 +390,8 @@ class TypeVariable(object):
         self.boundaries = boundaries
         self.default = default
         self.symbol = symbol
-        self.definition = definition
+        self.definition = definition if definition is None else \
+            " ".join(definition.split())
         self.value = parse_value(val, self.type, self.unit,
                                  (self.min, self.max), self.name)
 
@@ -604,7 +605,7 @@ class Parameter(TypeVariable):
         self._parse_types()
 
     def __repr__(self):
-        return '{}'.format(self.name)
+        return '{}; units={};\n{}'.format(self.name, self.unit, self.definition)
 
 
 class Input(TypeVariable):
@@ -622,7 +623,7 @@ class Input(TypeVariable):
         self._parse_types()
 
     def __repr__(self):
-        return '{}'.format(self.name)
+        return '{}; units={};\n{}'.format(self.name, self.unit, self.definition)
 
 
 class Output(TypeVariable):
@@ -640,7 +641,7 @@ class Output(TypeVariable):
         self._parse_types()
 
     def __repr__(self):
-        return '{}'.format(self.name)
+        return '{}; units={};\n{}'.format(self.name, self.unit, self.definition)
 
 
 class Derivative(TypeVariable):
