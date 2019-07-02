@@ -52,7 +52,7 @@ class MetaData(object):
                 about the component to all its users, including users who prefer
                 to edit the input file with a text editor. This text should be
                 short, to avoid overloading the input file.
-            variables (list, optional): a list of :class:`TypeVariable`.
+            variables (dict, optional): a list of :class:`TypeVariable`.
             plugin (Path): The plug-in path contains the path to the an external
                 application which will be executed to modify component
                 properties instead of the classical properties window.
@@ -136,6 +136,9 @@ class TrnsysModel(object):
         self._meta = meta
         self.name = name
 
+    def __repr__(self):
+        return 'Type{}: {}'.format(self.type_number, self.name)
+
     @classmethod
     def from_xml(cls, xml):
         """Class method to create a :class:`TrnsysModel` from an xml string.
@@ -179,8 +182,12 @@ class TrnsysModel(object):
         type_cycles = CycleCollection(TypeCycle.from_tag(tag)
                                       for tag in tag.find('cycles').children
                                       if isinstance(tag, Tag))
-        model._meta.variables = type_vars
+        model._meta.variables = {id(var): var for var in type_vars}
         model._meta.cycles = type_cycles
+
+        model.get_inputs()
+        model.get_outputs()
+        model.get_parameters()
 
         return model
 
@@ -208,72 +215,118 @@ class TrnsysModel(object):
         """inputs getter. Sorts by order number and resolves cycles each time it
         is called
         """
-        input_dict = collections.OrderedDict(
-            (attr.name, attr) for attr in
-            sorted(filter(lambda x: isinstance(x, Input),
-                          self._meta.variables),
-                   key=lambda key: key.order)
-        )
-        self.resolve_cycles(input_dict, 'input')
+        self.resolve_cycles('input', Input)
+        input_dict = self.get_ordered_filtered_types(Input)
         return InputCollection.from_dict(input_dict)
 
     def get_outputs(self):
         """outputs getter. Sorts by order number and resolves cycles each time
         it is called
         """
-        output_dict = collections.OrderedDict(
-            (id(attr), attr) for attr in
-            sorted(filter(lambda o: isinstance(o, Output),
-                          self._meta.variables),
-                   key=lambda key: key.order)
-        )
-        self.resolve_cycles(output_dict, 'output')
+        # output_dict = self.get_ordered_filtered_types(Output)
+        self.resolve_cycles('output', Output)
+        output_dict = self.get_ordered_filtered_types(Output)
         return OutputCollection.from_dict(output_dict)
 
     def get_parameters(self):
         """parameters getter. Sorts by order number and resolves cycles each
         time it is called
         """
-        param_dict = collections.OrderedDict(
-            (id(attr), attr) for attr in
-            sorted(filter(lambda o: isinstance(o, Parameter),
-                          self._meta.variables),
-                   key=lambda key: key.order)
-        )
-        self.resolve_cycles(param_dict, 'parameter')
+        self.resolve_cycles('parameter', Parameter)
+        param_dict = self.get_ordered_filtered_types(Parameter)
         return ParameterCollection.from_dict(param_dict)
 
-    def resolve_cycles(self, output_dict, type_):
+    def get_ordered_filtered_types(self, classe_):
+        """
+        Args:
+            classe_:
+        """
+        return collections.OrderedDict(
+            (attr, self._meta.variables[attr]) for attr in
+            sorted(filter(
+                lambda kv: isinstance(self._meta.variables[kv], classe_),
+                self._meta.variables),
+                key=lambda key: self._meta.variables[key].order)
+        )
+
+    def resolve_cycles(self, type_, class_):
         """Cycle resolver. Proformas can contain parameters, inputs and ouputs
         that have a variable number of entries. This will deal with their
         creation each time the linked parameters are changed.
 
         Args:
-            output_dict (dict): A dictionary of :class:`TypeVariable`.
             type_:
+            class_:
         """
+        output_dict = self.get_ordered_filtered_types(class_)
         cycles = {str(id(attr)): attr for attr in self._meta.cycles if
                   attr.role == type_}
         # repeat cycle variables n times
+        cycle: TypeCycle
         for _, cycle in cycles.items():
-            idxs = [(int(cycle.firstRow) - 1)
-                    for cycle in cycle.cycles]
-            items = [output_dict.pop(id(key))
+            idxs = cycle.idxs
+            items = [output_dict.get(id(key))
                      for key in [list(output_dict.values())[i] for i in idxs]]
-            n_times = [list(
-                filter(lambda o: o.name == cycle.paramName,
-                       self._meta.variables)
-            )[0].value.m for cycle in cycle.cycles]
+            if cycle.is_question:
+                n_times = []
+                for cycle in cycle.cycles:
+                    existing = next(
+                        (key for key, value in output_dict.items() if
+                         value.name == cycle.question), None)
+                    if not existing:
+                        name = cycle.question
+                        question_var = class_(val=cycle.default, name=name,
+                                              role=cycle.role,
+                                              unit='-',
+                                              type=int,
+                                              dimension='any',
+                                              min=int(cycle.minSize),
+                                              max=int(cycle.maxSize),
+                                              order=9999999,
+                                              default=cycle.default,
+                                              )
+                        self._meta.variables.update(
+                            {id(question_var): question_var})
+                        output_dict.update({id(question_var): question_var})
+                        n_times.append(question_var.value.m)
+                    else:
+                        n_times.append(output_dict[existing].value.m)
+            else:
+                n_times = [list(
+                    filter(lambda elem: elem[1].name == cycle.paramName,
+                           self._meta.variables.items()))[0][1].value.m for
+                           cycle in cycle.cycles]
+            item: TypeVariable
+            mydict = {key: self._meta.variables.pop(key)
+                      for key in dict(
+                    filter(lambda kv: kv[1].role == type_
+                                      and kv[1]._iscycle,
+                           self._meta.variables.items())
+                )
+                      }
+            # pop output_dict items
+            [output_dict.pop(key)
+             for key in dict(
+                filter(lambda kv: kv[1].role == type_
+                                  and kv[1]._iscycle,
+                       self._meta.variables.items())
+            )
+             ]
             for item, n_time in zip(items, n_times):
                 basename = item.name
+                item_base = self._meta.variables.get(id(item))
                 for n, _ in enumerate(range(n_time), start=1):
-                    item = item.copy()
-                    item.name = basename + "-{}".format(n)
-                    item.order += len(idxs)  # so that oder number is unique
-                    output_dict.update({id(item): item})
-
-    def __repr__(self):
-        return 'Type{}: {}'.format(self.type_number, self.name)
+                    existing = next((key for key, value in mydict.items() if
+                                     value.name == basename + "-{}".format(
+                                         n)), None)
+                    item = mydict.get(existing, item_base.copy())
+                    if item._iscycle:
+                        self._meta.variables.update({id(item): item})
+                    else:
+                        item.name = basename + "-{}".format(n)
+                        item.order += len(idxs)  # so that oder number is unique
+                        item._iscycle = True
+                        self._meta.variables.update({id(item): item})
 
     def to_deck(self):
         """print the Input File (.dck) representation of this TrnsysModel"""
@@ -308,10 +361,10 @@ class TypeVariable(object):
                 dimension ‘any’ allows to make a variable compatible with any
                 other variable: no checks are performed on such variables if the
                 user attempts to connect them to other variables.
-            unit (type): The unit of the variable that the TRNSYS program
+            unit (str): The unit of the variable that the TRNSYS program
                 requires for the specified dimension (C, F, K etc.)
-            type (str): The type of the variable: Real, integer, Boolean, or
-                string.
+            type (type or str): The type of the variable: Real, integer,
+                Boolean, or string.
             min (int, float or pint._Quantity): The minimum value. The minimum
                 and maximum can be "-INF" or "+INF" to indicate no limit
                 (infinity). +/-INF is the default value.
@@ -328,6 +381,7 @@ class TypeVariable(object):
             definition (str): A short description of the variable.
         """
         super().__init__()
+        self._iscycle = False
         self.order = order
         self.name = name
         self.role = role
@@ -360,8 +414,11 @@ class TypeVariable(object):
             return Input(_type(float(val)), **attr)
         elif role == 'output':
             return Output(_type(float(val)), **attr)
+        elif role == 'derivative':
+            return Derivative(_type(float(val)), **attr)
         else:
-            raise NotImplementedError()
+            raise NotImplementedError('The role "{}" is not yet '
+                                      'supported.'.format(role))
 
     def __float__(self):
         return self.value.m
@@ -390,7 +447,7 @@ class TypeVariable(object):
 class TypeCycle(object):
     def __init__(self, role=None, firstRow=None, lastRow=None, cycles=None,
                  minSize=None, maxSize=None, paramName=None,
-                 **kwargs):
+                 question=None, **kwargs):
         """
         Args:
             role:
@@ -400,6 +457,7 @@ class TypeCycle(object):
             minSize:
             maxSize:
             paramName:
+            question:
             **kwargs:
         """
         super().__init__()
@@ -410,6 +468,7 @@ class TypeCycle(object):
         self.minSize = minSize
         self.maxSize = maxSize
         self.paramName = paramName
+        self.question = question
 
     @classmethod
     def from_tag(cls, tag):
@@ -430,6 +489,23 @@ class TypeCycle(object):
 
     def __repr__(self):
         return self.role + " {} to {}".format(self.firstRow, self.lastRow)
+
+    @property
+    def default(self):
+        return int(self.minSize)
+
+    @property
+    def idxs(self):
+        """0-based index of the TypeVariable(s) concerned with this cycle"""
+        return [int(cycle.firstRow) - 1 for cycle in self.cycles]
+
+    @property
+    def is_question(self):
+        return any(cycle.question is not None for cycle in self.cycles)
+
+    @property
+    def is_param(self):
+        return any(cycle.paramName is not None for cycle in self.cycles)
 
 
 class CycleCollection(collections.UserList):
@@ -490,9 +566,11 @@ def parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
 def parse_type(_type):
     """
     Args:
-        _type:
+        _type (type or str):
     """
-    if _type == 'integer':
+    if isinstance(_type, type):
+        return _type
+    elif _type == 'integer':
         return int
     elif _type == 'real':
         return float
@@ -575,9 +653,23 @@ class Output(TypeVariable):
         return '{}'.format(self.name)
 
 
+class Derivative(TypeVariable):
+    def __init__(self, val, **kwargs):
+        """A subclass of :class:`TypeVariable` specific to derivatives.
+
+        Args:
+            val:
+            **kwargs:
+        """
+        super().__init__(val, **kwargs)
+
+        self._parse_types()
+
+
 class VariableCollection(collections.UserDict):
     """A collection of :class:`VariableType` as a dict. Handles getting and
-    setting variable values."""
+    setting variable values.
+    """
 
     def __getitem__(self, key):
         """
@@ -601,6 +693,7 @@ class VariableCollection(collections.UserDict):
             value = parse_value(value, self.data[key].type, self.data[key].unit,
                                 (self.data[key].min, self.data[key].max))
             self.data[key].__setattr__('value', value)
+            super().__setitem__(key, self.data[key])
         else:
             raise TypeError('Cannot set a value of type {} in this '
                             'VariableCollection')
@@ -608,7 +701,6 @@ class VariableCollection(collections.UserDict):
     @classmethod
     def from_dict(cls, dictionary):
         """
-
         Args:
             dictionary:
         """

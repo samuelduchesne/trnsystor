@@ -23,9 +23,10 @@ def pipe_type():
 @pytest.fixture()
 def tank_type():
     from pyTrnsysType import TrnsysModel
-    with open("tests/input_files/Type4a.xml") as xml:
-        tank = TrnsysModel.from_xml(xml.read())
-    yield tank
+    with patch('builtins.input', return_value='y'):
+        with open("tests/input_files/Type4a.xml") as xml:
+            tank = TrnsysModel.from_xml(xml.read())
+        yield tank
 
 
 @patch('builtins.input', return_value='y')
@@ -43,10 +44,10 @@ def test_cycles(pipe_type):
     pipe_type.parameters["Number_of_Radial_Soil_Nodes"] = n_nodes
 
     mylist = list(pipe_type.parameters.data.keys())
-    sub = 'Radial_Distance_of_Node'
-    expected = len([s for s in mylist if sub.lower() in s.lower()])
+    sub = 'Radial_Distance_of_Node_'
+    actual = len([s for s in mylist if sub.lower() in s.lower()])
 
-    assert n_nodes == expected
+    assert actual == n_nodes
 
 
 def test_cycles_2(pipe_type):
@@ -55,7 +56,8 @@ def test_cycles_2(pipe_type):
     n_nodes = 20
     pipe_type.parameters['Number_of_Fluid_Nodes'] = n_nodes
 
-    mylist = list(pipe_type.outputs.data.keys())
+    outputs = pipe_type.outputs
+    mylist = list(outputs.data.keys())
     sub_1 = 'Average_Fluid_Temperature_Pipe_1_'
     sub_2 = 'Average_Fluid_Temperature_Pipe_2_'
     expected_1 = len([s for s in mylist if sub_1.lower() in s.lower()])
@@ -100,3 +102,23 @@ def test_set_attr_cycle_parameters(pipe_type):
 def test_to_deck(fan_type):
     """test to Input File representation of a TrnsysModel"""
     print(fan_type.to_deck())
+
+
+def test_set_attr_cycle_question(tank_type):
+    attr_name = \
+        'Besides_the_top_and_bottom_nodes_how_many_other_nodes_are_there_'
+    new_value = 10
+    tank_type.outputs[attr_name] = new_value
+
+    Q_ = tank_type.outputs[attr_name]
+    assert tank_type.outputs[attr_name] == Q_.__class__(new_value, Q_.units)
+
+
+def test_set_attr_cycle_question_2(tank_type):
+    attr_name = \
+        "How_many_temperature_levels_nodes_should_be_used_in_the_tank_"
+    new_value = 10
+    tank_type.parameters[attr_name] = new_value
+
+    Q_ = tank_type.parameters[attr_name]
+    assert tank_type.parameters[attr_name] == Q_.__class__(new_value, Q_.units)
