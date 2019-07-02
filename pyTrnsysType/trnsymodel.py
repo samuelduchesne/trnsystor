@@ -503,10 +503,6 @@ class TypeCycle(object):
     def is_question(self):
         return any(cycle.question is not None for cycle in self.cycles)
 
-    @property
-    def is_param(self):
-        return any(cycle.paramName is not None for cycle in self.cycles)
-
 
 class CycleCollection(collections.UserList):
     def __getitem__(self, key):
