@@ -685,7 +685,8 @@ class VariableCollection(collections.UserDict):
             value = parse_value(value, self.data[key].type, self.data[key].unit,
                                 (self.data[key].min, self.data[key].max))
             self.data[key].__setattr__('value', value)
-            super().__setitem__(key, self.data[key])
+        elif isinstance(value, _Quantity):
+            self.data[key].__setattr__('value', value.to(self.data[key].unit))
         else:
             raise TypeError('Cannot set a value of type {} in this '
                             'VariableCollection'.format(type(value)))

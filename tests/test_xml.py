@@ -97,6 +97,16 @@ def test_set_attr(fan_type):
     assert fan_type.inputs[attr_name] == Q_.__class__(new_value, Q_.units)
 
 
+def test_set_attr_quantity(fan_type):
+    """Test setter for class TypeVariable with type _Quantity. This tests
+    setting a value with different but equivalent units"""
+    attr_name = 'Rated_Volumetric_Flow_Rate'
+    new_value = fan_type.parameters[attr_name].to('m^3/s') * 10
+    fan_type.parameters[attr_name] = new_value
+
+    assert fan_type.parameters[attr_name] == new_value
+
+
 def test_set_attr_cycle_parameters(pipe_type):
     """Test setter for class TypeVariable"""
     attr_name = 'Radial_Distance_of_Node_1'
