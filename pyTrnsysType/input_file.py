@@ -32,16 +32,16 @@ class UnitType(object):
 
 
 class Parameters(object):
-    def __init__(self, param_colection, n=None):
+    def __init__(self, param_collection, n=None):
         """
         Args:
-            param_colection (ParameterCollection): tuple of parameters
+            param_collection (ParameterCollection): tuple of parameters
             n (int, optional): the number of PARAMETERS to follow on the next
                 line(s). Typically this is the number of parameters required by
                 the component, but may be less if more than one PARAMETERS
                 statement is used for a given component.
         """
-        self.v = param_colection
+        self.v = param_collection
         if not n:
             self.n = self.v.size
         else:
