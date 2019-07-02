@@ -1,0 +1,756 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrnsysModel>
+    <object>Storage Tank; Fixed Inlets, Uniform Losses</object>
+    <author>Contributors are listed in manuals</author>
+    <organization>Solar Energy Lab, University of Wisconsin - Madison</organization>
+    <editor>CMR</editor>
+    <creationDate>TRNSYS v7.5</creationDate>
+    <modifictionDate>May 2011</modifictionDate>
+    <mode>1</mode>
+    <validation>32</validation>
+    <icon>.\Studio\Icon\Type4a.bmp</icon>
+    <type>4</type>
+    <maxInstance>9999</maxInstance>
+    <keywords/>
+    <details>The thermal performance of a fluid-filled sensible energy storage tank, subject to thermal stratification,
+        can be modeled by assuming that the tank consists of N (N &lt;= 100) fully-mixed equal volume segments. The
+        degree of stratification is determined by the value of N. If N is equal to 1, the storage tank is modeled as a
+        fully-mixed tank and no stratification effects are possible. This instance of Type 4 models a stratified tank
+        having fixed inlet positions defined within the code. Fluid entering the hot side of the tank is added to the
+        tank node below the first auxiliary heater. Fluid entering the cold side of the tank enters the bottom node. The
+        node sizes in this instance need not be equal. Temperature dead-band on heater thermostats are available. This
+        instance further assumes that losses from each tank node are equal and does not compute losses to the gas flue
+        of the auxiliary heater.
+    </details>
+    <variables>
+        <variable><!--input-1-->
+            <order>1</order>
+            <name>Hot-side temperature</name>
+            <role>input</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>45.0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the fluid flowing into the tank from the heat source. The inlet location for
+                this hot-side fluid is one element below the upper auxiliary heating element.
+            </definition>
+        </variable>
+        <variable><!--input-2-->
+            <order>2</order>
+            <name>Hot-side flowrate</name>
+            <role>input</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>100.0</default>
+            <symbol>SN</symbol>
+            <definition>The flowrate of fluid into the storage tank from the heat source. The hot-side fluid enters the
+                tank below the upper heating element. An equal flowrate of fluid leaves the bottom of the storage tank
+                for return to the heat source.
+            </definition>
+        </variable>
+        <variable><!--input-3-->
+            <order>3</order>
+            <name>Cold-side temperature</name>
+            <role>input</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>20.0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the replacement fluid flowing into the bottom of the storage tank.
+            </definition>
+        </variable>
+        <variable><!--input-4-->
+            <order>4</order>
+            <name>Cold-side flowrate</name>
+            <role>input</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>100.0</default>
+            <symbol>SN</symbol>
+            <definition>The flowrate of replacement fluid flowing into the bottom of the storage tank. An equal amount
+                of fluid is assumed to flow from the top of the tank to meet a load.
+            </definition>
+        </variable>
+        <variable><!--input-5-->
+            <order>5</order>
+            <name>Environment temperature</name>
+            <role>input</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>22.0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the environment in which the storage tank is located.</definition>
+        </variable>
+        <variable><!--input-6-->
+            <order>6</order>
+            <name>Control signal for element 1</name>
+            <role>input</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>1.0</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1.0</default>
+            <symbol>SN</symbol>
+            <definition>The control signal for the specified auxiliary heating element. The available power for the
+                heating element will be this input multiplied by the maximum power for the element. If an auxiliary
+                heater is not desired for the simulation, set this input to a constant of 0.0 or set the maximum power
+                for the element to 0.0. NOTE: this tank model contains a thermostat. The element will be internally
+                controlled to maintain the set point temperature when this input enables it to do so.
+            </definition>
+        </variable>
+        <variable><!--derivative-1-->
+            <order>7</order>
+            <name>Initial temperature of node</name>
+            <role>derivative</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>50</default>
+            <symbol>SN</symbol>
+            <definition>The initial temperature of the specified node.</definition>
+        </variable>
+        <variable><!--output-1-->
+            <order>8</order>
+            <name>Temperature to heat source</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the fluid flowing from the bottom of the storage tank and returning to the
+                heat source (the temperature of the bottom node).
+            </definition>
+        </variable>
+        <variable><!--output-2-->
+            <order>9</order>
+            <name>Flowrate to heat source</name>
+            <role>output</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The flow rate of fluid entering the storage tank below the upper heating element and exiting at
+                the bottom of the storage tank to return to the heat source.
+            </definition>
+        </variable>
+        <variable><!--output-3-->
+            <order>10</order>
+            <name>Temperature to load</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the fluid flowing from the top of the storage tank to the load (the
+                temperature of the top node).
+            </definition>
+        </variable>
+        <variable><!--output-4-->
+            <order>11</order>
+            <name>Flowrate to load</name>
+            <role>output</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The flowrate of fluid entering the tank at the bottom and leaving the tank at the top to meet
+                the load.
+            </definition>
+        </variable>
+        <variable><!--output-5-->
+            <order>12</order>
+            <name>Thermal losses</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate of thermal energy loss to the environment. Includes the vented energy if a boiling
+                condition is reached.
+            </definition>
+        </variable>
+        <variable><!--output-6-->
+            <order>13</order>
+            <name>Energy rate to load</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which energy is removed from the tank to supply the load. The energy rate to the
+                load is calculated by:
+                Qload = mdot,load * Cp * (Ttop - Treplace)
+                (See manual for further information on equation)
+            </definition>
+        </variable>
+        <variable><!--output-7-->
+            <order>14</order>
+            <name>Internal energy change</name>
+            <role>output</role>
+            <dimension>Energy</dimension>
+            <unit>kJ</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The internal energy change of the tank relative to its initial condition. This output should not
+                be integrated as it is an energy quantity and not an energy rate.
+            </definition>
+        </variable>
+        <variable><!--output-8-->
+            <order>15</order>
+            <name>Auxiliary heating rate</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The average rate at which power was added to the tank by BOTH auxiliary heaters.</definition>
+        </variable>
+        <variable><!--output-9-->
+            <order>16</order>
+            <name>Element 1 power</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The average power supplied to the storage tank over the timestep by the first heating element
+                specified in the parameter list.
+            </definition>
+        </variable>
+        <variable><!--output-10-->
+            <order>17</order>
+            <name>Element 2 power</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The average power over the timestep supplied to the tank by the second auxiliary heater
+                specified in the parameter list.
+            </definition>
+        </variable>
+        <variable><!--output-11-->
+            <order>18</order>
+            <name>Energy rate from heat source</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate of energy transfer from the heat source to the storage tank. The rate is calculated
+                from:
+                Qin = mdot,source * Cp * (Thot - Ttosource)
+                (See manual for further information on equation)
+            </definition>
+        </variable>
+        <variable><!--output-12-->
+            <order>19</order>
+            <name>Average tank temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The average temperature of the fluid in the storage tank over the timestep.</definition>
+        </variable>
+        <variable><!--output-13-->
+            <order>20</order>
+            <name>Temperature of node 1+</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>Temperature of node 1+
+                The temperature of the specified node.
+            </definition>
+        </variable>
+        <variable><!--parameter-1-->
+            <order>21</order>
+            <name>Fixed inlet positions</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>1</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1</default>
+            <symbol>SN</symbol>
+            <definition>The auxiliary storage tank may operate in one of three modes in determining the inlet positions
+                of the flow streams. Mode 1 indicates that the heat source flow enters the tank in the node located just
+                below the top auxiliary heating element. The cold source flow enters at the bottom of the tank.
+                Do not change this parameter.
+            </definition>
+        </variable>
+        <variable><!--parameter-2-->
+            <order>22</order>
+            <name>Tank volume</name>
+            <role>parameter</role>
+            <dimension>Volumetric Flow Rate</dimension>
+            <unit>m^3</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.35</default>
+            <symbol>SN</symbol>
+            <definition>The actual volume of the storage tank (not the nominal value).</definition>
+        </variable>
+        <variable><!--parameter-3-->
+            <order>23</order>
+            <name>Fluid specific heat</name>
+            <role>parameter</role>
+            <dimension>Specific Heat</dimension>
+            <unit>kJ/kg.K</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>4.190</default>
+            <symbol>SN</symbol>
+            <definition>The specific heat of the fluid contained in the storage tank.</definition>
+        </variable>
+        <variable><!--parameter-4-->
+            <order>24</order>
+            <name>Fluid density</name>
+            <role>parameter</role>
+            <dimension>Density</dimension>
+            <unit>kg/m^3</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1000.0</default>
+            <symbol>SN</symbol>
+            <definition>The density of the fluid contained in the storage tank.</definition>
+        </variable>
+        <variable><!--parameter-5-->
+            <order>25</order>
+            <name>Tank loss coefficient</name>
+            <role>parameter</role>
+            <dimension>Heat Transfer Coeff.</dimension>
+            <unit>kJ/hr.m^2.K</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>3.0</default>
+            <symbol>SN</symbol>
+            <definition>The average tank loss coefficient per unit area.</definition>
+        </variable>
+        <variable><!--parameter-6-->
+            <order>26</order>
+            <name>Height of node</name>
+            <role>parameter</role>
+            <dimension>Length</dimension>
+            <unit>m</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.05</default>
+            <symbol>SN</symbol>
+            <definition>The height of the storage tank node in question. The total tank height will be determined by
+                summing the heights of the nodes.
+            </definition>
+        </variable>
+        <variable><!--parameter-7-->
+            <order>27</order>
+            <name>Auxiliary heater mode</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>2</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1</default>
+            <symbol>SN</symbol>
+            <definition>The auxiliary heater may be operated in one of two modes:
+                1 = Master/Slave Relation: The lower heating element is only enabled when the upper heating element is
+                satisified. In this mode, only one heater may be on at any instant of time. This is a common design in
+                residential electric hot water tanks.
+                2 = Both Enabled: In this mode, both heaters may be on simultaneously. This allows for significantly
+                quicker heating of the water, but at a much higher electrical demand.
+            </definition>
+        </variable>
+        <variable><!--parameter-8-->
+            <order>28</order>
+            <name>Node containing heating element 1</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>15</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1</default>
+            <symbol>SN</symbol>
+            <definition>The node containing the specified auxiliary heating element. Make sure that the specified node
+                for the heater is between 1 and the total number of nodes specified. Node 1 is the topmost node in the
+                tank.
+            </definition>
+        </variable>
+        <variable><!--parameter-9-->
+            <order>29</order>
+            <name>Node containing thermostat 1</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>15</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1</default>
+            <symbol>SN</symbol>
+            <definition>The node containing the thermostat for the specified auxiliary heater. The thermostat is
+                typically either located in the same node as the heating element or in a node located above the element.
+                Node 1 is the topmost node in the tank.
+            </definition>
+        </variable>
+        <variable><!--parameter-10-->
+            <order>30</order>
+            <name>Set point temperature for element 1</name>
+            <role>parameter</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>55.0</default>
+            <symbol>SN</symbol>
+            <definition>The set point temperature for the specified heating element. The thermostat will enable the
+                heating element when the temperature of the fluid in the node containing the thermostat falls below:
+                Tset - Tdb
+                and continue to heat the fluid until it reaches the set point temperature.
+                Tset = this parameter; Tdb = next parameter
+            </definition>
+        </variable>
+        <variable><!--parameter-11-->
+            <order>31</order>
+            <name>Deadband for heating element 1</name>
+            <role>parameter</role>
+            <dimension>Temp. Difference</dimension>
+            <unit>deltaC</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>5.0</default>
+            <symbol>SN</symbol>
+            <definition>The dead band temperature difference for the specified heating element. The thermostat will
+                enable the heating element when the temperature of the fluid in the node containing the thermostat falls
+                below:
+                Tset - Tdb
+                and continue to heat the fluid until it reaches the set point temperature.
+                Where Tset = previous parameter; Tdb = this parameter
+            </definition>
+        </variable>
+        <variable><!--parameter-12-->
+            <order>32</order>
+            <name>Maximum heating rate of element 1</name>
+            <role>parameter</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>16200.0</default>
+            <symbol>SN</symbol>
+            <definition>The maximum heating rate of the heating element. If the specified heating element is to not to
+                be used for the simulation, set the maximum power to 0.
+            </definition>
+        </variable>
+        <variable><!--parameter-13-->
+            <order>33</order>
+            <name>Node containing heating element 2</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>15</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1</default>
+            <symbol>SN</symbol>
+            <definition>The node containing the specified auxiliary heating element. Make sure that the specified node
+                for the heater is between 1 and the total number of nodes specified. Node 1 is the topmost node in the
+                tank.
+            </definition>
+        </variable>
+        <variable><!--parameter-14-->
+            <order>34</order>
+            <name>Node containing thermostat 2</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>15</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1</default>
+            <symbol>SN</symbol>
+            <definition>The node containing the thermostat for the specified auxiliary heater. The thermostat is
+                typically either located in the same node as the heating element or in a node located above the element.
+                Node 1 is the topmost node in the tank.
+            </definition>
+        </variable>
+        <variable><!--parameter-15-->
+            <order>35</order>
+            <name>Set point temperature for element 2</name>
+            <role>parameter</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>55.0</default>
+            <symbol>SN</symbol>
+            <definition>The set point temperature for the specified heating element. The thermostat will enable the
+                heating element when the temperature of the fluid in the node containing the thermostat falls below:
+                Tset - Tdb
+                and continue to heat the fluid until it reaches the set point temperature.
+                Tset = this parameter; Tdb = next parameter
+            </definition>
+        </variable>
+        <variable><!--parameter-16-->
+            <order>36</order>
+            <name>Deadband for heating element 2</name>
+            <role>parameter</role>
+            <dimension>Temp. Difference</dimension>
+            <unit>deltaC</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>5.0</default>
+            <symbol>SN</symbol>
+            <definition>The dead band temperature difference for the specified heating element. The thermostat will
+                enable the heating element when the temperature of the fluid in the node containing the thermostat falls
+                below:
+                Tset - Tdb
+                and continue to heat the fluid until it reaches the set point temperature.
+                Where Tset = previous parameter; Tdb = this parameter
+            </definition>
+        </variable>
+        <variable><!--parameter-17-->
+            <order>37</order>
+            <name>Maximum heating rate of element 2</name>
+            <role>parameter</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>16200</default>
+            <symbol>SN</symbol>
+            <definition>The maximum heating rate of the heating element. If the specified heating element is to not to
+                be used for the simulation, set the maximum power to 0.
+            </definition>
+        </variable>
+        <variable><!--parameter-18-->
+            <order>38</order>
+            <name>Not used (Flue UA)</name>
+            <role>parameter</role>
+            <dimension>Overall Loss Coefficient</dimension>
+            <unit>W/K</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>0.0</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.0</default>
+            <symbol>SN</symbol>
+            <definition>This parameter is not used in this mode of the storage tank.</definition>
+        </variable>
+        <variable><!--parameter-19-->
+            <order>39</order>
+            <name>Not used (Tflue)</name>
+            <role>parameter</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>20.0</default>
+            <symbol>SN</symbol>
+            <definition>This parameter is not used in this mode of the storage tank.</definition>
+        </variable>
+        <variable><!--parameter-20-->
+            <order>40</order>
+            <name>Boiling point</name>
+            <role>parameter</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>100.0</default>
+            <symbol>SN</symbol>
+            <definition>The boiling point temperature of the fluid in the storage tank. If the tank temperature reaches
+                the boiling temperature, venting of steam is assumed to occur to keep the fluid at the boiling
+                temperature. The venting is assumed to occur with negligible loss of mass.
+            </definition>
+        </variable>
+        <variable><!--input-7-->
+            <order>41</order>
+            <name>Control signal for element 2</name>
+            <role>input</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>1.0</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1.0</default>
+            <symbol>SN</symbol>
+            <definition>The control signal for the specified auxiliary heating element. The available power for the
+                heating element will be this input multiplied by the maximum power for the element. If an auxiliary
+                heater is not desired for the simulation, set this input to a constant of 0.0 or set the maximum power
+                for the element to 0.0. NOTE: this tank model contains a thermostat. The element will be internally
+                controlled to maintain the set point temperature when this input enables it to do so.
+            </definition>
+        </variable>
+    </variables>
+    <cycles>
+        <cycle>
+            <role>output</role>
+            <firstRow>1</firstRow>
+            <lastRow>13</lastRow>
+            <cycles>
+                <cycle>
+                    <role>output</role>
+                    <firstRow>13</firstRow>
+                    <lastRow>13</lastRow>
+                    <cycles/>
+                    <question>Besides the top and bottom nodes, how many other nodes are there?</question>
+                    <minSize>1</minSize>
+                    <maxSize>98</maxSize>
+                </cycle>
+            </cycles>
+            <minSize>1</minSize>
+            <maxSize>50</maxSize>
+        </cycle>
+        <cycle>
+            <role>parameter</role>
+            <firstRow>1</firstRow>
+            <lastRow>20</lastRow>
+            <cycles>
+                <cycle>
+                    <role>parameter</role>
+                    <firstRow>6</firstRow>
+                    <lastRow>6</lastRow>
+                    <cycles/>
+                    <question>How many temperature levels (nodes) should be used in the tank?</question>
+                    <minSize>1</minSize>
+                    <maxSize>100</maxSize>
+                </cycle>
+            </cycles>
+            <minSize>1</minSize>
+            <maxSize>50</maxSize>
+        </cycle>
+        <cycle>
+            <role>derivative</role>
+            <firstRow>1</firstRow>
+            <lastRow>1</lastRow>
+            <cycles>
+                <cycle>
+                    <role>derivative</role>
+                    <firstRow>1</firstRow>
+                    <lastRow>1</lastRow>
+                    <cycles/>
+                    <question>How many temperature levels (nodes) should be used in the tank?</question>
+                    <minSize>1</minSize>
+                    <maxSize>100</maxSize>
+                </cycle>
+            </cycles>
+            <minSize>1</minSize>
+            <maxSize>50</maxSize>
+        </cycle>
+    </cycles>
+    <compileCommand>df /c</compileCommand>
+    <source>.\SourceCode\Types\Type4.f90</source>
+</TrnsysModel>

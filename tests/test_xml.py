@@ -20,6 +20,14 @@ def pipe_type():
     yield fan1
 
 
+@pytest.fixture()
+def tank_type():
+    from pyTrnsysType import TrnsysModel
+    with open("tests/input_files/Type4a.xml") as xml:
+        tank = TrnsysModel.from_xml(xml.read())
+    yield tank
+
+
 @patch('builtins.input', return_value='y')
 def test_chiller_type(input):
     """Fixture to create a TrnsysModel from xml from an xml that contains
