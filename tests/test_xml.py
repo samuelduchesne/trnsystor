@@ -145,3 +145,10 @@ def test_collections_repr(tank_type):
     assert repr(tank_type.inputs) == str(tank_type.inputs)
     assert repr(tank_type.outputs) == str(tank_type.outputs)
     assert repr(tank_type.parameters) == str(tank_type.parameters)
+
+
+def test_set_wrong_type(fan_type):
+    """try to assign a complexe number should raise a TypeError"""
+    with pytest.raises(TypeError):
+        fan_type.parameters['Rated_Volumetric_Flow_Rate'] = 2 + 3j
+

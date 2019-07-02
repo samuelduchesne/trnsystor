@@ -692,7 +692,7 @@ class VariableCollection(collections.UserDict):
             super().__setitem__(key, self.data[key])
         else:
             raise TypeError('Cannot set a value of type {} in this '
-                            'VariableCollection')
+                            'VariableCollection'.format(type(value)))
 
     @classmethod
     def from_dict(cls, dictionary):
