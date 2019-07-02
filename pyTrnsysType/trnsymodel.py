@@ -383,7 +383,8 @@ class TypeVariable(object):
         self.name = name
         self.role = role
         self.dimension = dimension
-        self.unit = unit
+        self.unit = unit if unit is None else re.sub(r"([\s\S\.]*)\/([\s\S\.]*)",
+                                                     r"(\1)/(\2)", unit)
         self.type = type
         self.min = min
         self.max = max
