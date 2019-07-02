@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.com/samuelduchesne/pyTrnsysType.svg?branch=master)](https://travis-ci.com/samuelduchesne/pyTrnsysType)
+[![Coverage Status](https://coveralls.io/repos/github/samuelduchesne/pyTrnsysType/badge.svg)](https://coveralls.io/github/samuelduchesne/pyTrnsysType)
 
 pyTrnsysType
 ============
