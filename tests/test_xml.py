@@ -147,8 +147,28 @@ def test_collections_repr(tank_type):
     assert repr(tank_type.parameters) == str(tank_type.parameters)
 
 
+def test_TypeVariable_repr(tank_type):
+    for _, a in tank_type.inputs.data.items():
+        assert repr(a) == 'Hot-side temperature'
+        break
+    for _, a in tank_type.outputs.data.items():
+        assert repr(a) == 'Temperature to heat source'
+        break
+    for _, a in tank_type.parameters.data.items():
+        assert repr(a) == 'Fixed inlet positions'
+        break
+
+
 def test_set_wrong_type(fan_type):
     """try to assign a complexe number should raise a TypeError"""
     with pytest.raises(TypeError):
         fan_type.parameters['Rated_Volumetric_Flow_Rate'] = 2 + 3j
 
+
+@pytest.mark.parametrize('type_', [int, 'integer', 'real',
+                                   pytest.param('complexe',
+                                                marks=pytest.mark.xfail(
+                                                    raises=NotImplementedError))])
+def test_parse_type(type_):
+    from pyTrnsysType import parse_type
+    parse_type(type_)
