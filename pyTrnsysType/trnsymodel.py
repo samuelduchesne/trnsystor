@@ -420,8 +420,11 @@ class TypeVariable(object):
     def __float__(self):
         return self.value.m
 
-    def __str__(self):
-        return '{} = {}'.format(self.name, self.value)
+    def __int__(self):
+        return int(self.value.m)
+
+    # def __str__(self):
+    #     return '{} = {}'.format(self.name, self.value)
 
     def __repr__(self):
         return '{}'.format(self.value)

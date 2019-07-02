@@ -149,12 +149,15 @@ def test_collections_repr(tank_type):
 
 def test_TypeVariable_repr(tank_type):
     for _, a in tank_type.inputs.data.items():
+        assert float(a) == 45.0
         assert repr(a) == 'Hot-side temperature'
         break
     for _, a in tank_type.outputs.data.items():
+        assert float(a) == 0.0
         assert repr(a) == 'Temperature to heat source'
         break
     for _, a in tank_type.parameters.data.items():
+        assert int(a) == 1
         assert repr(a) == 'Fixed inlet positions'
         break
 
