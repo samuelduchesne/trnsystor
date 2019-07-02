@@ -93,18 +93,18 @@ def test_set_attr(fan_type):
     attr_name = 'Inlet_Air_Temperature'
     fan_type.inputs[attr_name] = new_value
 
-    Q_ = fan_type.inputs[attr_name]
-    assert fan_type.inputs[attr_name] == Q_.__class__(new_value, Q_.units)
+    Q_ = fan_type.inputs[attr_name].value
+    assert fan_type.inputs[attr_name].value == Q_.__class__(new_value, Q_.units)
 
 
 def test_set_attr_quantity(fan_type):
     """Test setter for class TypeVariable with type _Quantity. This tests
     setting a value with different but equivalent units"""
     attr_name = 'Rated_Volumetric_Flow_Rate'
-    new_value = fan_type.parameters[attr_name].to('m^3/s') * 10
-    fan_type.parameters[attr_name] = new_value
+    new_value = fan_type.parameters[attr_name].value.to('m^3/s') * 10
+    fan_type.parameters[attr_name].value = new_value
 
-    assert fan_type.parameters[attr_name] == new_value
+    assert fan_type.parameters[attr_name].value == new_value
 
 
 def test_set_attr_cycle_parameters(pipe_type):
@@ -113,8 +113,9 @@ def test_set_attr_cycle_parameters(pipe_type):
     new_value = 0.05
     pipe_type.parameters[attr_name] = new_value
 
-    Q_ = pipe_type.parameters[attr_name]
-    assert pipe_type.parameters[attr_name] == Q_.__class__(new_value, Q_.units)
+    Q_ = pipe_type.parameters[attr_name].value
+    assert pipe_type.parameters[attr_name].value == Q_.__class__(new_value,
+                                                                 Q_.units)
 
 
 def test_to_deck(fan_type):
@@ -128,8 +129,9 @@ def test_set_attr_cycle_question(tank_type):
     new_value = 10
     tank_type.outputs[attr_name] = new_value
 
-    Q_ = tank_type.outputs[attr_name]
-    assert tank_type.outputs[attr_name] == Q_.__class__(new_value, Q_.units)
+    Q_ = tank_type.outputs[attr_name].value
+    assert tank_type.outputs[attr_name].value == Q_.__class__(new_value,
+                                                              Q_.units)
 
 
 def test_set_attr_cycle_question_2(tank_type):
@@ -138,8 +140,9 @@ def test_set_attr_cycle_question_2(tank_type):
     new_value = 10
     tank_type.parameters[attr_name] = new_value
 
-    Q_ = tank_type.parameters[attr_name]
-    assert tank_type.parameters[attr_name] == Q_.__class__(new_value, Q_.units)
+    Q_ = tank_type.parameters[attr_name].value
+    assert tank_type.parameters[attr_name].value == Q_.__class__(new_value,
+                                                                 Q_.units)
 
 
 def test_trnsysmodel_repr(tank_type):
@@ -162,9 +165,8 @@ def test_TypeVariable_repr(tank_type):
         assert float(a) == 45.0
         assert repr(a) == 'Hot-side temperature; units=C;\nThe temperature ' \
                           'of the fluid flowing into the tank from the heat ' \
-                          'source. The inlet location for this hot-side fluid ' \
-                          '' \
-                          'is one element below the upper auxiliary heating ' \
+                          'source. The inlet location for this hot-side fluid' \
+                          ' is one element below the upper auxiliary heating ' \
                           'element.'
         break
     for _, a in tank_type.outputs.data.items():
@@ -183,10 +185,8 @@ def test_TypeVariable_repr(tank_type):
                           'the flow streams. Mode 1 indicates that the heat ' \
                           'source flow enters the tank in the node located ' \
                           'just below the top auxiliary heating element. The ' \
-                          'cold source flow enters at the bottom of the tank. ' \
-                          '' \
-                          '' \
-                          'Do not change this parameter.'
+                          'cold source flow enters at the bottom of the tank.' \
+                          ' Do not change this parameter.'
         break
 
 
@@ -207,9 +207,46 @@ def test_parse_type(type_):
 
 def test_int_indexing(fan_type):
     print(fan_type.inputs[0])
+
+
 def test_copy_trnsys_model(fan_type):
     fan_1 = fan_type
     fan_2 = fan_type.copy()
 
     assert id(fan_1) != id(fan_2)
 
+
+@pytest.mark.parametrize('mapping', [
+    {0: 0,
+     1: 1},
+    {'Outlet_Air_Temperature': 'Inlet_Air_Temperature',
+     'Outlet_Air_Humidity_Ratio': 'Inlet_Air_Humidity_Ratio'},
+    pytest.param(None, marks=pytest.mark.xfail(raises=NotImplementedError))
+], ids=['int_mapping', 'str_mapping', 'automapping'])
+def test_connect_to(fan_type, mapping):
+    fan_2 = fan_type.copy()
+    fan_type.connect_to(fan_2, mapping=mapping)
+    assert fan_2.inputs
+
+    # test that connecting to anything else than a TrnsysModel raises a
+    # TypeError exception
+    with pytest.raises(TypeError):
+        fan_type.connect_to(0)
+
+    # connecting to objects already connected should raise an error
+    with pytest.raises(ValueError):
+        fan_type.connect_to(fan_2, mapping=mapping)
+
+
+def test_to_deck_with_connected(fan_type):
+    fan_2 = fan_type.copy()
+    fan_type.connect_to(fan_2, mapping={0: 0, 1: 1})
+
+    print(fan_2.to_deck())
+
+
+def test_magic_type_variables(fan_type):
+    for input in fan_type.inputs.values():
+        assert input * 2 == float(input) * 2
+        assert input + 2 == float(input) + 2
+        assert input - 2 == float(input) - 2

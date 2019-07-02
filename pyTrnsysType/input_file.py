@@ -55,8 +55,8 @@ class Parameters(object):
         """Returns the string representation for the Input File (.dck)"""
         head = "PARAMETERS {}\n".format(self.n)
         # loop through parameters and print the (value, name) tuples.
-        v_ = ((self.v[param].m, "! {}".format(self.v.data[param].name)) for
-              param in self.v)
+        v_ = ((self.v[param].value.m, "! {}".format(self.v.data[param].name))
+              for param in self.v)
         params_str = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
         return head + params_str + "\n"
 
@@ -82,8 +82,17 @@ class Inputs(object):
     def to_deck(self):
         """Returns the string representation for the Input File (.dck)"""
         head = "INPUTS {}\n".format(self.n)
-        inputs_str = ""
-        return str(head) + str(inputs_str)
+        # "{u_i}, {o_i}": is an integer number referencing the number of the
+        # UNIT to which the ith INPUT is connected. is an integer number
+        # indicating to which OUTPUT (i.e., the 1st, 2nd, etc.) of UNIT
+        # number ui the ith INPUT is connected.
+        core = "\t".join(
+            ["{}, {}".format(
+                input.connected_to.model.unit_number,
+                input.connected_to.one_based_idx) if input.is_connected else
+             "0, 0"
+             for input in self.inputs.values()])
+        return str(head) + str(core)
 
 
 class Derivatives:
