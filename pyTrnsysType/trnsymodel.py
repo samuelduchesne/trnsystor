@@ -354,9 +354,8 @@ class TrnsysModel(object):
             mapping (dict): Mapping of inputs to outputs numbers
 
         Raises:
-            * TypeError: A TypeError is raised when trying to connect to
-
-            * anything other than a :class:`TrnsysType`
+            TypeError: À `TypeError is raised when trying to connect to anything
+                other than a :class:`TrnsysType`
         """
         if not isinstance(other, TrnsysModel):
             raise TypeError('Only `TrsnsysModel` objects can be connected '
