@@ -212,7 +212,9 @@ class TestTrnsysModel():
         fan_type.invalidate_connections()
         fan_2 = fan_type.copy()
         fan_type.connect_to(fan_2, mapping=mapping)
-        assert fan_2.inputs
+        for key, value in mapping.items():
+            if fan_type.outputs[key].is_connected:
+                assert fan_type.outputs[key].connected_to == fan_2.inputs[value]
 
         # test that connecting to anything else than a TrnsysModel raises a
         # TypeError exception
