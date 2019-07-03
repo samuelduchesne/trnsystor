@@ -2,7 +2,7 @@ import pytest
 from mock import patch
 
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def fan_type():
     """Fixture to create a TrnsysModel from xml"""
     from pyTrnsysType import TrnsysModel
@@ -11,7 +11,7 @@ def fan_type():
     yield fan1
 
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def pipe_type():
     """Fixture to create a TrnsysModel from xml"""
     from pyTrnsysType import TrnsysModel
@@ -20,7 +20,7 @@ def pipe_type():
     yield fan1
 
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def tank_type():
     from pyTrnsysType import TrnsysModel
     with patch('builtins.input', return_value='y'):
@@ -224,6 +224,7 @@ def test_copy_trnsys_model(fan_type):
     pytest.param(None, marks=pytest.mark.xfail(raises=NotImplementedError))
 ], ids=['int_mapping', 'str_mapping', 'automapping'])
 def test_connect_to(fan_type, mapping):
+    fan_type.invalidate_connections()
     fan_2 = fan_type.copy()
     fan_type.connect_to(fan_2, mapping=mapping)
     assert fan_2.inputs
@@ -250,3 +251,59 @@ def test_magic_type_variables(fan_type):
         assert input * 2 == float(input) * 2
         assert input + 2 == float(input) + 2
         assert input - 2 == float(input) - 2
+
+def test_version_statement():
+    from pyTrnsysType import Version
+    ver = Version(v=(17, 3))
+    assert ver.to_deck() == "VERSION 17.3"
+
+
+def test_simulation_statement():
+    from pyTrnsysType import Simulation
+    simul = Simulation(0, 8760, 1)
+    assert simul.to_deck() == "SIMULATION 0 8760 1"
+
+
+def test_tolerances_statement():
+    from pyTrnsysType import Tolerances
+    tol = Tolerances(0.001, 0.001)
+    assert tol.to_deck() == "TOLERANCES 0.001 0.001"
+
+
+def test_limits_statement():
+    from pyTrnsysType import Limits
+    lim = Limits(20, 50)
+    assert lim.to_deck() == "LIMITS 20 50 20"
+
+
+def test_dfq_statement():
+    from pyTrnsysType import DFQ
+    dfq_statement = DFQ(3)
+    assert dfq_statement.to_deck() == "DFQ 3"
+
+
+def test_nocheck_statement(fan_type):
+    from pyTrnsysType import NoCheck
+    fan_type.copy()
+    fan_type._unit = 1  # we need to force the id to one here
+    no_check = NoCheck(inputs=list(fan_type.inputs.values()))
+    assert no_check.to_deck() == "NOCHECK 7\n1, 1	1, 2	1, 3	1, " \
+                                 "4	1, 5	1, 6	1, 7"
+
+    with pytest.raises(ValueError):
+        # check exceeding input limits. Multiply list by 10.
+        no_check = NoCheck(inputs=list(fan_type.inputs.values()) * 10)
+
+
+def test_nolist_statement():
+    from pyTrnsysType import NoList
+    no_list = NoList(active=True)
+    assert no_list.to_deck() == "NOLIST"
+    no_list = NoList(active=False)
+    assert no_list.to_deck() == ""
+
+
+def test_control_cards():
+    from pyTrnsysType import ControlCards
+    cc = ControlCards.with_defaults()
+    print(cc.to_deck())

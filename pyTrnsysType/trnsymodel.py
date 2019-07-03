@@ -120,18 +120,14 @@ class ExternalFile(object):
 class TrnsysModel(object):
     new_id = itertools.count(start=1)
 
-    # todo: check what are the legal unit numbers
-
     def __init__(self, meta, name):
         """
-        Todo:
-            - Create to_deck functionality
 
         Args:
             meta (MetaData):
             name (str):
         """
-        self._unit = next(self.new_id)
+        self._unit = next(TrnsysModel.new_id)
         self._meta = meta
         self.name = name
 
@@ -334,9 +330,13 @@ class TrnsysModel(object):
 
         return str(input) + str(params) + str(inputs)
 
-    def copy(self):
+    def copy(self, invalidate_connections=True):
         """copy object"""
-        return copy.copy(self)
+        new = copy.copy(self)
+        new._unit = next(new.new_id)
+        if invalidate_connections:
+            new.invalidate_connections()
+        return new
 
     def connect_to(self, other, mapping=None):
         """Connect the outputs `self` to the inputs of `other`
@@ -380,6 +380,14 @@ class TrnsysModel(object):
                 else:
                     other.inputs[to_other]._connected_to = self.outputs[
                         from_self]
+
+    def invalidate_connections(self):
+        """iterate over inputs/outputs and force :attr:`_connected_to` to
+        None"""
+        for key in self.outputs:
+            self.outputs[key].__dict__['_connected_to'] = None
+        for key in self.inputs:
+            self.inputs[key].__dict__['_connected_to'] = None
 
 
 class TypeVariable(object):
