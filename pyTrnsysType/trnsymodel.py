@@ -4,11 +4,10 @@ import itertools
 import math
 import re
 
+import pyTrnsysType
 from bs4 import BeautifulSoup, Tag
 from pint import UnitRegistry
 from pint.quantity import _Quantity
-
-import pyTrnsysType
 
 
 class MetaData(object):
@@ -113,7 +112,7 @@ class MetaData(object):
 
 
 class ExternalFile(object):
-
+    # todo: Implement External Files
     def __init__(self):
         pass
 
@@ -121,18 +120,14 @@ class ExternalFile(object):
 class TrnsysModel(object):
     new_id = itertools.count(start=1)
 
-    # todo: check what are the legal unit numbers
-
     def __init__(self, meta, name):
         """
-        Todo:
-            - Create to_deck functionality
 
         Args:
             meta (MetaData):
             name (str):
         """
-        self._unit = next(self.new_id)
+        self._unit = next(TrnsysModel.new_id)
         self._meta = meta
         self.name = name
 
@@ -173,7 +168,7 @@ class TrnsysModel(object):
         name = tag.find('object').text
 
         model = TrnsysModel(meta, name)
-        type_vars = [TypeVariable.from_tag(tag)
+        type_vars = [TypeVariable.from_tag(tag, model=model)
                      for tag in tag.find('variables')
                      if isinstance(tag, Tag)]
         type_cycles = CycleCollection(TypeCycle.from_tag(tag)
@@ -281,7 +276,7 @@ class TrnsysModel(object):
                                               max=int(cycle.maxSize),
                                               order=9999999,
                                               default=cycle.default,
-                                              )
+                                              model=self)
                         self._meta.variables.update(
                             {id(question_var): question_var})
                         output_dict.update({id(question_var): question_var})
@@ -335,12 +330,71 @@ class TrnsysModel(object):
 
         return str(input) + str(params) + str(inputs)
 
+    def copy(self, invalidate_connections=True):
+        """copy object"""
+        new = copy.copy(self)
+        new._unit = next(new.new_id)
+        if invalidate_connections:
+            new.invalidate_connections()
+        return new
+
+    def connect_to(self, other, mapping=None):
+        """Connect the outputs `self` to the inputs of `other`
+
+        Examples:
+            Connect two :class:`TrnsysModel` objects together by creating a
+            mapping of the outputs of pipe_1 to the intputs of pipe_2. In this
+            example we connect output_0 of pipe_1 to input_0 of pipe_2 and
+            output_1 of pipe_1 to output_2 of pipe_2:
+
+            >>> pipe_1.connect_to(pipe_2, mapping={0:0, 1:1})
+
+        Args:
+            other (TrnsysModel): The other object
+            mapping (dict): Mapping of inputs to outputs numbers
+
+        Raises:
+            TypeError: À `TypeError is raised when trying to connect to anything
+                other than a :class:`TrnsysType`
+        """
+        if not isinstance(other, TrnsysModel):
+            raise TypeError('Only `TrsnsysModel` objects can be connected '
+                            'together')
+        if mapping is None:
+            raise NotImplementedError('Automapping is not yet implemented. '
+                                      'Please provide a mapping dict')
+            # Todo: create automapping logic here
+        else:
+            # loop over the mapping and assign :class:`TypeVariable` to
+            # `_connected_to` attribute.
+            for from_self, to_other in mapping.items():
+                if other.inputs[to_other].is_connected:
+                    input = other.inputs[to_other]
+                    output = other.inputs[to_other]._connected_to
+                    msg = 'The output "{}: {}" of model "{}" is already ' \
+                          'connected to the input "{}: {}" of model ' \
+                          '"{}"'.format(output.idx, output.name,
+                                        output.model.name, input.idx,
+                                        input.name, input.model.name)
+                    raise ValueError(msg)
+                else:
+                    other.inputs[to_other]._connected_to = self.outputs[
+                        from_self]
+
+    def invalidate_connections(self):
+        """iterate over inputs/outputs and force :attr:`_connected_to` to
+        None"""
+        for key in self.outputs:
+            self.outputs[key].__dict__['_connected_to'] = None
+        for key in self.inputs:
+            self.inputs[key].__dict__['_connected_to'] = None
+
 
 class TypeVariable(object):
 
     def __init__(self, val, order=None, name=None, role=None, dimension=None,
                  unit=None, type=None, min=None, max=max, boundaries=None,
-                 default=None, symbol=None, definition=None):
+                 default=None, symbol=None, definition=None, model=None):
         """Class containing a proforma variable.
 
         Args:
@@ -376,6 +430,7 @@ class TypeVariable(object):
                 the inputs and derivatives and suppressed for the outputs
             symbol (str): The symbol of the unit (not used).
             definition (str): A short description of the variable.
+            model:
         """
         super().__init__()
         self._iscycle = False
@@ -383,8 +438,9 @@ class TypeVariable(object):
         self.name = name
         self.role = role
         self.dimension = dimension
-        self.unit = unit if unit is None else re.sub(r"([\s\S\.]*)\/([\s\S\.]*)",
-                                                     r"(\1)/(\2)", unit)
+        self.unit = unit if unit is None else re.sub(
+            r"([\s\S\.]*)\/([\s\S\.]*)",
+            r"(\1)/(\2)", unit)
         self.type = type
         self.min = min
         self.max = max
@@ -395,18 +451,22 @@ class TypeVariable(object):
             " ".join(definition.split())
         self.value = parse_value(val, self.type, self.unit,
                                  (self.min, self.max), self.name)
+        self._connected_to = None
+        self.model = model  # the TrnsysModel this TypeVariable belongs to.
 
     @classmethod
-    def from_tag(cls, tag):
+    def from_tag(cls, tag, model=None):
         """Class method to create a TypeVariable from an XML tag.
 
         Args:
             tag (Tag): The XML tag with its attributes and contents.
+            model:
         """
         role = tag.find('role').text
         val = tag.find('default').text
         _type = parse_type(tag.find('type').text)
         attr = {attr.name: attr.text for attr in tag if isinstance(attr, Tag)}
+        attr.update({'model': model})
         if role == 'parameter':
             return Parameter(_type(float(val)), **attr)
         elif role == 'input':
@@ -425,6 +485,15 @@ class TypeVariable(object):
     def __int__(self):
         return int(self.value.m)
 
+    def __mul__(self, other):
+        return float(self) * other
+
+    def __add__(self, other):
+        return float(self) + other
+
+    def __sub__(self, other):
+        return float(self) - other
+
     def _parse_types(self):
         for attr, value in self.__dict__.items():
             if attr in ['default', 'max', 'min']:
@@ -438,6 +507,33 @@ class TypeVariable(object):
         """make a copy of the object"""
         new_self = copy.copy(self)
         return new_self
+
+    @property
+    def is_connected(self):
+        """Whether or not this TypeVariable is connected to another type"""
+        return self.connected_to is not None
+
+    @property
+    def connected_to(self):
+        """The TrnsysModel to which this component is connected"""
+        return self._connected_to
+
+    @property
+    def idx(self):
+        """The 0-based index of the TypeVariable"""
+        ordered_dict = collections.OrderedDict(
+            (attr, (self.model._meta.variables[attr], i)) for i, attr in
+            enumerate(sorted(filter(
+                lambda kv: isinstance(self.model._meta.variables[kv],
+                                      self.__class__),
+                self.model._meta.variables),
+                key=lambda key: self.model._meta.variables[key].order), start=0)
+        )
+        return ordered_dict[id(self)][1]
+
+    @property
+    def one_based_idx(self):
+        return self.idx + 1
 
 
 class TypeCycle(object):
@@ -606,7 +702,8 @@ class Parameter(TypeVariable):
         self._parse_types()
 
     def __repr__(self):
-        return '{}; units={};\n{}'.format(self.name, self.unit, self.definition)
+        return '{}; units={}; value={:~P}\n{}'.format(
+            self.name, self.unit, self.value, self.definition)
 
 
 class Input(TypeVariable):
@@ -624,7 +721,8 @@ class Input(TypeVariable):
         self._parse_types()
 
     def __repr__(self):
-        return '{}; units={};\n{}'.format(self.name, self.unit, self.definition)
+        return '{}; units={}; value={:~P}\n{}'.format(
+            self.name, self.unit, self.value, self.definition)
 
 
 class Output(TypeVariable):
@@ -642,7 +740,8 @@ class Output(TypeVariable):
         self._parse_types()
 
     def __repr__(self):
-        return '{}; units={};\n{}'.format(self.name, self.unit, self.definition)
+        return '{}; units={}; value={:~P}\n{}'.format(
+            self.name, self.unit, self.value, self.definition)
 
 
 class Derivative(TypeVariable):
@@ -672,7 +771,7 @@ class VariableCollection(collections.UserDict):
             value = list(self.data.values())[key]
         else:
             value = super(VariableCollection, self).__getitem__(key)
-        return value.value
+        return value
 
     def __setitem__(self, key, value):
         """
