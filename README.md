@@ -1,8 +1,7 @@
 [![Build Status](https://travis-ci.com/samuelduchesne/pyTrnsysType.svg?branch=master)](https://travis-ci.com/samuelduchesne/pyTrnsysType)
 [![Coverage Status](https://coveralls.io/repos/github/samuelduchesne/pyTrnsysType/badge.svg)](https://coveralls.io/github/samuelduchesne/pyTrnsysType)
 
-pyTrnsysType
-============
+# pyTrnsysType
 
 A python TRNSYS type parser
 
@@ -13,11 +12,14 @@ Installation
 pip install pytrnsystype
 ```
 
-Usage
------
+## Usage
 
-Since TRNSYS 18, type proformas can be exported to XML schemas.
-From the xml file representation of a type proforma, simply create a TrnsysModel object:
+Since TRNSYS 18, type proformas can be exported to XML schemas. *pyTrnsysType* builds on this easy to read data 
+structure to easily create TrnsysModel using the most popular scripting language in the data science community: 
+[python](https://www.economist.com/graphic-detail/2018/07/26/python-is-becoming-the-worlds-most-popular-coding-language).
+
+From the xml file of a type proforma, simply create a TrnsysModel object by invoking the `from_xml()` constructor. 
+Make sure to pass a string to the method by reading the `_io.TextIOWrapper` produced by the `open()` method:
 
 ```python
 from pyTrnsysType import TrnsysModel
@@ -69,4 +71,27 @@ For convenience, the mapping can also be done using the output/input names such 
 pipe2 = pipe1.copy()
 # Then, connect pipe1 to pipe2:
 pipe1.connect_to(pipe2, mapping={0:0, 1:1})
+```
+
+### Simulation Cards
+
+The Simulation Cards is a chuck of code that informs TRNSYS of various simulation constrols such as start time end 
+time and time-step. pyTrnsysType implements many of those *Statements* with a series of Statement objects.
+
+For instance, to create simulation cards using default values, simply call the `with_defaults()` constructor:
+
+```python
+>>> from pyTrnsysType import ControlCards
+>>> cc = ControlCards.with_defaults()
+>>> print(cc)
+*** Control Cards
+SOLVER 0 1 1          ! Solver statement	Minimum relaxation factor	Maximum relaxation factor
+MAP                   ! MAP statement
+NOLIST                ! NOLIST statement
+NOCHECK 0             ! CHECK Statement
+DFQ 1                 ! TRNSYS numerical integration solver method
+SIMULATION 0 8760 1   ! Start time	End time	Time step
+TOLERANCES 0.01 0.01  ! Integration	Convergence
+LIMITS 25 10 25       ! Max iterations	Max warnings	Trace limit
+EQSOLVER 0            ! EQUATION SOLVER statement
 ```
