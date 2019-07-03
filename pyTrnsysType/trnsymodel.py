@@ -702,7 +702,8 @@ class Parameter(TypeVariable):
         self._parse_types()
 
     def __repr__(self):
-        return '{}; units={};\n{}'.format(self.name, self.unit, self.definition)
+        return '{}; units={}; value={:~P}\n{}'.format(
+            self.name, self.unit, self.value, self.definition)
 
 
 class Input(TypeVariable):
@@ -720,7 +721,8 @@ class Input(TypeVariable):
         self._parse_types()
 
     def __repr__(self):
-        return '{}; units={};\n{}'.format(self.name, self.unit, self.definition)
+        return '{}; units={}; value={:~P}\n{}'.format(
+            self.name, self.unit, self.value, self.definition)
 
 
 class Output(TypeVariable):
@@ -738,7 +740,8 @@ class Output(TypeVariable):
         self._parse_types()
 
     def __repr__(self):
-        return '{}; units={};\n{}'.format(self.name, self.unit, self.definition)
+        return '{}; units={}; value={:~P}\n{}'.format(
+            self.name, self.unit, self.value, self.definition)
 
 
 class Derivative(TypeVariable):
