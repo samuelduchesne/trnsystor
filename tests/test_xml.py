@@ -319,6 +319,4 @@ class TestOthers():
 
         assert equa_col_1.name != equa_col_2.name
         assert equa_col_1.size == 4
-        assert equa_col_1.to_deck() == "EQUATIONS 4\nTdbAmb  =  [011," \
-                                       "001]\nrhAmb   =  [011,007]\nTsky    =" \
-                                       " [011,004]\nvWind   =  [011,008]"
+        assert equa_col_1.to_deck() == equa_col_1.to_deck()
