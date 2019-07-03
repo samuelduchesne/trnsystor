@@ -293,3 +293,32 @@ class TestStatements():
         from pyTrnsysType import ControlCards
         cc = ControlCards.with_defaults()
         print(cc.to_deck())
+
+
+class TestOthers():
+
+    @pytest.fixture()
+    def equation(self):
+        from pyTrnsysType import Equation
+        equa1 = Equation()
+
+        yield equa1
+
+    def test_equation_collection(self):
+        from pyTrnsysType import Equation, EquationCollection
+
+        equa1 = Equation.from_expression("TdbAmb = [011,001]")
+        equa2 = Equation.from_expression("rhAmb = [011,007]")
+        equa3 = Equation.from_expression("Tsky = [011,004]")
+        equa4 = Equation.from_expression("vWind = [011,008]")
+
+        equa_col_1 = EquationCollection([equa1, equa2, equa3, equa4],
+                                        name='test')
+        equa_col_2 = EquationCollection([equa1, equa2, equa3, equa4],
+                                        name='test')
+
+        assert equa_col_1.name != equa_col_2.name
+        assert equa_col_1.size == 4
+        assert equa_col_1.to_deck() == "EQUATIONS 4\nTdbAmb  =  [011," \
+                                       "001]\nrhAmb   =  [011,007]\nTsky    =" \
+                                       " [011,004]\nvWind   =  [011,008]"

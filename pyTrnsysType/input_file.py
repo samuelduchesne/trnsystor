@@ -7,6 +7,33 @@ from pyTrnsysType import Input
 from .trnsymodel import ParameterCollection, InputCollection
 
 
+class Name(object):
+    """Handles the attribution of user defined names for :class:`TrnsysModel`,
+    :class:`EquationCollection` and more."""
+
+    existing = []  # a list to store the created names
+
+    def __init__(self, name=None):
+        """Pick a name. Will increment the name if already used"""
+        self.name = self.create_unique(name)
+
+    def create_unique(self, name):
+        """Check if name has already been used. If so, try to increment until
+        not used"""
+        i = 0
+        key = name
+        while key in self.existing:
+            i += 1
+            key = key.split("_")
+            key = key[0] + "_{}".format(i)
+        the_name = key
+        self.existing.append(the_name)
+        return the_name
+
+    def __repr__(self):
+        return str(self.name)
+
+
 class UnitType(object):
     def __init__(self, n=None, m=None, comment=None):
         """
@@ -108,6 +135,99 @@ class Trace:
 
 class Format:
     pass
+
+
+class Equation(object):
+    """The EQUATIONS statement allows variables to be defined as algebraic
+    functions of constants, previously defined variables, and outputs from
+    TRNSYS components. These variables can then be used in place of numbers in
+    the TRNSYS input file to represent inputs to components; numerical values of
+    parameters; and initial values of inputs and time-dependent variables.
+    """
+
+    _new_id = itertools.count(start=1)
+
+    def __init__(self, name=None, equals_to=None):
+        """
+        Args:
+            name:
+            equals_to:
+        """
+        self._n = next(self._new_id)
+        self.name = name
+        self.equals_to = equals_to
+
+    @classmethod
+    def from_expression(cls, expression):
+        """
+        Args:
+            expression:
+        """
+        a, b = expression.split("=")
+        return cls(a, b)
+
+    @property
+    def number(self):
+        """The equation number. Unique"""
+        return self._n
+
+
+class EquationCollection(collections.UserList):
+
+    def __init__(self, initlist=None, name=None):
+        """Initialize a new EquationCollection.
+
+        Args:
+            initlist (Iterable, optional): An iterable.
+            name (str): A user defined name for this collection of equations.
+                This name will be used to identify this block of equations in
+                the .dck file;
+
+        Example:
+
+            >>> equa1 = Equation.from_expression("TdbAmb = [011,001]")
+            >>> equa2 = Equation.from_expression("rhAmb = [011,007]")
+            >>> EquationCollection([equa1, equa2])
+
+        """
+        super(EquationCollection, self).__init__(initlist)
+        self.name = Name(name)
+
+    def __getitem__(self, key):
+        """
+        Args:
+            key:
+        """
+        value = super().__getitem__(key)
+        return value
+
+    def __repr__(self):
+        return self.to_deck()
+
+    def to_deck(self):
+        """To deck representation
+
+        Examples::
+
+            EQUATIONS n
+            NAME1 = ... equation 1 ...
+            NAME2 = ... equation 2 ...
+            •
+            •
+            •
+            NAMEn = ... equation n ...
+        """
+        header_comment = '* EQUATIONS "{}"\n\n'.format(self.name)
+        head = "EQUATIONS {}\n".format(len(self))
+        v_ = ((equa.name, "=", equa.equals_to)
+              for equa in self)
+        core = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
+        return str(header_comment) + str(head) + str(core)
+
+    @property
+    def size(self):
+        return len(self)
+
 
 class Version(object):
     """Added with TRNSYS version 15. The version number is saved by the TRNSYS
