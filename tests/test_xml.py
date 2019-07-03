@@ -238,6 +238,11 @@ class TestTrnsysModel():
 
 class TestStatements():
 
+    def test_statement_class(self):
+        from pyTrnsysType import Statement
+        statement = Statement()
+        assert print(statement) == None
+
     def test_version_statement(self):
         from pyTrnsysType import Version
         ver = Version(v=(17, 3))

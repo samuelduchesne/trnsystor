@@ -135,7 +135,7 @@ class Statement(object):
         return self.to_deck()
 
     def to_deck(self):
-        pass
+        return ""
 
 
 class ControlCards(Statement):
