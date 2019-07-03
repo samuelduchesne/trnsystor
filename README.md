@@ -30,7 +30,7 @@ with open("tests/input_files/Type951.xml") as xml:
 Calling `pipe1` will display it's Type number and Name:
 
 ```python
-pipe1
+>>> pipe1
 Type951: Ecoflex 2-Pipe: Buried Piping System
 ```
 
@@ -38,9 +38,10 @@ Then, `pipe1` can be used to **get** and **set** attributes such as inputs, outp
 For example, to set the *Number of Fluid Nodes*, simply set the new value as you would change a dict value:
 
 ```python
-pipe1.parameters['Number_of_Fluid_Nodes'] = 50
-pipe1.parameters['Number_of_Fluid_Nodes']
-<Quantity(50, 'dimensionless')>
+>>> pipe1.parameters['Number_of_Fluid_Nodes'] = 50
+>>> pipe1.parameters['Number_of_Fluid_Nodes']
+Number of Fluid Nodes; units=-; value=50
+The number of nodes into which each pipe will be divided. Increasing the number of nodes will improve the accuracy but cost simulation run-time.
 ```
 
 Since the *Number of Fluid Nodes* is a cycle parameter, the number of outputs is modified dynamically:
