@@ -320,3 +320,11 @@ class TestOthers():
         assert equa_col_1.name != equa_col_2.name
         assert equa_col_1.size == 4
         assert equa_col_1.to_deck() == equa_col_1.to_deck()
+
+    def test_two_unnamed_equationcollection(self, fan_type):
+        """make sure objects with same name=None can be created"""
+        from pyTrnsysType import Equation, EquationCollection
+
+        eq1 = Equation("A", fan_type.outputs[0])
+        EquationCollection([eq1])
+        EquationCollection([eq1])

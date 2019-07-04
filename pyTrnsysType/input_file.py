@@ -20,6 +20,8 @@ class Name(object):
     def create_unique(self, name):
         """Check if name has already been used. If so, try to increment until
         not used"""
+        if not name:
+            return None
         i = 0
         key = name
         while key in self.existing:
