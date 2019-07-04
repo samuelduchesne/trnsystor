@@ -2,8 +2,8 @@ import collections
 import itertools
 
 import tabulate
-from pyTrnsysType import Input
 
+from pyTrnsysType import Input, TypeVariable
 from .trnsymodel import ParameterCollection, InputCollection
 
 
@@ -180,6 +180,14 @@ class Equation(object):
         """The equation number. Unique"""
         return self._n
 
+    def to_deck(self):
+        if isinstance(self.equals_to, TypeVariable):
+            return "[{unit_number}, {output_id}]".format(
+                unit_number=self.equals_to.model.unit_number,
+                output_id=self.equals_to.one_based_idx)
+        else:
+            return self.equals_to
+
 
 class EquationCollection(collections.UserList):
 
@@ -228,7 +236,7 @@ class EquationCollection(collections.UserList):
         """
         header_comment = '* EQUATIONS "{}"\n\n'.format(self.name)
         head = "EQUATIONS {}\n".format(len(self))
-        v_ = ((equa.name, "=", equa.equals_to)
+        v_ = ((equa.name, "=", equa.to_deck())
               for equa in self)
         core = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
         return str(header_comment) + str(head) + str(core)
