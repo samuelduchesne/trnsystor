@@ -321,6 +321,19 @@ class TestOthers():
         assert equa_col_1.size == 4
         assert equa_col_1.to_deck() == equa_col_1.to_deck()
 
+        # An equal sign needs to be included in an expression
+        with pytest.raises(ValueError):
+            equa1 = Equation.from_expression("TdbAmb : [011,001]")
+
+    def test_equation_with_typevariable(self, fan_type):
+        from pyTrnsysType import Equation, EquationCollection
+        fan_type._unit = 1
+        equa1 = Equation("T_out", fan_type.outputs[0])
+        equa_block = EquationCollection([equa1])
+        assert equa1.to_deck() == '[1, 1]'
+        assert equa_block.to_deck() == '* EQUATIONS "None"\n\nEQUATIONS ' \
+                                       '1\nT_out  =  [1, 1]'
+
     def test_two_unnamed_equationcollection(self, fan_type):
         """make sure objects with same name=None can be created"""
         from pyTrnsysType import Equation, EquationCollection
