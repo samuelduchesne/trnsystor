@@ -161,10 +161,17 @@ class Equation(object):
 
     @classmethod
     def from_expression(cls, expression):
-        """
+        """Create an equation from a string expression. Anything before the
+        equal sign ("=") will become a Constant and anything after will
+        become the equality statement.
+
         Args:
-            expression:
+            expression (str): A user-defined expression to parse
         """
+        if "=" not in expression:
+            raise ValueError(
+                "The from_expression constructor must contain an expression "
+                "with the equal sign")
         a, b = expression.split("=")
         return cls(a, b)
 
