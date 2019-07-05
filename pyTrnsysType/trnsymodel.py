@@ -6,6 +6,7 @@ import re
 
 import pyTrnsysType
 from bs4 import BeautifulSoup, Tag
+from path import Path
 from pint import UnitRegistry
 from pint.quantity import _Quantity
 
@@ -17,6 +18,7 @@ class MetaData(object):
                  validation=None, icon=None, type=None, maxInstance=None,
                  keywords=None, details=None, comment=None, variables=None,
                  plugin=None, variablesComment=None, cycles=None, source=None,
+                 externalFiles=None,
                  **kwargs):
         """General information that associated with a TrnsysModel. This
         information is contained in the General Tab of the Proforma.
@@ -80,6 +82,7 @@ class MetaData(object):
         self.source = source
 
         self.variables = variables
+        self.external_files = externalFiles
 
         self.check_extra_tags(kwargs)
 
@@ -110,11 +113,90 @@ class MetaData(object):
             if not shall:
                 raise NotImplementedError()
 
+    def __getitem__(self, item):
+        return getattr(self, item)
+
 
 class ExternalFile(object):
-    # todo: Implement External Files
-    def __init__(self):
-        pass
+    logic_unit = itertools.count(start=30)
+
+    def __init__(self, question, default, answers, parameter, designate):
+        """
+        Args:
+            question (str):
+            default (str):
+            answers (list of str):
+            parameter (str):
+            designate (str):
+        """
+        self.designate = designate
+        self.parameter = parameter
+        self.answers = [Path(answer) for answer in answers]
+        self.default = Path(default)
+        self.question = question
+
+        self.logical_unit = next(self.logic_unit)
+
+        self.value = self.default
+
+    @classmethod
+    def from_tag(cls, tag):
+        """
+        Args:
+            tag (Tag): The XML tag with its attributes and contents.
+        """
+        question = tag.find('question').text
+        default = tag.find('answer').text
+        answers = [tag.text for tag in tag.find('answers').children
+                   if isinstance(tag, Tag)]
+        parameter = tag.find('parameter').text
+        designate = tag.find('designate').text
+        return cls(question, default, answers, parameter, designate)
+
+
+class ExternalFileCollection(collections.UserDict):
+    """"""
+
+    def __getitem__(self, key):
+        """
+        Args:
+            key:
+        """
+        if isinstance(key, int):
+            value = list(self.data.values())[key]
+        else:
+            value = super().__getitem__(key)
+        return value
+
+    def __setitem__(self, key, value):
+        """
+        Args:
+            key:
+            value:
+        """
+        if isinstance(value, ExternalFile):
+            """if a ExternalFile is given, simply set it"""
+            super().__setitem__(key, value)
+        elif isinstance(value, (str, Path)):
+            """a str, or :class:Path is passed"""
+            value = Path(value)
+            self[key].__setattr__('value', value)
+        else:
+            raise TypeError('Cannot set a value of type {} in this '
+                            'ExternalFileCollection'.format(type(value)))
+
+    @classmethod
+    def from_dict(cls, dictionary):
+        """
+        Args:
+            dictionary:
+        """
+        item = cls()
+        for key in dictionary:
+            # self.parameters[key] = ex_file.logical_unit
+            named_key = standerdized_name(dictionary[key].question)
+            item.__setitem__(named_key, dictionary[key])
+        return item
 
 
 class TrnsysModel(object):
@@ -122,7 +204,6 @@ class TrnsysModel(object):
 
     def __init__(self, meta, name):
         """
-
         Args:
             meta (MetaData):
             name (str):
@@ -176,10 +257,18 @@ class TrnsysModel(object):
                                       if isinstance(tag, Tag))
         model._meta.variables = {id(var): var for var in type_vars}
         model._meta.cycles = type_cycles
+        file_vars = [ExternalFile.from_tag(tag)
+                     for tag in tag.find('externalFiles').children
+                     if isinstance(tag, Tag)
+                     ] if tag.find('externalFiles') else None
+        model._meta.external_files = {id(var): var
+                                      for var in file_vars
+                                      } if file_vars else None
 
         model.get_inputs()
         model.get_outputs()
         model.get_parameters()
+        model.get_external_files()
 
         return model
 
@@ -196,6 +285,10 @@ class TrnsysModel(object):
         return self.get_parameters()
 
     @property
+    def external_files(self):
+        return self.get_external_files()
+
+    @property
     def unit_number(self):
         return int(self._unit)
 
@@ -208,7 +301,7 @@ class TrnsysModel(object):
         is called
         """
         self.resolve_cycles('input', Input)
-        input_dict = self.get_ordered_filtered_types(Input)
+        input_dict = self.get_ordered_filtered_types(Input, 'variables')
         return InputCollection.from_dict(input_dict)
 
     def get_outputs(self):
@@ -217,7 +310,7 @@ class TrnsysModel(object):
         """
         # output_dict = self.get_ordered_filtered_types(Output)
         self.resolve_cycles('output', Output)
-        output_dict = self.get_ordered_filtered_types(Output)
+        output_dict = self.get_ordered_filtered_types(Output, 'variables')
         return OutputCollection.from_dict(output_dict)
 
     def get_parameters(self):
@@ -225,21 +318,32 @@ class TrnsysModel(object):
         time it is called
         """
         self.resolve_cycles('parameter', Parameter)
-        param_dict = self.get_ordered_filtered_types(Parameter)
+        param_dict = self.get_ordered_filtered_types(Parameter, 'variables')
         return ParameterCollection.from_dict(param_dict)
 
-    def get_ordered_filtered_types(self, classe_):
+    def get_external_files(self):
+        if self._meta.external_files:
+            ext_files_dict = dict(
+                (attr, self._meta['external_files'][attr]) for attr in
+                self.get_filtered_types(ExternalFile, 'external_files')
+            )
+            return ExternalFileCollection.from_dict(ext_files_dict)
+
+    def get_ordered_filtered_types(self, classe_, store):
         """
         Args:
             classe_:
         """
         return collections.OrderedDict(
-            (attr, self._meta.variables[attr]) for attr in
-            sorted(filter(
-                lambda kv: isinstance(self._meta.variables[kv], classe_),
-                self._meta.variables),
-                key=lambda key: self._meta.variables[key].order)
+            (attr, self._meta[store][attr]) for attr in
+            sorted(self.get_filtered_types(classe_, store),
+                   key=lambda key: self._meta[store][key].order)
         )
+
+    def get_filtered_types(self, classe_, store):
+        return filter(
+            lambda kv: isinstance(self._meta[store][kv], classe_),
+            self._meta[store])
 
     def resolve_cycles(self, type_, class_):
         """Cycle resolver. Proformas can contain parameters, inputs and ouputs
@@ -250,7 +354,7 @@ class TrnsysModel(object):
             type_:
             class_:
         """
-        output_dict = self.get_ordered_filtered_types(class_)
+        output_dict = self.get_ordered_filtered_types(class_, 'variables')
         cycles = {str(id(attr)): attr for attr in self._meta.cycles if
                   attr.role == type_}
         # repeat cycle variables n times
@@ -307,7 +411,7 @@ class TrnsysModel(object):
             for item, n_time in zip(items, n_times):
                 basename = item.name
                 item_base = self._meta.variables.get(id(item))
-                for n, _ in enumerate(range(n_time), start=1):
+                for n, _ in enumerate(range(int(n_time)), start=1):
                     existing = next((key for key, value in mydict.items() if
                                      value.name == basename + "-{}".format(
                                          n)), None)
@@ -328,10 +432,16 @@ class TrnsysModel(object):
                                          n=self.parameters.size)
         inputs = pyTrnsysType.Inputs(self.inputs, n=self.inputs.size)
 
-        return str(input) + str(params) + str(inputs)
+        externals = pyTrnsysType.ExternalFiles(self.external_files)
+
+        return str(input) + str(params) + str(inputs) + str(externals)
 
     def copy(self, invalidate_connections=True):
-        """copy object"""
+        """copy object
+
+        Args:
+            invalidate_connections:
+        """
         new = copy.copy(self)
         new._unit = next(new.new_id)
         if invalidate_connections:
@@ -383,7 +493,8 @@ class TrnsysModel(object):
 
     def invalidate_connections(self):
         """iterate over inputs/outputs and force :attr:`_connected_to` to
-        None"""
+        None
+        """
         for key in self.outputs:
             self.outputs[key].__dict__['_connected_to'] = None
         for key in self.inputs:
@@ -666,13 +777,17 @@ def parse_type(_type):
         raise NotImplementedError()
 
 
+def standerdized_name(name):
+    return re.sub('[^0-9a-zA-Z]+', '_', name)
+
+
 def parse_unit(unit):
     """
     Args:
         unit:
     """
     Q_ = ureg.Quantity
-    if unit == '-':
+    if unit == '-' or unit is None:
         return Q_, ureg.parse_expression('dimensionless')
     elif unit == '% (base 100)':
         ureg.define('percent = 0.01*count = %')
@@ -683,6 +798,9 @@ def parse_unit(unit):
     elif unit.lower() == 'deltac':
         Q_ = ureg.Quantity
         return Q_, ureg.delta_degC
+    elif unit.lower() == 'fraction':
+        ureg.define('fraction = 1*count = -')
+        return Q_, ureg.fraction
     else:
         return Q_, ureg.parse_expression(unit)
 
@@ -801,7 +919,7 @@ class VariableCollection(collections.UserDict):
         """
         item = cls()
         for key in dictionary:
-            named_key = re.sub('[^0-9a-zA-Z]+', '_', dictionary[key].name)
+            named_key = standerdized_name(dictionary[key].name)
             item.__setitem__(named_key, dictionary[key])
         return item
 
