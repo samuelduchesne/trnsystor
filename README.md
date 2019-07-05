@@ -21,15 +21,15 @@ structure to easily create TrnsysModel using the most popular scripting language
 From the xml file of a type proforma, simply create a TrnsysModel object by invoking the `from_xml()` constructor. 
 Make sure to pass a string to the method by reading the `_io.TextIOWrapper` produced by the `open()` method:
 
-```python
-from pyTrnsysType import TrnsysModel
-with open("tests/input_files/Type951.xml") as xml:
-    pipe1 = TrnsysModel.from_xml(xml.read())
+```pydocstring
+>>> from pyTrnsysType import TrnsysModel
+>>> with open("tests/input_files/Type951.xml") as xml:
+...     pipe1 = TrnsysModel.from_xml(xml.read())
 ```
 
 Calling `pipe1` will display it's Type number and Name:
 
-```python
+```pydocstring
 >>> pipe1
 Type951: Ecoflex 2-Pipe: Buried Piping System
 ```
@@ -37,7 +37,10 @@ Type951: Ecoflex 2-Pipe: Buried Piping System
 Then, `pipe1` can be used to **get** and **set** attributes such as inputs, outputs and parameters.
 For example, to set the *Number of Fluid Nodes*, simply set the new value as you would change a dict value:
 
-```python
+```pydocstring
+>>> from pyTrnsysType import TrnsysModel
+>>> with open("tests/input_files/Type951.xml") as xml:
+...    pipe1 = TrnsysModel.from_xml(xml.read())
 >>> pipe1.parameters['Number_of_Fluid_Nodes'] = 50
 >>> pipe1.parameters['Number_of_Fluid_Nodes']
 Number of Fluid Nodes; units=-; value=50
@@ -81,7 +84,7 @@ time and time-step. pyTrnsysType implements many of those *Statements* with a se
 
 For instance, to create simulation cards using default values, simply call the `with_defaults()` constructor:
 
-```python
+```pydocstring
 >>> from pyTrnsysType import ControlCards
 >>> cc = ControlCards.with_defaults()
 >>> print(cc)
@@ -96,3 +99,25 @@ TOLERANCES 0.01 0.01  ! Integration	Convergence
 LIMITS 25 10 25       ! Max iterations	Max warnings	Trace limit
 EQSOLVER 0            ! EQUATION SOLVER statement
 ```
+
+### Equations
+
+In the TRNSYS studio, equations are components holding a list of user-defined expressions. In pyTrnsysType a similar 
+approach has been taken: the `Equation` class handles the creation of equations and the `EquationCollection` class 
+handles the block of equations. Here's an example:
+
+First, create a series of Equation by invoking the `from_expression` constructor. This allows you two input the 
+equation as a string. 
+```pydocstring
+>>> from pyTrnsysType import Equation, EquationCollection
+>>> equa1 = Equation.from_expression("TdbAmb = [011,001]")
+>>> equa2 = Equation.from_expression("rhAmb = [011,007]")
+>>> equa3 = Equation.from_expression("Tsky = [011,004]")
+>>> equa4 = Equation.from_expression("vWind = [011,008]")
+```
+One can crae
+```pydocstring
+>>> equa_col_1 = EquationCollection([equa1, equa2, equa3, equa4],
+                                        name='test')
+```
+

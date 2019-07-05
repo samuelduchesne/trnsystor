@@ -327,3 +327,60 @@ class TestStatements():
         from pyTrnsysType import ControlCards
         cc = ControlCards.with_defaults()
         print(cc.to_deck())
+
+
+class TestOthers():
+
+    @pytest.fixture()
+    def equation(self):
+        from pyTrnsysType import Equation
+        equa1 = Equation()
+
+        yield equa1
+
+    @pytest.fixture()
+    def equation_block(self):
+        from pyTrnsysType import Equation, EquationCollection
+
+        equa1 = Equation.from_expression("TdbAmb = [011,001]")
+        equa2 = Equation.from_expression("rhAmb = [011,007]")
+        equa3 = Equation.from_expression("Tsky = [011,004]")
+        equa4 = Equation.from_expression("vWind = [011,008]")
+
+        equa_col_1 = EquationCollection([equa1, equa2, equa3, equa4],
+                                        name='test')
+        yield equa_col_1
+
+    def test_unit_number(self, equation_block):
+        assert equation_block.unit_number > 0
+
+    def test_equation_collection(self, equation_block):
+        from pyTrnsysType import Equation, EquationCollection
+
+        equa_col_2 = EquationCollection([equa for equa in equation_block],
+                                        name='test')
+
+        assert equation_block.name != equa_col_2.name
+        assert equation_block.size == 4
+        assert equation_block.to_deck() == equation_block.to_deck()
+
+        # An equal sign needs to be included in an expression
+        with pytest.raises(ValueError):
+            equa1 = Equation.from_expression("TdbAmb : [011,001]")
+
+    def test_equation_with_typevariable(self, fan_type):
+        from pyTrnsysType import Equation, EquationCollection
+        fan_type._unit = 1
+        equa1 = Equation("T_out", fan_type.outputs[0])
+        equa_block = EquationCollection([equa1])
+        assert equa1.to_deck() == '[1, 1]'
+        assert equa_block.to_deck() == '* EQUATIONS "None"\n\nEQUATIONS ' \
+                                       '1\nT_out  =  [1, 1]'
+
+    def test_two_unnamed_equationcollection(self, fan_type):
+        """make sure objects with same name=None can be created"""
+        from pyTrnsysType import Equation, EquationCollection
+
+        eq1 = Equation("A", fan_type.outputs[0])
+        EquationCollection([eq1])
+        EquationCollection([eq1])
