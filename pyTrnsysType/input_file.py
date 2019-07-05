@@ -117,8 +117,8 @@ class ExternalFiles(object):
         """Returns the string representation for the external files (.dck)"""
         if self.external_files:
             head = "*** External files\n"
-            v_ = (("ASSIGN", ext_file.default, ext_file.logical_unit)
-                  for ext_file in self.external_files)
+            v_ = (("ASSIGN", ext_file.value.normcase(), ext_file.logical_unit)
+                  for ext_file in self.external_files.values())
             core = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
 
             return str(head) + str(core)

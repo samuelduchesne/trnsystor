@@ -249,6 +249,28 @@ class TestTrnsysModel():
     def test_external_file(self, weather_type):
         print(weather_type.to_deck())
 
+    def test_get_external_file(self, weather_type):
+        from pyTrnsysType import ExternalFile
+        assert isinstance(weather_type.external_files[0], ExternalFile)
+        assert isinstance(weather_type.external_files[
+                              'Which_file_contains_the_Energy_weather_data_'],
+                          ExternalFile)
+
+    def test_set_external_file(self, weather_type):
+        """Test setting a different path for external files"""
+        from path import Path
+
+        # test set Path behavior
+        weather_type.external_files[0] = Path.getcwd()
+        assert weather_type.external_files[0].value == Path.getcwd()
+
+        # test set str behavior
+        weather_type.external_files[0] = str(Path.getcwd())
+        assert weather_type.external_files[0].value == Path.getcwd()
+
+        # test unsupported type set
+        with pytest.raises(TypeError):
+            weather_type.external_files[0] = 1
 
 class TestStatements():
 

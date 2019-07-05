@@ -113,6 +113,9 @@ class MetaData(object):
             if not shall:
                 raise NotImplementedError()
 
+    def __getitem__(self, item):
+        return getattr(self, item)
+
 
 class ExternalFile(object):
     logic_unit = itertools.count(start=30)
@@ -134,6 +137,8 @@ class ExternalFile(object):
 
         self.logical_unit = next(self.logic_unit)
 
+        self.value = self.default
+
     @classmethod
     def from_tag(cls, tag):
         """
@@ -149,8 +154,49 @@ class ExternalFile(object):
         return cls(question, default, answers, parameter, designate)
 
 
-class ExternalFileCollection(collections.UserList):
-    pass
+class ExternalFileCollection(collections.UserDict):
+    """"""
+
+    def __getitem__(self, key):
+        """
+        Args:
+            key:
+        """
+        if isinstance(key, int):
+            value = list(self.data.values())[key]
+        else:
+            value = super().__getitem__(key)
+        return value
+
+    def __setitem__(self, key, value):
+        """
+        Args:
+            key:
+            value:
+        """
+        if isinstance(value, ExternalFile):
+            """if a ExternalFile is given, simply set it"""
+            super().__setitem__(key, value)
+        elif isinstance(value, (str, Path)):
+            """a str, or :class:Path is passed"""
+            value = Path(value)
+            self[key].__setattr__('value', value)
+        else:
+            raise TypeError('Cannot set a value of type {} in this '
+                            'ExternalFileCollection'.format(type(value)))
+
+    @classmethod
+    def from_dict(cls, dictionary):
+        """
+        Args:
+            dictionary:
+        """
+        item = cls()
+        for key in dictionary:
+            # self.parameters[key] = ex_file.logical_unit
+            named_key = standerdized_name(dictionary[key].question)
+            item.__setitem__(named_key, dictionary[key])
+        return item
 
 
 class TrnsysModel(object):
@@ -211,11 +257,13 @@ class TrnsysModel(object):
                                       if isinstance(tag, Tag))
         model._meta.variables = {id(var): var for var in type_vars}
         model._meta.cycles = type_cycles
-        model._meta.external_files = ExternalFileCollection(
-            ExternalFile.from_tag(tag)
-            for tag in tag.find('externalFiles').children
-            if isinstance(tag, Tag)
-        ) if tag.find('externalFiles') else None
+        file_vars = [ExternalFile.from_tag(tag)
+                     for tag in tag.find('externalFiles').children
+                     if isinstance(tag, Tag)
+                     ] if tag.find('externalFiles') else None
+        model._meta.external_files = {id(var): var
+                                      for var in file_vars
+                                      } if file_vars else None
 
         model.get_inputs()
         model.get_outputs()
@@ -238,7 +286,7 @@ class TrnsysModel(object):
 
     @property
     def external_files(self):
-        return self._meta.external_files
+        return self.get_external_files()
 
     @property
     def unit_number(self):
@@ -253,7 +301,7 @@ class TrnsysModel(object):
         is called
         """
         self.resolve_cycles('input', Input)
-        input_dict = self.get_ordered_filtered_types(Input)
+        input_dict = self.get_ordered_filtered_types(Input, 'variables')
         return InputCollection.from_dict(input_dict)
 
     def get_outputs(self):
@@ -262,7 +310,7 @@ class TrnsysModel(object):
         """
         # output_dict = self.get_ordered_filtered_types(Output)
         self.resolve_cycles('output', Output)
-        output_dict = self.get_ordered_filtered_types(Output)
+        output_dict = self.get_ordered_filtered_types(Output, 'variables')
         return OutputCollection.from_dict(output_dict)
 
     def get_parameters(self):
@@ -270,27 +318,32 @@ class TrnsysModel(object):
         time it is called
         """
         self.resolve_cycles('parameter', Parameter)
-        param_dict = self.get_ordered_filtered_types(Parameter)
+        param_dict = self.get_ordered_filtered_types(Parameter, 'variables')
         return ParameterCollection.from_dict(param_dict)
 
     def get_external_files(self):
         if self._meta.external_files:
-            for ex_file in self._meta.external_files:
-                key = standerdized_name(ex_file.parameter)
-                self.parameters[key] = ex_file.logical_unit
+            ext_files_dict = dict(
+                (attr, self._meta['external_files'][attr]) for attr in
+                self.get_filtered_types(ExternalFile, 'external_files')
+            )
+            return ExternalFileCollection.from_dict(ext_files_dict)
 
-    def get_ordered_filtered_types(self, classe_):
+    def get_ordered_filtered_types(self, classe_, store):
         """
         Args:
             classe_:
         """
         return collections.OrderedDict(
-            (attr, self._meta.variables[attr]) for attr in
-            sorted(filter(
-                lambda kv: isinstance(self._meta.variables[kv], classe_),
-                self._meta.variables),
-                key=lambda key: self._meta.variables[key].order)
+            (attr, self._meta[store][attr]) for attr in
+            sorted(self.get_filtered_types(classe_, store),
+                   key=lambda key: self._meta[store][key].order)
         )
+
+    def get_filtered_types(self, classe_, store):
+        return filter(
+            lambda kv: isinstance(self._meta[store][kv], classe_),
+            self._meta[store])
 
     def resolve_cycles(self, type_, class_):
         """Cycle resolver. Proformas can contain parameters, inputs and ouputs
@@ -301,7 +354,7 @@ class TrnsysModel(object):
             type_:
             class_:
         """
-        output_dict = self.get_ordered_filtered_types(class_)
+        output_dict = self.get_ordered_filtered_types(class_, 'variables')
         cycles = {str(id(attr)): attr for attr in self._meta.cycles if
                   attr.role == type_}
         # repeat cycle variables n times
@@ -723,8 +776,10 @@ def parse_type(_type):
     else:
         raise NotImplementedError()
 
+
 def standerdized_name(name):
     return re.sub('[^0-9a-zA-Z]+', '_', name)
+
 
 def parse_unit(unit):
     """
