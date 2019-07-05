@@ -6,6 +6,7 @@ import re
 
 import pyTrnsysType
 from bs4 import BeautifulSoup, Tag
+from path import Path
 from pint import UnitRegistry
 from pint.quantity import _Quantity
 
@@ -17,6 +18,7 @@ class MetaData(object):
                  validation=None, icon=None, type=None, maxInstance=None,
                  keywords=None, details=None, comment=None, variables=None,
                  plugin=None, variablesComment=None, cycles=None, source=None,
+                 externalFiles=None,
                  **kwargs):
         """General information that associated with a TrnsysModel. This
         information is contained in the General Tab of the Proforma.
@@ -80,6 +82,7 @@ class MetaData(object):
         self.source = source
 
         self.variables = variables
+        self.external_files = externalFiles
 
         self.check_extra_tags(kwargs)
 
@@ -112,9 +115,42 @@ class MetaData(object):
 
 
 class ExternalFile(object):
-    # todo: Implement External Files
-    def __init__(self):
-        pass
+    logic_unit = itertools.count(start=30)
+
+    def __init__(self, question, default, answers, parameter, designate):
+        """
+        Args:
+            question (str):
+            default (str):
+            answers (list of str):
+            parameter (str):
+            designate (str):
+        """
+        self.designate = designate
+        self.parameter = parameter
+        self.answers = [Path(answer) for answer in answers]
+        self.default = Path(default)
+        self.question = question
+
+        self.logical_unit = next(self.logic_unit)
+
+    @classmethod
+    def from_tag(cls, tag):
+        """
+        Args:
+            tag (Tag): The XML tag with its attributes and contents.
+        """
+        question = tag.find('question').text
+        default = tag.find('answer').text
+        answers = [tag.text for tag in tag.find('answers').children
+                   if isinstance(tag, Tag)]
+        parameter = tag.find('parameter').text
+        designate = tag.find('designate').text
+        return cls(question, default, answers, parameter, designate)
+
+
+class ExternalFileCollection(collections.UserList):
+    pass
 
 
 class TrnsysModel(object):
@@ -122,7 +158,6 @@ class TrnsysModel(object):
 
     def __init__(self, meta, name):
         """
-
         Args:
             meta (MetaData):
             name (str):
@@ -176,10 +211,16 @@ class TrnsysModel(object):
                                       if isinstance(tag, Tag))
         model._meta.variables = {id(var): var for var in type_vars}
         model._meta.cycles = type_cycles
+        model._meta.external_files = ExternalFileCollection(
+            ExternalFile.from_tag(tag)
+            for tag in tag.find('externalFiles').children
+            if isinstance(tag, Tag)
+        ) if tag.find('externalFiles') else None
 
         model.get_inputs()
         model.get_outputs()
         model.get_parameters()
+        model.get_external_files()
 
         return model
 
@@ -194,6 +235,10 @@ class TrnsysModel(object):
     @property
     def parameters(self):
         return self.get_parameters()
+
+    @property
+    def external_files(self):
+        return self._meta.external_files
 
     @property
     def unit_number(self):
@@ -227,6 +272,12 @@ class TrnsysModel(object):
         self.resolve_cycles('parameter', Parameter)
         param_dict = self.get_ordered_filtered_types(Parameter)
         return ParameterCollection.from_dict(param_dict)
+
+    def get_external_files(self):
+        if self._meta.external_files:
+            for ex_file in self._meta.external_files:
+                key = standerdized_name(ex_file.parameter)
+                self.parameters[key] = ex_file.logical_unit
 
     def get_ordered_filtered_types(self, classe_):
         """
@@ -307,7 +358,7 @@ class TrnsysModel(object):
             for item, n_time in zip(items, n_times):
                 basename = item.name
                 item_base = self._meta.variables.get(id(item))
-                for n, _ in enumerate(range(n_time), start=1):
+                for n, _ in enumerate(range(int(n_time)), start=1):
                     existing = next((key for key, value in mydict.items() if
                                      value.name == basename + "-{}".format(
                                          n)), None)
@@ -328,10 +379,16 @@ class TrnsysModel(object):
                                          n=self.parameters.size)
         inputs = pyTrnsysType.Inputs(self.inputs, n=self.inputs.size)
 
-        return str(input) + str(params) + str(inputs)
+        externals = pyTrnsysType.ExternalFiles(self.external_files)
+
+        return str(input) + str(params) + str(inputs) + str(externals)
 
     def copy(self, invalidate_connections=True):
-        """copy object"""
+        """copy object
+
+        Args:
+            invalidate_connections:
+        """
         new = copy.copy(self)
         new._unit = next(new.new_id)
         if invalidate_connections:
@@ -383,7 +440,8 @@ class TrnsysModel(object):
 
     def invalidate_connections(self):
         """iterate over inputs/outputs and force :attr:`_connected_to` to
-        None"""
+        None
+        """
         for key in self.outputs:
             self.outputs[key].__dict__['_connected_to'] = None
         for key in self.inputs:
@@ -665,6 +723,8 @@ def parse_type(_type):
     else:
         raise NotImplementedError()
 
+def standerdized_name(name):
+    return re.sub('[^0-9a-zA-Z]+', '_', name)
 
 def parse_unit(unit):
     """
@@ -672,7 +732,7 @@ def parse_unit(unit):
         unit:
     """
     Q_ = ureg.Quantity
-    if unit == '-':
+    if unit == '-' or unit is None:
         return Q_, ureg.parse_expression('dimensionless')
     elif unit == '% (base 100)':
         ureg.define('percent = 0.01*count = %')
@@ -683,6 +743,9 @@ def parse_unit(unit):
     elif unit.lower() == 'deltac':
         Q_ = ureg.Quantity
         return Q_, ureg.delta_degC
+    elif unit.lower() == 'fraction':
+        ureg.define('fraction = 1*count = -')
+        return Q_, ureg.fraction
     else:
         return Q_, ureg.parse_expression(unit)
 
@@ -801,7 +864,7 @@ class VariableCollection(collections.UserDict):
         """
         item = cls()
         for key in dictionary:
-            named_key = re.sub('[^0-9a-zA-Z]+', '_', dictionary[key].name)
+            named_key = standerdized_name(dictionary[key].name)
             item.__setitem__(named_key, dictionary[key])
         return item
 

@@ -29,6 +29,15 @@ def tank_type():
         yield tank
 
 
+@pytest.fixture(scope='class')
+def weather_type():
+    from pyTrnsysType import TrnsysModel
+    with patch('builtins.input', return_value='y'):
+        with open("tests/input_files/Type15-3.xml") as xml:
+            weather = TrnsysModel.from_xml(xml.read())
+        yield weather
+
+
 class TestTrnsysModel():
 
     @patch('builtins.input', return_value='y')
@@ -236,6 +245,9 @@ class TestTrnsysModel():
             assert input * 2 == float(input) * 2
             assert input + 2 == float(input) + 2
             assert input - 2 == float(input) - 2
+
+    def test_external_file(self, weather_type):
+        print(weather_type.to_deck())
 
 
 class TestStatements():

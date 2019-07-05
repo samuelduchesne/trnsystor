@@ -3,3 +3,4 @@ lxml
 pint
 beautifulsoup4
 tabulate
+path.py

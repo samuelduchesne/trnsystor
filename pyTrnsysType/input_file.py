@@ -6,6 +6,8 @@ from pyTrnsysType import Input
 
 from .trnsymodel import ParameterCollection, InputCollection
 
+from .trnsymodel import ParameterCollection, InputCollection, \
+    ExternalFileCollection
 
 class UnitType(object):
     def __init__(self, n=None, m=None, comment=None):
@@ -94,8 +96,34 @@ class Inputs(object):
                 input.connected_to.model.unit_number,
                 input.connected_to.one_based_idx) if input.is_connected else
              "0, 0"
-             for input in self.inputs.values()])
+             for input in self.inputs.values()]) + "\n"
         return str(head) + str(core)
+
+
+class ExternalFiles(object):
+    def __init__(self, external_collection):
+        """
+
+        Args:
+            external_collection (ExternalFileCollection):
+        """
+        self.external_files = external_collection
+
+    def __repr__(self):
+        """Overload __repr__() and str() to implement self.to_deck()"""
+        return self.to_deck()
+
+    def to_deck(self):
+        """Returns the string representation for the external files (.dck)"""
+        if self.external_files:
+            head = "*** External files\n"
+            v_ = (("ASSIGN", ext_file.default, ext_file.logical_unit)
+                  for ext_file in self.external_files)
+            core = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
+
+            return str(head) + str(core)
+        else:
+            return ""
 
 
 class Derivatives:
