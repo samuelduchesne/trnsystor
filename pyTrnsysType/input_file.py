@@ -1,6 +1,3 @@
-import collections
-import itertools
-
 import tabulate
 from pyTrnsysType import Input
 
@@ -109,6 +106,7 @@ class Trace:
 class Format:
     pass
 
+
 class Version(object):
     """Added with TRNSYS version 15. The version number is saved by the TRNSYS
     kernel and can be acted upon.
@@ -141,7 +139,8 @@ class Statement(object):
 class ControlCards(Statement):
     """The :class:`ControlCards` is a container for all the TRNSYS Statements
     classes. It implements the to_deck() method which pretty-prints the
-    statements with their docstrings."""
+    statements with their docstrings.
+    """
 
     def __init__(self, simulation, tolerances, limits, dfq, nocheck, nolist,
                  map, eqsolver, solver):

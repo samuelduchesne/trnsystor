@@ -18,6 +18,7 @@ class MetaData(object):
                  validation=None, icon=None, type=None, maxInstance=None,
                  keywords=None, details=None, comment=None, variables=None,
                  plugin=None, variablesComment=None, cycles=None, source=None,
+                 model=None,
                  **kwargs):
         """General information that associated with a TrnsysModel. This
         information is contained in the General Tab of the Proforma.
@@ -59,6 +60,7 @@ class MetaData(object):
             variablesComment (str): #todo What is this?
             cycles (list, optional): List of TypeCycle.
             source (Path): Path of the source code.
+            model (Path): Path of the xml or tmf file.
             **kwargs:
         """
         self.object = object
@@ -79,6 +81,7 @@ class MetaData(object):
         self.plugin = plugin
         self.cycles = cycles
         self.source = source
+        self.model = model
 
         self.variables = variables
 
@@ -121,16 +124,17 @@ class ExternalFile(object):
 class TrnsysModel(object):
     new_id = itertools.count(start=1)
 
-    def __init__(self, meta, name):
+    def __init__(self, meta, name, studio=None):
         """
-
         Args:
             meta (MetaData):
             name (str):
+            studio (StudioHeader, optional):
         """
         self._unit = next(TrnsysModel.new_id)
         self._meta = meta
         self.name = name
+        self.studio = studio
 
     def __repr__(self):
         return 'Type{}: {}'.format(self.type_number, self.name)
@@ -160,6 +164,7 @@ class TrnsysModel(object):
             for trnsystype in my_objects:
                 t = cls._from_tag(trnsystype)
                 t._meta.model = xml_file
+                t.studio = StudioHeader.from_trnsysmodel(t)
                 all_types.append(t)
             return all_types[0]
 
@@ -212,6 +217,10 @@ class TrnsysModel(object):
     @property
     def unit_name(self):
         return "Type{}".format(self.type_number)
+
+    @property
+    def model(self):
+        return self._meta.model
 
     def get_inputs(self):
         """inputs getter. Sorts by order number and resolves cycles each time it
@@ -861,3 +870,37 @@ class ParameterCollection(VariableCollection):
         inputs = '\n'.join(['"{}": {:~P}'.format(key, value.value)
                             for key, value in self.data.items()])
         return num_inputs + inputs
+
+
+class StudioHeader(object):
+    """Handles the studio comments such as postion component UNIT_NAME, model,
+    POSITION, LAYER, LINK_STYLE
+    """
+
+    def __init__(self, unit_name, model, position, layer=None, link_style=None):
+        """
+        Args:
+            unit_name (str): The unit_name, eg.: "Type104".
+            model (Path): The path of the tmf/xml file.
+            position (Point, optional): The Point containing coordinates on the
+                canvas.
+            layer (list, optional): list of layer names on which the model is
+                placed. Defaults to "Main".
+            link_style (dict, optional): A series of styling keywords to format
+                the connections.
+        """
+        if layer is None:
+            layer = ["Main"]
+        self.link_style = link_style
+        self.layer = layer
+        self.position = position
+        self.model = model
+        self.unit_name = unit_name
+
+    @classmethod
+    def from_trnsysmodel(cls, model):
+        """
+        Args:
+            model (TrnsysModel):
+        """
+        return cls(model.unit_name, model.model, None, None, None)
