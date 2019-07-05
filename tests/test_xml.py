@@ -1,13 +1,13 @@
 import pytest
 from mock import patch
+from shapely.geometry import Point
 
 
 @pytest.fixture(scope='class')
 def fan_type():
     """Fixture to create a TrnsysModel from xml"""
     from pyTrnsysType import TrnsysModel
-    with open("tests/input_files/Type146.xml") as xml:
-        fan1 = TrnsysModel.from_xml(xml.read())
+    fan1 = TrnsysModel.from_xml("tests/input_files/Type146.xml")
     yield fan1
 
 
@@ -15,8 +15,7 @@ def fan_type():
 def pipe_type():
     """Fixture to create a TrnsysModel from xml"""
     from pyTrnsysType import TrnsysModel
-    with open("tests/input_files/Type951.xml") as xml:
-        fan1 = TrnsysModel.from_xml(xml.read())
+    fan1 = TrnsysModel.from_xml("tests/input_files/Type951.xml")
     yield fan1
 
 
@@ -24,8 +23,7 @@ def pipe_type():
 def tank_type():
     from pyTrnsysType import TrnsysModel
     with patch('builtins.input', return_value='y'):
-        with open("tests/input_files/Type4a.xml") as xml:
-            tank = TrnsysModel.from_xml(xml.read())
+        tank = TrnsysModel.from_xml("tests/input_files/Type4a.xml")
         yield tank
 
 
@@ -33,8 +31,7 @@ def tank_type():
 def weather_type():
     from pyTrnsysType import TrnsysModel
     with patch('builtins.input', return_value='y'):
-        with open("tests/input_files/Type15-3.xml") as xml:
-            weather = TrnsysModel.from_xml(xml.read())
+        weather = TrnsysModel.from_xml("tests/input_files/Type15-3.xml")
         yield weather
 
 
@@ -45,9 +42,11 @@ class TestTrnsysModel():
         """Fixture to create a TrnsysModel from xml from an xml that contains
         unknown tags. Should primpt user. Passes when input == 'y'"""
         from pyTrnsysType import TrnsysModel
-        with open("tests/input_files/Type107-simplified.xml") as xml:
-            fan1 = TrnsysModel.from_xml(xml.read())
+        fan1 = TrnsysModel.from_xml("tests/input_files/Type107-simplified.xml")
         return fan1
+
+    def test_unit_name(self, pipe_type):
+        assert pipe_type.unit_name == "Type951"
 
     def test_cycles(self, pipe_type):
         n_nodes = 20
@@ -79,8 +78,7 @@ class TestTrnsysModel():
         from pyTrnsysType import TrnsysModel
         with pytest.raises(NotImplementedError):
             with patch('builtins.input', return_value='N'):
-                with open("tests/input_files/Type4a.xml") as xml:
-                    tank = TrnsysModel.from_xml(xml.read())
+                tank = TrnsysModel.from_xml("tests/input_files/Type4a.xml")
 
     def test_out_of_bounds(self, pipe_type):
         """should trigger ValueError because out of bounds"""
@@ -249,6 +247,10 @@ class TestTrnsysModel():
     def test_external_file(self, weather_type):
         print(weather_type.to_deck())
 
+    def test_set_position(self, fan_type):
+        fan_type.set_canvas_position(500, 400)
+        assert fan_type.studio.position == Point(500, -400)
+
     def test_get_external_file(self, weather_type):
         from pyTrnsysType import ExternalFile
         assert isinstance(weather_type.external_files[0], ExternalFile)
@@ -271,6 +273,7 @@ class TestTrnsysModel():
         # test unsupported type set
         with pytest.raises(TypeError):
             weather_type.external_files[0] = 1
+
 
 class TestStatements():
 
