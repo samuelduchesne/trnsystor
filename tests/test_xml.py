@@ -304,7 +304,8 @@ class TestOthers():
 
         yield equa1
 
-    def test_equation_collection(self):
+    @pytest.fixture()
+    def equation_block(self):
         from pyTrnsysType import Equation, EquationCollection
 
         equa1 = Equation.from_expression("TdbAmb = [011,001]")
@@ -314,12 +315,20 @@ class TestOthers():
 
         equa_col_1 = EquationCollection([equa1, equa2, equa3, equa4],
                                         name='test')
-        equa_col_2 = EquationCollection([equa1, equa2, equa3, equa4],
+        yield equa_col_1
+
+    def test_unit_number(self, equation_block):
+        assert equation_block.unit_number > 0
+
+    def test_equation_collection(self, equation_block):
+        from pyTrnsysType import Equation, EquationCollection
+
+        equa_col_2 = EquationCollection([equa for equa in equation_block],
                                         name='test')
 
-        assert equa_col_1.name != equa_col_2.name
-        assert equa_col_1.size == 4
-        assert equa_col_1.to_deck() == equa_col_1.to_deck()
+        assert equation_block.name != equa_col_2.name
+        assert equation_block.size == 4
+        assert equation_block.to_deck() == equation_block.to_deck()
 
         # An equal sign needs to be included in an expression
         with pytest.raises(ValueError):

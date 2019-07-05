@@ -3,7 +3,7 @@ import itertools
 
 import tabulate
 
-from pyTrnsysType import Input, TypeVariable
+from pyTrnsysType import Input, TypeVariable, TrnsysModel
 from .trnsymodel import ParameterCollection, InputCollection
 
 
@@ -209,6 +209,7 @@ class EquationCollection(collections.UserList):
         """
         super(EquationCollection, self).__init__(initlist)
         self.name = Name(name)
+        self._unit = next(TrnsysModel.new_id)
 
     def __getitem__(self, key):
         """
@@ -244,6 +245,10 @@ class EquationCollection(collections.UserList):
     @property
     def size(self):
         return len(self)
+
+    @property
+    def unit_number(self):
+        return self._unit
 
 
 class Version(object):
