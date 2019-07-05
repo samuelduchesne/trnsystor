@@ -6,6 +6,7 @@ import re
 
 import pyTrnsysType
 from bs4 import BeautifulSoup, Tag
+from path import Path
 from pint import UnitRegistry
 from pint.quantity import _Quantity
 
@@ -143,19 +144,24 @@ class TrnsysModel(object):
             First open the xml file and read it.
 
             >>> from pyTrnsysType import TrnsysModel
-            >>> with open("Tests/input_files/Type146.xml") as xml:
-            ...    fan1 = TrnsysModel.from_xml(xml.read())
+            >>> fan1 = TrnsysModel.from_xml("Tests/input_files/Type146.xml")
 
         Args:
-            xml (str): The string representation of an xml file
+            xml (str or Path): The path of the xml file.
         """
-        all_types = []
-        soup = BeautifulSoup(xml, 'xml')
-        my_objects = soup.findAll("TrnsysModel")
-        for trnsystype in my_objects:
-            t = cls._from_tag(trnsystype)
-            all_types.append(t)
-        return all_types[0]
+        if isinstance(xml, str):
+            xml_file = Path(xml)
+        else:
+            xml_file = xml
+        with open(xml_file) as xml:
+            all_types = []
+            soup = BeautifulSoup(xml, 'xml')
+            my_objects = soup.findAll("TrnsysModel")
+            for trnsystype in my_objects:
+                t = cls._from_tag(trnsystype)
+                t._meta.model = xml_file
+                all_types.append(t)
+            return all_types[0]
 
     @classmethod
     def _from_tag(cls, tag):
@@ -167,7 +173,7 @@ class TrnsysModel(object):
         meta = MetaData.from_tag(tag)
         name = tag.find('object').text
 
-        model = TrnsysModel(meta, name)
+        model = cls(meta, name)
         type_vars = [TypeVariable.from_tag(tag, model=model)
                      for tag in tag.find('variables')
                      if isinstance(tag, Tag)]

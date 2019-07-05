@@ -6,8 +6,7 @@ from mock import patch
 def fan_type():
     """Fixture to create a TrnsysModel from xml"""
     from pyTrnsysType import TrnsysModel
-    with open("tests/input_files/Type146.xml") as xml:
-        fan1 = TrnsysModel.from_xml(xml.read())
+    fan1 = TrnsysModel.from_xml("tests/input_files/Type146.xml")
     yield fan1
 
 
@@ -15,8 +14,7 @@ def fan_type():
 def pipe_type():
     """Fixture to create a TrnsysModel from xml"""
     from pyTrnsysType import TrnsysModel
-    with open("tests/input_files/Type951.xml") as xml:
-        fan1 = TrnsysModel.from_xml(xml.read())
+    fan1 = TrnsysModel.from_xml("tests/input_files/Type951.xml")
     yield fan1
 
 
@@ -24,8 +22,7 @@ def pipe_type():
 def tank_type():
     from pyTrnsysType import TrnsysModel
     with patch('builtins.input', return_value='y'):
-        with open("tests/input_files/Type4a.xml") as xml:
-            tank = TrnsysModel.from_xml(xml.read())
+        tank = TrnsysModel.from_xml("tests/input_files/Type4a.xml")
         yield tank
 
 
@@ -36,8 +33,7 @@ class TestTrnsysModel():
         """Fixture to create a TrnsysModel from xml from an xml that contains
         unknown tags. Should primpt user. Passes when input == 'y'"""
         from pyTrnsysType import TrnsysModel
-        with open("tests/input_files/Type107-simplified.xml") as xml:
-            fan1 = TrnsysModel.from_xml(xml.read())
+        fan1 = TrnsysModel.from_xml("tests/input_files/Type107-simplified.xml")
         return fan1
 
     def test_unit_name(self, pipe_type):
@@ -73,8 +69,7 @@ class TestTrnsysModel():
         from pyTrnsysType import TrnsysModel
         with pytest.raises(NotImplementedError):
             with patch('builtins.input', return_value='N'):
-                with open("tests/input_files/Type4a.xml") as xml:
-                    tank = TrnsysModel.from_xml(xml.read())
+                tank = TrnsysModel.from_xml("tests/input_files/Type4a.xml")
 
     def test_out_of_bounds(self, pipe_type):
         """should trigger ValueError because out of bounds"""
