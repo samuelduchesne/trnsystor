@@ -40,6 +40,9 @@ class TestTrnsysModel():
             fan1 = TrnsysModel.from_xml(xml.read())
         return fan1
 
+    def test_unit_name(self, pipe_type):
+        assert pipe_type.unit_name == "Type951"
+
     def test_cycles(self, pipe_type):
         n_nodes = 20
         pipe_type.parameters["Number_of_Radial_Soil_Nodes"] = n_nodes

@@ -203,6 +203,10 @@ class TrnsysModel(object):
     def type_number(self):
         return int(self._meta.type)
 
+    @property
+    def unit_name(self):
+        return "Type{}".format(self.type_number)
+
     def get_inputs(self):
         """inputs getter. Sorts by order number and resolves cycles each time it
         is called
