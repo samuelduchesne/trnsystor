@@ -235,6 +235,11 @@ class TestTrnsysModel():
             assert input + 2 == float(input) + 2
             assert input - 2 == float(input) - 2
 
+    def test_set_position(self, fan_type):
+        from shapely.geometry import Point
+        fan_type.set_canvas_position(500, 400)
+
+        assert fan_type.studio.position == Point(500, -400)
 
 class TestStatements():
 

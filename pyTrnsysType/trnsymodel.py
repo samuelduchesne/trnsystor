@@ -9,6 +9,8 @@ from bs4 import BeautifulSoup, Tag
 from path import Path
 from pint import UnitRegistry
 from pint.quantity import _Quantity
+from shapely.geometry import Point
+from shapely.geometry.base import BaseGeometry
 
 
 class MetaData(object):
@@ -407,6 +409,55 @@ class TrnsysModel(object):
             self.outputs[key].__dict__['_connected_to'] = None
         for key in self.inputs:
             self.inputs[key].__dict__['_connected_to'] = None
+
+    def set_canvas_position(self, x, y):
+        """Set position of self in the canvas. Use cartesian coordinates:
+        origin 0,0 is at bottom-left.
+
+        Info:
+            The Studio Canvas origin corresponds to the top-left of the canvas.
+            The x coordinates increase from left to right, while the y
+            coordinates increase from top to bottom.
+
+            * top-left = "* $POSITION 0 0"
+            * bottom-left = "* $POSITION 0 2000"
+            * top-right = "* $POSITION 2000" 0
+            * bottom-right = "* $POSITION 2000 2000"
+
+            For convenience, users should deal with cartesian coordinates.
+            pyTrnsysType will deal with the transformation.
+
+        Args:
+            x (float):
+            y (float):
+        """
+        self.studio.position = affine_transform(Point(x, y))
+
+
+def affine_transform(geom, matrix=None):
+    """Apply affine transformation to geometry. By, default, flip geometry along
+    the x axis.
+
+    Hint:
+        visit affine_matrix_ for other affine transformation matrices.
+
+    .. _affine_matrix: https://en.wikipedia.org/wiki/Affine_transformation
+    #/media/File:2D_affine_transformation_matrix.svg
+
+    Args:
+        geom (BaseGeometry): The geometry.
+        matrix (np.array): The coefficient matrix is provided as a list or
+            tuple.
+    """
+    import numpy as np
+    from shapely.affinity import affine_transform
+    if not matrix:
+        matrix = np.array([[1, 0, 0],
+                           [0, -1, 0],
+                           [0, 0, 0]])
+    matrix_l = matrix[0:2, 0:2].flatten().tolist() + \
+               matrix[0:2, 2].flatten().tolist()
+    return affine_transform(geom, matrix_l)
 
 
 class TypeVariable(object):
