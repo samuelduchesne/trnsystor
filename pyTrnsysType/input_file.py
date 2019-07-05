@@ -173,7 +173,7 @@ class Equation(object):
                 "The from_expression constructor must contain an expression "
                 "with the equal sign")
         a, b = expression.split("=")
-        return cls(a, b)
+        return cls(a.strip(), b.strip())
 
     @property
     def number(self):
