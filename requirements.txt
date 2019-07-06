@@ -6,3 +6,4 @@ tabulate
 path.py
 shapely
 numpy
+matplotlib
