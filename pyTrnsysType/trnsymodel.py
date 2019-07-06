@@ -109,7 +109,8 @@ class MetaData(object):
         """Detect extra tags in the proforma and warn.
 
         Args:
-            kwargs:
+            kwargs (dict): dictionary of extra keyword-arguments that would be
+                passed to the constructor.
         """
         if kwargs:
             msg = 'Unknown tags have been detected in this proforma: {}.\nIf ' \
@@ -231,16 +232,18 @@ class TrnsysModel(object):
     @classmethod
     def from_xml(cls, xml):
         """Class method to create a :class:`TrnsysModel` from an xml string.
-        :param xml:
 
         Examples:
-            First open the xml file and read it.
+            Simply pass the xml path to the constructor.
 
             >>> from pyTrnsysType import TrnsysModel
             >>> fan1 = TrnsysModel.from_xml("Tests/input_files/Type146.xml")
 
         Args:
             xml (str or Path): The path of the xml file.
+
+        Returns:
+            TrnsysType: The TRNSYS model.
         """
         xml_file = Path(xml)
         with open(xml_file) as xml:
@@ -253,214 +256,6 @@ class TrnsysModel(object):
                 t.studio = StudioHeader.from_trnsysmodel(t)
                 all_types.append(t)
             return all_types[0]
-
-    @classmethod
-    def _from_tag(cls, tag):
-        """Class method to create a :class:`TrnsysModel` from a tag
-
-        Args:
-            tag (Tag): The XML tag with its attributes and contents.
-        """
-        meta = MetaData.from_tag(tag)
-        name = tag.find('object').text
-
-        model = cls(meta, name)
-        type_vars = [TypeVariable.from_tag(tag, model=model)
-                     for tag in tag.find('variables')
-                     if isinstance(tag, Tag)]
-        type_cycles = CycleCollection(TypeCycle.from_tag(tag)
-                                      for tag in tag.find('cycles').children
-                                      if isinstance(tag, Tag))
-        model._meta.variables = {id(var): var for var in type_vars}
-        model._meta.cycles = type_cycles
-        file_vars = [ExternalFile.from_tag(tag)
-                     for tag in tag.find('externalFiles').children
-                     if isinstance(tag, Tag)
-                     ] if tag.find('externalFiles') else None
-        model._meta.external_files = {id(var): var
-                                      for var in file_vars
-                                      } if file_vars else None
-
-        model.get_inputs()
-        model.get_outputs()
-        model.get_parameters()
-        model.get_external_files()
-
-        return model
-
-    @property
-    def inputs(self):
-        return self.get_inputs()
-
-    @property
-    def outputs(self):
-        return self.get_outputs()
-
-    @property
-    def parameters(self):
-        return self.get_parameters()
-
-    @property
-    def external_files(self):
-        return self.get_external_files()
-
-    @property
-    def unit_number(self):
-        return int(self._unit)
-
-    @property
-    def type_number(self):
-        return int(self._meta.type)
-
-    @property
-    def unit_name(self):
-        return "Type{}".format(self.type_number)
-
-    @property
-    def model(self):
-        return self._meta.model
-
-    @property
-    def anchor_points(self):
-        return AnchorPoint(self).anchor_points
-
-    @property
-    def centroid(self):
-        return self.studio.position
-
-    def get_inputs(self):
-        """inputs getter. Sorts by order number and resolves cycles each time it
-        is called
-        """
-        self.resolve_cycles('input', Input)
-        input_dict = self.get_ordered_filtered_types(Input, 'variables')
-        return InputCollection.from_dict(input_dict)
-
-    def get_outputs(self):
-        """outputs getter. Sorts by order number and resolves cycles each time
-        it is called
-        """
-        # output_dict = self.get_ordered_filtered_types(Output)
-        self.resolve_cycles('output', Output)
-        output_dict = self.get_ordered_filtered_types(Output, 'variables')
-        return OutputCollection.from_dict(output_dict)
-
-    def get_parameters(self):
-        """parameters getter. Sorts by order number and resolves cycles each
-        time it is called
-        """
-        self.resolve_cycles('parameter', Parameter)
-        param_dict = self.get_ordered_filtered_types(Parameter, 'variables')
-        return ParameterCollection.from_dict(param_dict)
-
-    def get_external_files(self):
-        if self._meta.external_files:
-            ext_files_dict = dict(
-                (attr, self._meta['external_files'][attr]) for attr in
-                self.get_filtered_types(ExternalFile, 'external_files')
-            )
-            return ExternalFileCollection.from_dict(ext_files_dict)
-
-    def get_ordered_filtered_types(self, classe_, store):
-        """
-        Args:
-            classe_:
-            store:
-        """
-        return collections.OrderedDict(
-            (attr, self._meta[store][attr]) for attr in
-            sorted(self.get_filtered_types(classe_, store),
-                   key=lambda key: self._meta[store][key].order)
-        )
-
-    def get_filtered_types(self, classe_, store):
-        """
-        Args:
-            classe_:
-            store:
-        """
-        return filter(
-            lambda kv: isinstance(self._meta[store][kv], classe_),
-            self._meta[store])
-
-    def resolve_cycles(self, type_, class_):
-        """Cycle resolver. Proformas can contain parameters, inputs and ouputs
-        that have a variable number of entries. This will deal with their
-        creation each time the linked parameters are changed.
-
-        Args:
-            type_:
-            class_:
-        """
-        output_dict = self.get_ordered_filtered_types(class_, 'variables')
-        cycles = {str(id(attr)): attr for attr in self._meta.cycles if
-                  attr.role == type_}
-        # repeat cycle variables n times
-        cycle: TypeCycle
-        for _, cycle in cycles.items():
-            idxs = cycle.idxs
-            items = [output_dict.get(id(key))
-                     for key in [list(output_dict.values())[i] for i in idxs]]
-            if cycle.is_question:
-                n_times = []
-                for cycle in cycle.cycles:
-                    existing = next(
-                        (key for key, value in output_dict.items() if
-                         value.name == cycle.question), None)
-                    if not existing:
-                        name = cycle.question
-                        question_var = class_(val=cycle.default, name=name,
-                                              role=cycle.role,
-                                              unit='-',
-                                              type=int,
-                                              dimension='any',
-                                              min=int(cycle.minSize),
-                                              max=int(cycle.maxSize),
-                                              order=9999999,
-                                              default=cycle.default,
-                                              model=self)
-                        self._meta.variables.update(
-                            {id(question_var): question_var})
-                        output_dict.update({id(question_var): question_var})
-                        n_times.append(question_var.value.m)
-                    else:
-                        n_times.append(output_dict[existing].value.m)
-            else:
-                n_times = [list(
-                    filter(lambda elem: elem[1].name == cycle.paramName,
-                           self._meta.variables.items()))[0][1].value.m for
-                           cycle in cycle.cycles]
-            item: TypeVariable
-            mydict = {key: self._meta.variables.pop(key)
-                      for key in dict(
-                    filter(lambda kv: kv[1].role == type_
-                                      and kv[1]._iscycle,
-                           self._meta.variables.items())
-                )
-                      }
-            # pop output_dict items
-            [output_dict.pop(key)
-             for key in dict(
-                filter(lambda kv: kv[1].role == type_
-                                  and kv[1]._iscycle,
-                       self._meta.variables.items())
-            )
-             ]
-            for item, n_time in zip(items, n_times):
-                basename = item.name
-                item_base = self._meta.variables.get(id(item))
-                for n, _ in enumerate(range(int(n_time)), start=1):
-                    existing = next((key for key, value in mydict.items() if
-                                     value.name == basename + "-{}".format(
-                                         n)), None)
-                    item = mydict.get(existing, item_base.copy())
-                    if item._iscycle:
-                        self._meta.variables.update({id(item): item})
-                    else:
-                        item.name = basename + "-{}".format(n)
-                        item.order += len(idxs)  # so that oder number is unique
-                        item._iscycle = True
-                        self._meta.variables.update({id(item): item})
 
     def to_deck(self):
         """print the Input File (.dck) representation of this TrnsysModel"""
@@ -490,7 +285,7 @@ class TrnsysModel(object):
         new.set_canvas_position(pt)
         return new
 
-    def connect_to(self, other, mapping=None, link_style={}):
+    def connect_to(self, other, mapping=None, link_style=None):
         """Connect the outputs `self` to the inputs of `other`
 
         Examples:
@@ -504,12 +299,14 @@ class TrnsysModel(object):
         Args:
             other (TrnsysModel): The other object
             mapping (dict): Mapping of inputs to outputs numbers
-            link_style:
+            link_style (dict, optional):
 
         Raises:
             TypeError: À `TypeError is raised when trying to connect to anything
                 other than a :class:`TrnsysType`
         """
+        if link_style is None:
+            link_style = {}
         if not isinstance(other, TrnsysModel):
             raise TypeError('Only `TrsnsysModel` objects can be connected '
                             'together')
@@ -610,6 +407,229 @@ class TrnsysModel(object):
         else:
             self.studio.position = Point(*pt)
 
+    @property
+    def inputs(self):
+        """InputCollection: returns the model's inputs."""
+        return self._get_inputs()
+
+    @property
+    def outputs(self):
+        """OutputCollection: returns the model's outputs."""
+        return self._get_outputs()
+
+    @property
+    def parameters(self):
+        """ParameterCollection: returns the model's parameters."""
+        return self._get_parameters()
+
+    @property
+    def external_files(self):
+        """ExternalFileCollection: returns the model's external files"""
+        return self._get_external_files()
+
+    @property
+    def unit_number(self):
+        """int: Returns the model's unit number (unique)"""
+        return int(self._unit)
+
+    @property
+    def type_number(self):
+        """int: Returns the model's type number, eg.: 104 for Type104"""
+        return int(self._meta.type)
+
+    @property
+    def unit_name(self):
+        """str: Returns the model's unit name, eg.: 'Type104'"""
+        return "Type{}".format(self.type_number)
+
+    @property
+    def model(self):
+        """str: Returns self"""
+        return self._meta.model
+
+    @property
+    def anchor_points(self):
+        """dict: Returns the 8-AnchorPoints as a dict with the anchor point
+        location ('top-left', etc.) as a key.
+        """
+        return AnchorPoint(self).anchor_points
+
+    @property
+    def centroid(self):
+        """Point: Returns the model's center Point()."""
+        return self.studio.position
+
+    @classmethod
+    def _from_tag(cls, tag):
+        """Class method to create a :class:`TrnsysModel` from a tag
+
+        Args:
+            tag (Tag): The XML tag with its attributes and contents.
+
+        Returns:
+            TrnsysModel: The TRNSYS model.
+        """
+        meta = MetaData.from_tag(tag)
+        name = tag.find('object').text
+
+        model = cls(meta, name)
+        type_vars = [TypeVariable.from_tag(tag, model=model)
+                     for tag in tag.find('variables')
+                     if isinstance(tag, Tag)]
+        type_cycles = CycleCollection(TypeCycle.from_tag(tag)
+                                      for tag in tag.find('cycles').children
+                                      if isinstance(tag, Tag))
+        model._meta.variables = {id(var): var for var in type_vars}
+        model._meta.cycles = type_cycles
+        file_vars = [ExternalFile.from_tag(tag)
+                     for tag in tag.find('externalFiles').children
+                     if isinstance(tag, Tag)
+                     ] if tag.find('externalFiles') else None
+        model._meta.external_files = {id(var): var
+                                      for var in file_vars
+                                      } if file_vars else None
+
+        model._get_inputs()
+        model._get_outputs()
+        model._get_parameters()
+        model._get_external_files()
+
+        return model
+
+    def _get_inputs(self):
+        """inputs getter. Sorts by order number and resolves cycles each time it
+        is called
+        """
+        self._resolve_cycles('input', Input)
+        input_dict = self._get_ordered_filtered_types(Input, 'variables')
+        return InputCollection.from_dict(input_dict)
+
+    def _get_outputs(self):
+        """outputs getter. Sorts by order number and resolves cycles each time
+        it is called
+        """
+        # output_dict = self._get_ordered_filtered_types(Output)
+        self._resolve_cycles('output', Output)
+        output_dict = self._get_ordered_filtered_types(Output, 'variables')
+        return OutputCollection.from_dict(output_dict)
+
+    def _get_parameters(self):
+        """parameters getter. Sorts by order number and resolves cycles each
+        time it is called
+        """
+        self._resolve_cycles('parameter', Parameter)
+        param_dict = self._get_ordered_filtered_types(Parameter, 'variables')
+        return ParameterCollection.from_dict(param_dict)
+
+    def _get_external_files(self):
+        if self._meta.external_files:
+            ext_files_dict = dict(
+                (attr, self._meta['external_files'][attr]) for attr in
+                self._get_filtered_types(ExternalFile, 'external_files')
+            )
+            return ExternalFileCollection.from_dict(ext_files_dict)
+
+    def _get_ordered_filtered_types(self, classe_, store):
+        """
+        Args:
+            classe_:
+            store:
+        """
+        return collections.OrderedDict(
+            (attr, self._meta[store][attr]) for attr in
+            sorted(self._get_filtered_types(classe_, store),
+                   key=lambda key: self._meta[store][key].order)
+        )
+
+    def _get_filtered_types(self, classe_, store):
+        """
+        Args:
+            classe_:
+            store:
+        """
+        return filter(
+            lambda kv: isinstance(self._meta[store][kv], classe_),
+            self._meta[store])
+
+    def _resolve_cycles(self, type_, class_):
+        """Cycle resolver. Proformas can contain parameters, inputs and ouputs
+        that have a variable number of entries. This will deal with their
+        creation each time the linked parameters are changed.
+
+        Args:
+            type_:
+            class_:
+        """
+        output_dict = self._get_ordered_filtered_types(class_, 'variables')
+        cycles = {str(id(attr)): attr for attr in self._meta.cycles if
+                  attr.role == type_}
+        # repeat cycle variables n times
+        cycle: TypeCycle
+        for _, cycle in cycles.items():
+            idxs = cycle.idxs
+            items = [output_dict.get(id(key))
+                     for key in [list(output_dict.values())[i] for i in idxs]]
+            if cycle.is_question:
+                n_times = []
+                for cycle in cycle.cycles:
+                    existing = next(
+                        (key for key, value in output_dict.items() if
+                         value.name == cycle.question), None)
+                    if not existing:
+                        name = cycle.question
+                        question_var = class_(val=cycle.default, name=name,
+                                              role=cycle.role,
+                                              unit='-',
+                                              type=int,
+                                              dimension='any',
+                                              min=int(cycle.minSize),
+                                              max=int(cycle.maxSize),
+                                              order=9999999,
+                                              default=cycle.default,
+                                              model=self)
+                        self._meta.variables.update(
+                            {id(question_var): question_var})
+                        output_dict.update({id(question_var): question_var})
+                        n_times.append(question_var.value.m)
+                    else:
+                        n_times.append(output_dict[existing].value.m)
+            else:
+                n_times = [list(
+                    filter(lambda elem: elem[1].name == cycle.paramName,
+                           self._meta.variables.items()))[0][1].value.m for
+                           cycle in cycle.cycles]
+            item: TypeVariable
+            mydict = {key: self._meta.variables.pop(key)
+                      for key in dict(
+                    filter(lambda kv: kv[1].role == type_
+                                      and kv[1]._iscycle,
+                           self._meta.variables.items())
+                )
+                      }
+            # pop output_dict items
+            [output_dict.pop(key)
+             for key in dict(
+                filter(lambda kv: kv[1].role == type_
+                                  and kv[1]._iscycle,
+                       self._meta.variables.items())
+            )
+             ]
+            for item, n_time in zip(items, n_times):
+                basename = item.name
+                item_base = self._meta.variables.get(id(item))
+                for n, _ in enumerate(range(int(n_time)), start=1):
+                    existing = next((key for key, value in mydict.items() if
+                                     value.name == basename + "-{}".format(
+                                         n)), None)
+                    item = mydict.get(existing, item_base.copy())
+                    if item._iscycle:
+                        self._meta.variables.update({id(item): item})
+                    else:
+                        item.name = basename + "-{}".format(n)
+                        item.order += len(idxs)  # so that oder number is unique
+                        item._iscycle = True
+                        self._meta.variables.update({id(item): item})
+
 
 def affine_transform(geom, matrix=None):
     """Apply affine transformation to geometry. By, default, flip geometry along
@@ -618,9 +638,7 @@ def affine_transform(geom, matrix=None):
     Hint:
         visit affine_matrix_ for other affine transformation matrices.
 
-    .. _affine_matrix: https://en.wikipedia.org/wiki/Affine_transformation
-
-    #/media/ File:2D_affine_transformation_matrix.svg
+    .. _affine_matrix: https://en.wikipedia.org/wiki/Affine_transformation#/media/File:2D_affine_transformation_matrix.svg
 
     Args:
         geom (BaseGeometry): The geometry.
@@ -640,7 +658,9 @@ def affine_transform(geom, matrix=None):
 
 def get_rgb_from_int(rgb_int):
     """
-    Example:
+    Examples:
+        Get the rgb tuple from a an rgb int.
+
         >>> get_rgb_from_int(9534163)
         (211, 122, 145)
 
@@ -658,9 +678,9 @@ def get_rgb_from_int(rgb_int):
 
 def get_int_from_rgb(rgb):
     """
-    Example:
-        >>> get_int_from_rgb((211, 122, 145))
-        9534163
+    Examples:
+        Get the rgb int from an rgb 3-tuple >>> get_int_from_rgb((211, 122,
+        145)) 9534163
 
     Args:
         rgb (tuple): (r, g, b)
