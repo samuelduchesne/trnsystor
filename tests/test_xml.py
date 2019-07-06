@@ -1,22 +1,23 @@
 import pytest
 from mock import patch
-from shapely.geometry import Point
+from path import Path
+from shapely.geometry import Point, LineString
 
 
 @pytest.fixture(scope='class')
 def fan_type():
     """Fixture to create a TrnsysModel from xml"""
     from pyTrnsysType import TrnsysModel
-    fan1 = TrnsysModel.from_xml("tests/input_files/Type146.xml")
+    fan1 = TrnsysModel.from_xml(Path("tests/input_files/Type146.xml"))
     yield fan1
 
 
 @pytest.fixture(scope='class')
 def pipe_type():
-    """Fixture to create a TrnsysModel from xml"""
+    """Fixture to create a TrnsysModel from xml. Also tests using a Path"""
     from pyTrnsysType import TrnsysModel
-    fan1 = TrnsysModel.from_xml("tests/input_files/Type951.xml")
-    yield fan1
+    pipe = TrnsysModel.from_xml("tests/input_files/Type951.xml")
+    yield pipe
 
 
 @pytest.fixture(scope='class')
@@ -105,7 +106,7 @@ class TestTrnsysModel():
         setting a value with different but equivalent units"""
         attr_name = 'Rated_Volumetric_Flow_Rate'
         new_value = fan_type.parameters[attr_name].value.to('m^3/s') * 10
-        fan_type.parameters[attr_name].value = new_value
+        fan_type.parameters[attr_name] = new_value
 
         assert fan_type.parameters[attr_name].value == new_value
 
@@ -206,7 +207,11 @@ class TestTrnsysModel():
         fan_1 = fan_type
         fan_2 = fan_type.copy()
 
+        # check if sub-objects are copies as well.
+        fan_1.parameters[0] = 1
+
         assert id(fan_1) != id(fan_2)
+        assert fan_1.parameters[0].value.m != fan_2.parameters[0].value.m
 
     @pytest.mark.parametrize('mapping', [
         {0: 0,
@@ -247,10 +252,6 @@ class TestTrnsysModel():
     def test_external_file(self, weather_type):
         print(weather_type.to_deck())
 
-    def test_set_position(self, fan_type):
-        fan_type.set_canvas_position(500, 400)
-        assert fan_type.studio.position == Point(500, -400)
-
     def test_get_external_file(self, weather_type):
         from pyTrnsysType import ExternalFile
         assert isinstance(weather_type.external_files[0], ExternalFile)
@@ -273,6 +274,55 @@ class TestTrnsysModel():
         # test unsupported type set
         with pytest.raises(TypeError):
             weather_type.external_files[0] = 1
+
+    def test_set_position(self, fan_type):
+        fan_type.set_canvas_position((500, 400))
+        assert fan_type.studio.position == Point(500, 400)
+
+    def test_set_link_style_to_itself(self, fan_type):
+        with pytest.raises(NotImplementedError):
+            fan_type.set_link_style(fan_type)
+
+    def test_set_link_style(self, fan_type):
+        fan2 = fan_type.copy()
+        fan2.set_canvas_position((100, 100))
+        fan_type.set_link_style(fan2, loc=('top-left', 'top-right'))
+        print(fan_type.studio.link_styles[0])
+
+        with pytest.raises(ValueError):
+            # In case None is passed, should raise Value Error
+            fan_type.set_link_style(None, loc=('top-left', 'top-right'))
+
+    def test_set_link_path(self, fan_type):
+        fan2 = fan_type.copy()
+        fan_type.set_canvas_position((200, 200))
+        fan2.set_canvas_position((100, 100))
+        path = LineString([(200, 200), (150, 150), (100, 100)])
+        fan_type.set_link_style(fan2, loc='best', path=path)
+
+    def test_set_link_style_best(self, fan_type):
+        fan2 = fan_type.copy()
+        fan2.set_canvas_position((100, 50))
+        fan_type.set_link_style(fan2, loc='best')
+        print(fan_type.studio.link_styles[0])
+
+    @pytest.mark.xfail()
+    def test_set_anchor_point(self, pipe_type):
+        pipe2 = pipe_type.copy()
+        pipe_type.connect_to(pipe2, mapping={0: 0})
+
+    def test_affine_transform(self):
+        from pyTrnsysType import affine_transform
+        geom = Point(10, 10)
+        affine_transform(geom, matrix=None)
+
+    def test_get_rgb_int(self):
+        from pyTrnsysType import get_rgb_from_int
+        assert get_rgb_from_int(9534163) == (211, 122, 145)
+
+    def test_get_int_from_rgb(self):
+        from pyTrnsysType import get_int_from_rgb
+        assert get_int_from_rgb((211, 122, 145)) == 9534163
 
 
 class TestStatements():

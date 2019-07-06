@@ -2,12 +2,11 @@ import collections
 import itertools
 
 import tabulate
-
 from pyTrnsysType import Input, TypeVariable, TrnsysModel
-from .trnsymodel import ParameterCollection, InputCollection
 
 from .trnsymodel import ParameterCollection, InputCollection, \
     ExternalFileCollection
+
 
 class Name(object):
     """Handles the attribution of user defined names for :class:`TrnsysModel`,

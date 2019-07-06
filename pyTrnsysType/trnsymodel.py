@@ -4,12 +4,14 @@ import itertools
 import math
 import re
 
+import numpy as np
 import pyTrnsysType
 from bs4 import BeautifulSoup, Tag
+from matplotlib.colors import colorConverter
 from path import Path
 from pint import UnitRegistry
 from pint.quantity import _Quantity
-from shapely.geometry import Point
+from shapely.geometry import Point, LineString, MultiLineString
 from shapely.geometry.base import BaseGeometry
 
 
@@ -63,6 +65,7 @@ class MetaData(object):
             variablesComment (str): #todo What is this?
             cycles (list, optional): List of TypeCycle.
             source (Path): Path of the source code.
+            externalFiles:
             model (Path): Path of the xml or tmf file.
             **kwargs:
         """
@@ -119,6 +122,10 @@ class MetaData(object):
                 raise NotImplementedError()
 
     def __getitem__(self, item):
+        """
+        Args:
+            item:
+        """
         return getattr(self, item)
 
 
@@ -160,7 +167,6 @@ class ExternalFile(object):
 
 
 class ExternalFileCollection(collections.UserDict):
-    """"""
 
     def __getitem__(self, key):
         """
@@ -212,7 +218,7 @@ class TrnsysModel(object):
         Args:
             meta (MetaData):
             name (str):
-            studio (StudioHeader, optional):
+            studio (StudioHeader):
         """
         self._unit = next(TrnsysModel.new_id)
         self._meta = meta
@@ -236,10 +242,7 @@ class TrnsysModel(object):
         Args:
             xml (str or Path): The path of the xml file.
         """
-        if isinstance(xml, str):
-            xml_file = Path(xml)
-        else:
-            xml_file = xml
+        xml_file = Path(xml)
         with open(xml_file) as xml:
             all_types = []
             soup = BeautifulSoup(xml, 'xml')
@@ -317,6 +320,14 @@ class TrnsysModel(object):
     def model(self):
         return self._meta.model
 
+    @property
+    def anchor_points(self):
+        return AnchorPoint(self).anchor_points
+
+    @property
+    def centroid(self):
+        return self.studio.position
+
     def get_inputs(self):
         """inputs getter. Sorts by order number and resolves cycles each time it
         is called
@@ -354,6 +365,7 @@ class TrnsysModel(object):
         """
         Args:
             classe_:
+            store:
         """
         return collections.OrderedDict(
             (attr, self._meta[store][attr]) for attr in
@@ -362,6 +374,11 @@ class TrnsysModel(object):
         )
 
     def get_filtered_types(self, classe_, store):
+        """
+        Args:
+            classe_:
+            store:
+        """
         return filter(
             lambda kv: isinstance(self._meta[store][kv], classe_),
             self._meta[store])
@@ -461,15 +478,19 @@ class TrnsysModel(object):
         """copy object
 
         Args:
-            invalidate_connections:
+            invalidate_connections (bool): If True, connections to other models
+                will be reset.
         """
-        new = copy.copy(self)
+        new = copy.deepcopy(self)
         new._unit = next(new.new_id)
         if invalidate_connections:
             new.invalidate_connections()
+        from shapely.affinity import translate
+        pt = translate(self.centroid, 50, 0)
+        new.set_canvas_position(pt)
         return new
 
-    def connect_to(self, other, mapping=None):
+    def connect_to(self, other, mapping=None, link_style={}):
         """Connect the outputs `self` to the inputs of `other`
 
         Examples:
@@ -483,6 +504,7 @@ class TrnsysModel(object):
         Args:
             other (TrnsysModel): The other object
             mapping (dict): Mapping of inputs to outputs numbers
+            link_style:
 
         Raises:
             TypeError: À `TypeError is raised when trying to connect to anything
@@ -511,6 +533,7 @@ class TrnsysModel(object):
                 else:
                     other.inputs[to_other]._connected_to = self.outputs[
                         from_self]
+        self.set_link_style(other, **link_style)
 
     def invalidate_connections(self):
         """iterate over inputs/outputs and force :attr:`_connected_to` to
@@ -521,9 +544,49 @@ class TrnsysModel(object):
         for key in self.inputs:
             self.inputs[key].__dict__['_connected_to'] = None
 
-    def set_canvas_position(self, x, y):
-        """Set position of self in the canvas. Use cartesian coordinates:
-        origin 0,0 is at bottom-left.
+    def set_link_style(self, other, loc='best', color='#1f78b4',
+                       path=None, **kwargs):
+        """Set outgoing link styles. Adds a LinkStyle object to the origin
+        Model's studio attribute.
+
+        Args:
+            other (TrnsysModel): The destination model.
+            loc (str or tuple): loc (str): The location of the anchor. The
+                strings 'top-left', 'top-right', 'bottom-left', 'bottom-right'
+                place the anchor point at the corresponding corner of the
+                :class:`TrnsysModel`. The strings 'top-center', 'center-right',
+                'bottom-center', 'center-left' place the anchor point at the
+                edge of the corresponding :class:`TrnsysModel`. The string
+                'best' places the anchor point at the location, among the eight
+                locations defined so far, with the shortest distance with the
+                destination :class:`TrnsysModel` (other). The location can also
+                be a 2-tuple giving the coordinates of the origin
+                :class:`TrnsysModel` and the destination :class:`TrnsysModel`.
+            color (str): color string. Can be a single color format string
+                (default='#1f78b4').
+            path (LineString or MultiLineString, optional): The path of the
+                link.
+            **kwargs:
+        """
+        if self == other:
+            # trying to connect to itself.
+            raise NotImplementedError('This version does not support '
+                                      'connecting a TrnsysModel to itself')
+        if other is None:
+            raise ValueError('Other is None')
+        color_rgb = tuple([u * 255 for u in colorConverter.to_rgb(color)])
+        e = None
+        f = None
+        g = None
+        h = None
+        self.studio.link_styles.append(
+            LinkStyle(self, other, loc,
+                      e, color_rgb, f, g, h, path)
+        )
+
+    def set_canvas_position(self, pt):
+        """Set position of self in the canvas. Use cartesian coordinates: origin
+        0,0 is at bottom-left.
 
         Info:
             The Studio Canvas origin corresponds to the top-left of the canvas.
@@ -539,10 +602,13 @@ class TrnsysModel(object):
             pyTrnsysType will deal with the transformation.
 
         Args:
-            x (float):
-            y (float):
+            pt (Point or 2-tuple): The Point geometry or a tuple of (x, y)
+                coordinates.
         """
-        self.studio.position = affine_transform(Point(x, y))
+        if isinstance(pt, Point):
+            self.studio.position = pt
+        else:
+            self.studio.position = Point(*pt)
 
 
 def affine_transform(geom, matrix=None):
@@ -553,7 +619,8 @@ def affine_transform(geom, matrix=None):
         visit affine_matrix_ for other affine transformation matrices.
 
     .. _affine_matrix: https://en.wikipedia.org/wiki/Affine_transformation
-    #/media/File:2D_affine_transformation_matrix.svg
+
+    #/media/ File:2D_affine_transformation_matrix.svg
 
     Args:
         geom (BaseGeometry): The geometry.
@@ -569,6 +636,41 @@ def affine_transform(geom, matrix=None):
     matrix_l = matrix[0:2, 0:2].flatten().tolist() + \
                matrix[0:2, 2].flatten().tolist()
     return affine_transform(geom, matrix_l)
+
+
+def get_rgb_from_int(rgb_int):
+    """
+    Example:
+        >>> get_rgb_from_int(9534163)
+        (211, 122, 145)
+
+    Args:
+        rgb_int (int): An rgb int representation.
+
+    Returns:
+        (tuple): (r, g, b) tuple.
+    """
+    red = rgb_int & 255
+    green = (rgb_int >> 8) & 255
+    blue = (rgb_int >> 16) & 255
+    return red, green, blue
+
+
+def get_int_from_rgb(rgb):
+    """
+    Example:
+        >>> get_int_from_rgb((211, 122, 145))
+        9534163
+
+    Args:
+        rgb (tuple): (r, g, b)
+
+    Returns:
+        (int): the rgb int.
+    """
+    red, green, blue = map(int, rgb)
+    rgb_int = (blue << 16) + (green << 8) + red
+    return rgb_int
 
 
 class TypeVariable(object):
@@ -703,14 +805,15 @@ class TypeVariable(object):
     def idx(self):
         """The 0-based index of the TypeVariable"""
         ordered_dict = collections.OrderedDict(
-            (attr, (self.model._meta.variables[attr], i)) for i, attr in
+            (standerdized_name(self.model._meta.variables[attr].name),
+             (self.model._meta.variables[attr], i)) for i, attr in
             enumerate(sorted(filter(
                 lambda kv: isinstance(self.model._meta.variables[kv],
                                       self.__class__),
                 self.model._meta.variables),
                 key=lambda key: self.model._meta.variables[key].order), start=0)
         )
-        return ordered_dict[id(self)][1]
+        return ordered_dict[standerdized_name(self.name)][1]
 
     @property
     def one_based_idx(self):
@@ -848,6 +951,10 @@ def parse_type(_type):
 
 
 def standerdized_name(name):
+    """
+    Args:
+        name:
+    """
     return re.sub('[^0-9a-zA-Z]+', '_', name)
 
 
@@ -972,11 +1079,11 @@ class VariableCollection(collections.UserDict):
             super().__setitem__(key, value)
         elif isinstance(value, (int, float)):
             """a str, float, int, etc. is passed"""
-            value = parse_value(value, self.data[key].type, self.data[key].unit,
-                                (self.data[key].min, self.data[key].max))
-            self.data[key].__setattr__('value', value)
+            value = parse_value(value, self[key].type, self[key].unit,
+                                (self[key].min, self[key].max))
+            self[key].__setattr__('value', value)
         elif isinstance(value, _Quantity):
-            self.data[key].__setattr__('value', value.to(self.data[key].unit))
+            self[key].__setattr__('value', value.to(self[key].value.units))
         else:
             raise TypeError('Cannot set a value of type {} in this '
                             'VariableCollection'.format(type(value)))
@@ -1042,11 +1149,11 @@ class ParameterCollection(VariableCollection):
 
 
 class StudioHeader(object):
-    """Handles the studio comments such as postion component UNIT_NAME, model,
-    POSITION, LAYER, LINK_STYLE
+    """Each TrnsysModel has a StudioHeader which handles the studio comments
+    such as position, UNIT_NAME, model, POSITION, LAYER, LINK_STYLE
     """
 
-    def __init__(self, unit_name, model, position, layer=None, link_style=None):
+    def __init__(self, unit_name, model, position, layer=None):
         """
         Args:
             unit_name (str): The unit_name, eg.: "Type104".
@@ -1055,12 +1162,10 @@ class StudioHeader(object):
                 canvas.
             layer (list, optional): list of layer names on which the model is
                 placed. Defaults to "Main".
-            link_style (dict, optional): A series of styling keywords to format
-                the connections.
         """
         if layer is None:
             layer = ["Main"]
-        self.link_style = link_style
+        self.link_styles = []
         self.layer = layer
         self.position = position
         self.model = model
@@ -1072,4 +1177,179 @@ class StudioHeader(object):
         Args:
             model (TrnsysModel):
         """
-        return cls(model.unit_name, model.model, None, None, None)
+        position = Point(50, 50)
+        layer = ["Main"]
+        return cls(model.unit_name, model.model, position, layer)
+
+
+class LinkStyle(object):
+    def __init__(self, u, v, loc, e, rgb, f, g, h, path):
+        """
+        {anchors}:{e}:{rgb_int}:{f}:{g}:{h}: 40:20:0:20:1:0:0:0:1:189,462:
+        432,462: 432,455: 459,455
+
+        Args:
+            u (TrnsysModel): from Model.
+            v (TrnsysModel): to Model.
+            loc (str or tuple): loc (str): The location of the anchor. The
+                strings 'top-left', 'top-right', 'bottom-left', 'bottom-right'
+                place the anchor point at the corresponding corner of the
+                :class:`TrnsysModel`. The strings 'top-center', 'center-right',
+                'bottom-center', 'center-left' place the anchor point at the
+                edge of the corresponding :class:`TrnsysModel`. The string
+                'best' places the anchor point at the location, among the eight
+                locations defined so far, with the shortest distance with the
+                destination :class:`TrnsysModel` (other). The location can also
+                be a 2-tuple giving the coordinates of the origin
+                :class:`TrnsysModel` and the destination :class:`TrnsysModel`.
+            e:
+            rgb (tuple): The color of the line
+            f:
+            g:
+            h:
+            path (LineString or MultiLineString):
+        """
+        if isinstance(loc, tuple):
+            loc_u, loc_v = loc
+        else:
+            loc_u = loc
+            loc_v = loc
+        self.v = v
+        self.u = u
+        self.u_anchor_name, self.v_anchor_name = \
+            AnchorPoint(self.u).studio_anchor(self.v, (loc_u, loc_v))
+        self.rgb = rgb
+        self.f = f
+        self.g = g
+        self.h = h
+
+        if path is None:
+            u = AnchorPoint(self.u).anchor_points[self.u_anchor_name]
+            v = AnchorPoint(self.v).anchor_points[self.v_anchor_name]
+            line = LineString([u, v])
+            self.path = redistribute_vertices(line, line.length / 3)
+        else:
+            self.path = path
+
+    def __repr__(self):
+        return self.to_deck()
+
+    def to_deck(self):
+        """0:20:40:20:1:0:0:0:1:513,441:471,441:471,430:447,430"""
+        anchors = ":".join([":".join(map(str, AnchorPoint(
+            self.u).studio_anchor_mapping[self.u_anchor_name])),
+                            ":".join(map(str, AnchorPoint(
+                                self.u).studio_anchor_mapping[
+                                self.v_anchor_name]))])
+        color = get_int_from_rgb(self.rgb)
+        path = ",".join([":".join(map(str, n.astype(int).tolist()))
+                         for n in np.array(self.path)])
+        return anchors + ":1:" + str(color) + path
+
+
+class AnchorPoint(object):
+    """Handles the anchor point. There are 6 anchor points around a component"""
+
+    def __init__(self, model, offset=10):
+        """
+        Args:
+            model (TrnsysModel): The TrnsysModel
+            offset (float): The offset to give the anchor points from the center
+                of the model position.
+        """
+        self.offset = offset
+        self.model = model
+
+    def studio_anchor(self, other, loc):
+        """Return the studio anchor based on a location.
+
+        Args:
+            other: TrnsysModel
+            loc (2-tuple):
+        """
+        if 'best' not in loc:
+            return loc
+        u_loc, v_loc = loc
+        if u_loc == 'best':
+            u_loc, _ = self.find_best_anchors(other)
+        if v_loc == 'best':
+            _, v_loc = self.find_best_anchors(other)
+        return u_loc, v_loc
+
+    def find_best_anchors(self, other):
+        """
+        Args:
+            other:
+        """
+        dist = {}
+        for u in self.anchor_points.values():
+            for v in other.anchor_points.values():
+                dist[((u.x, u.y), (v.x, v.y))] = u.distance(v)
+        (u_coords, v_coords), distance = sorted(dist.items(),
+                                                key=lambda kv: kv[1])[0]
+        u_loc, v_loc = self.reverse_anchor_points[u_coords], \
+                       AnchorPoint(other).reverse_anchor_points[v_coords]
+        return u_loc, v_loc
+
+    @property
+    def anchor_points(self):
+        return self.octo_pts(self.offset)
+
+    @property
+    def reverse_anchor_points(self):
+        pts = self.octo_pts(self.offset)
+        return {(pt.x, pt.y): key for key, pt in pts.items()}
+
+    @property
+    def studio_anchor_mapping(self):
+        return {'top-left': (0, 0),
+                'top-center': (20, 0),
+                'top-right': (40, 0),
+                'center-right': (40, 20),
+                'bottom-right': (40, 40),
+                'bottom-center': (20, 40),
+                'bottom-left': (0, 40),
+                'center-left': (0, 20),
+                }
+
+    def octo_pts(self, offset=10):
+        """define 8-anchors pts around the component in cartesian space
+
+        Args:
+            offset (float):
+        """
+        from shapely.affinity import translate
+        center = self.centroid
+        xy_offset = {'top-left': (-offset, offset),
+                     'top-center': (0, offset),
+                     'top-right': (offset, offset),
+                     'center-right': (offset, 0),
+                     'bottom-right': (-offset, -offset),
+                     'bottom-center': (0, -offset),
+                     'bottom-left': (-offset, -offset),
+                     'center-left': (-offset, 0),
+                     }
+        return {key: translate(center, *offset) for key, offset in
+                xy_offset.items()}
+
+    @property
+    def centroid(self):
+        return self.model.studio.position
+
+
+def redistribute_vertices(geom, distance):
+    """from https://stackoverflow.com/a/35025274
+
+    Args:
+        geom:
+        distance:
+    """
+    if geom.geom_type == 'LineString':
+        num_vert = int(round(geom.length / distance))
+        if num_vert == 0:
+            num_vert = 1
+        return LineString(
+            [geom.interpolate(float(n) / num_vert, normalized=True)
+             for n in range(num_vert + 1)])
+    else:
+        raise ValueError('unhandled geometry %s', (geom.geom_type,))
