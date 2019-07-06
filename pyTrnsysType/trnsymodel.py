@@ -5,7 +5,6 @@ import math
 import re
 
 import numpy as np
-import pyTrnsysType
 from bs4 import BeautifulSoup, Tag
 from matplotlib.colors import colorConverter
 from path import Path
@@ -13,6 +12,8 @@ from pint import UnitRegistry
 from pint.quantity import _Quantity
 from shapely.geometry import Point, LineString, MultiLineString
 from shapely.geometry.base import BaseGeometry
+
+import pyTrnsysType
 
 
 class MetaData(object):
@@ -25,8 +26,8 @@ class MetaData(object):
                  externalFiles=None,
                  model=None,
                  **kwargs):
-        """General information that associated with a TrnsysModel. This
-        information is contained in the General Tab of the Proforma.
+        """General information that is associated with a :class:`TrnsysModel`.
+        This information is contained in the General Tab of the Proforma.
 
         Args:
             object (str): A generic name describing the component model.
@@ -41,11 +42,10 @@ class MetaData(object):
             modifictionDate (str): This is the date when the Proforma was mostly
                 recently revised.
             mode (int): 1-Detailed, 2-Simplified, 3-Empirical, 4- Conventional
-                validation (int): Determine the type of validation that was
+            validation (int): Determine the type of validation that was
                 performed on this model. This can be 1-qualitative, 2-numerical,
                 3-analytical, 4-experimental and 5-‘in assembly’ meaning that it
                 was verified as part of a larger system which was verified.
-            validation:
             icon (Path): Path to the icon.
             type (int): The type number.
             maxInstance (int): The maximum number of instances this type can be
@@ -65,7 +65,8 @@ class MetaData(object):
             variablesComment (str): #todo What is this?
             cycles (list, optional): List of TypeCycle.
             source (Path): Path of the source code.
-            externalFiles:
+            externalFiles (ExternalFileCollection): A class handling
+                ExternalFiles for this object.
             model (Path): Path of the xml or tmf file.
             **kwargs:
         """
@@ -215,11 +216,15 @@ class TrnsysModel(object):
     new_id = itertools.count(start=1)
 
     def __init__(self, meta, name, studio=None):
-        """
+        """Main Class for holding TRNSYS components. Alone, this __init__ method
+        does not do much. See the :func:`from_xml` class method for the official
+        constructor of this class.
+
         Args:
-            meta (MetaData):
-            name (str):
-            studio (StudioHeader):
+            meta (MetaData): A class containing the model's metadata.
+            name (str): A user-defined name for this model.
+            studio (StudioHeader): A class for handling TRNSYS studio related
+                functions.
         """
         self._unit = next(TrnsysModel.new_id)
         self._meta = meta
@@ -227,6 +232,7 @@ class TrnsysModel(object):
         self.studio = studio
 
     def __repr__(self):
+        """str: The String representation of this object."""
         return 'Type{}: {}'.format(self.type_number, self.name)
 
     @classmethod
@@ -286,15 +292,27 @@ class TrnsysModel(object):
         return new
 
     def connect_to(self, other, mapping=None, link_style=None):
-        """Connect the outputs `self` to the inputs of `other`
+        """Connect the outputs of :attr:`self` to the inputs of :attr:`other`.
+
+        Important:
+            Keep in mind that since python traditionally uses 0-based indexing,
+            the same logic is used in this package even though TRNSYS uses
+            traditionally 1-based indexing. The package will internally handle
+            the 1-based index in the output *.dck* file.
 
         Examples:
             Connect two :class:`TrnsysModel` objects together by creating a
             mapping of the outputs of pipe_1 to the intputs of pipe_2. In this
             example we connect output_0 of pipe_1 to input_0 of pipe_2 and
-            output_1 of pipe_1 to output_2 of pipe_2:
+            output_1 of pipe_1 to input_1 of pipe_2:
 
             >>> pipe_1.connect_to(pipe_2, mapping={0:0, 1:1})
+
+            The same can be acheived using input/output names.
+
+            >>> pipe_1.connect_to(pipe_2, mapping={'Outlet_Air_Temperature':
+            >>> 'Inlet_Air_Temperature', 'Outlet_Air_Humidity_Ratio':
+            >>> 'Inlet_Air_Humidity_Ratio'})
 
         Args:
             other (TrnsysModel): The other object
@@ -302,8 +320,8 @@ class TrnsysModel(object):
             link_style (dict, optional):
 
         Raises:
-            TypeError: À `TypeError is raised when trying to connect to anything
-                other than a :class:`TrnsysType`
+            TypeError: A `TypeError is raised when trying to connect to anything
+                other than a :class:`TrnsysModel` .
         """
         if link_style is None:
             link_style = {}
@@ -444,7 +462,7 @@ class TrnsysModel(object):
 
     @property
     def model(self):
-        """str: Returns self"""
+        """str: The path of this model's proforma"""
         return self._meta.model
 
     @property
@@ -638,7 +656,9 @@ def affine_transform(geom, matrix=None):
     Hint:
         visit affine_matrix_ for other affine transformation matrices.
 
-    .. _affine_matrix: https://en.wikipedia.org/wiki/Affine_transformation#/media/File:2D_affine_transformation_matrix.svg
+    .. _affine_matrix: https://en.wikipedia.org/wiki/Affine_transformation
+
+    #/media/ File:2D_affine_transformation_matrix.svg
 
     Args:
         geom (BaseGeometry): The geometry.
@@ -696,13 +716,12 @@ def get_int_from_rgb(rgb):
 class TypeVariable(object):
 
     def __init__(self, val, order=None, name=None, role=None, dimension=None,
-                 unit=None, type=None, min=None, max=max, boundaries=None,
+                 unit=None, type=None, min=None, max=None, boundaries=None,
                  default=None, symbol=None, definition=None, model=None):
         """Class containing a proforma variable.
 
         Args:
-            val (int, float or pint._Quantity): The actual value holded by this
-                object.
+            val (int, float, _Quantity): The actual value holded by this object.
             order (str):
             name (str): This name will be seen by the user in the connections
                 window and all other variable information windows.
@@ -752,8 +771,8 @@ class TypeVariable(object):
         self.symbol = symbol
         self.definition = definition if definition is None else \
             " ".join(definition.split())
-        self.value = parse_value(val, self.type, self.unit,
-                                 (self.min, self.max), self.name)
+        self.value = _parse_value(val, self.type, self.unit,
+                                  (self.min, self.max), self.name)
         self._connected_to = None
         self.model = model  # the TrnsysModel this TypeVariable belongs to.
 
@@ -800,14 +819,14 @@ class TypeVariable(object):
     def _parse_types(self):
         for attr, value in self.__dict__.items():
             if attr in ['default', 'max', 'min']:
-                parsed_value = parse_value(value, self.type, self.unit,
-                                           (self.min, self.max))
+                parsed_value = _parse_value(value, self.type, self.unit,
+                                            (self.min, self.max))
                 self.__setattr__(attr, parsed_value)
             if attr in ['order']:
                 self.__setattr__(attr, int(value))
 
     def copy(self):
-        """make a copy of the object"""
+        """TypeVariable: Make a copy of :attr:`self`"""
         new_self = copy.copy(self)
         return new_self
 
@@ -924,7 +943,7 @@ def resolve_type(args):
         return float(args)
 
 
-def parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
+def _parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
     """
     Args:
         value:
@@ -979,9 +998,16 @@ def standerdized_name(name):
 
 
 def parse_unit(unit):
-    """
+    """Units defined in the xml proformas follow a convention that is not quite
+    compatible with `Pint` . This method will catch known discrepancies.
+
     Args:
-        unit:
+        unit (str): A string unit.
+
+    Returns:
+        2-tuple: The Quantity class and the Unit class
+            * ureg.Quantity: The Quantity class
+            * ureg.Unit: The Unit class
     """
     Q_ = ureg.Quantity
     if unit == '-' or unit is None:
@@ -999,7 +1025,7 @@ def parse_unit(unit):
         ureg.define('fraction = 1*count = -')
         return Q_, ureg.fraction
     else:
-        return Q_, ureg.parse_expression(unit)
+        return Q_, ureg.parse_units(unit)
 
 
 class Parameter(TypeVariable):
@@ -1099,8 +1125,8 @@ class VariableCollection(collections.UserDict):
             super().__setitem__(key, value)
         elif isinstance(value, (int, float)):
             """a str, float, int, etc. is passed"""
-            value = parse_value(value, self[key].type, self[key].unit,
-                                (self[key].min, self[key].max))
+            value = _parse_value(value, self[key].type, self[key].unit,
+                                 (self[key].min, self[key].max))
             self[key].__setattr__('value', value)
         elif isinstance(value, _Quantity):
             self[key].__setattr__('value', value.to(self[key].value.units))
@@ -1313,11 +1339,11 @@ class AnchorPoint(object):
 
     @property
     def anchor_points(self):
-        return self.octo_pts(self.offset)
+        return self.get_octo_pts_dict(self.offset)
 
     @property
     def reverse_anchor_points(self):
-        pts = self.octo_pts(self.offset)
+        pts = self.get_octo_pts_dict(self.offset)
         return {(pt.x, pt.y): key for key, pt in pts.items()}
 
     @property
@@ -1332,11 +1358,23 @@ class AnchorPoint(object):
                 'center-left': (0, 20),
                 }
 
-    def octo_pts(self, offset=10):
-        """define 8-anchors pts around the component in cartesian space
+    def get_octo_pts_dict(self, offset=10):
+        """Define 8-anchor :class:`Point` around the :class:`TrnsysModel` in
+        cartesian space and return a named-dict with human readable meaning.
+        These points are equally dispersed at the four corners and 4 edges of
+        the center, at distance = :attr:`offset`
+
+        See :func:`~trnsymodel.TrnsysType.set_link_style` or
+        :class:`trnsymodel.LinkStyle` for more details.
 
         Args:
-            offset (float):
+            offset (float): The offset around the center point of :attr:`self`.
+
+        Note:
+            In the Studio, a component has 8 anchor points at the four corners
+            and four edges. units.Links can be created on these connections.
+
+            .. image:: _static/anchor-pts.png
         """
         from shapely.affinity import translate
         center = self.centroid
