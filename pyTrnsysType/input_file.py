@@ -2,25 +2,34 @@ import collections
 import itertools
 
 import tabulate
-from pyTrnsysType import Input, TypeVariable, TrnsysModel
 
+from pyTrnsysType import Input, TypeVariable, TrnsysModel
 from .trnsymodel import ParameterCollection, InputCollection, \
     ExternalFileCollection
 
 
 class Name(object):
     """Handles the attribution of user defined names for :class:`TrnsysModel`,
-    :class:`EquationCollection` and more."""
+    :class:`EquationCollection` and more.
+    """
 
     existing = []  # a list to store the created names
 
     def __init__(self, name=None):
-        """Pick a name. Will increment the name if already used"""
+        """Pick a name. Will increment the name if already used
+
+        Args:
+            name:
+        """
         self.name = self.create_unique(name)
 
     def create_unique(self, name):
         """Check if name has already been used. If so, try to increment until
-        not used"""
+        not used
+
+        Args:
+            name:
+        """
         if not name:
             return None
         i = 0
