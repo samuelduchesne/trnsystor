@@ -395,6 +395,14 @@ class TestStatements():
         cc = getattr(ControlCards, classmethod)()
         print(cc.to_deck())
 
+    def test_nancheck_statement(self):
+        from pyTrnsysType import NaNCheck
+        nan_check = NaNCheck(n=1)
+        assert nan_check.to_deck() == "NAN_CHECK 1"
+        nan_check = NaNCheck(n=0)
+        assert nan_check.to_deck() == "NAN_CHECK 0"
+
+
 
 class TestOthers():
 
