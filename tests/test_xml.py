@@ -402,6 +402,13 @@ class TestStatements():
         nan_check = NaNCheck(n=0)
         assert nan_check.to_deck() == "NAN_CHECK 0"
 
+    def test_overwritecheck_statement(self):
+        from pyTrnsysType import OverwriteCheck
+        nan_check = OverwriteCheck(n=1)
+        assert nan_check.to_deck() == "OVERWRITE_CHECK 1"
+        nan_check = OverwriteCheck(n=0)
+        assert nan_check.to_deck() == "OVERWRITE_CHECK 0"
+
 
 
 class TestOthers():
