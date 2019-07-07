@@ -409,6 +409,12 @@ class TestStatements():
         nan_check = OverwriteCheck(n=0)
         assert nan_check._to_deck() == "OVERWRITE_CHECK 0"
 
+    def test_timereport_statement(self):
+        from pyTrnsysType import TimeReport
+        nan_check = TimeReport(n=1)
+        assert nan_check._to_deck() == "TIME_REPORT 1"
+        nan_check = TimeReport(n=0)
+        assert nan_check._to_deck() == "TIME_REPORT 0"
 
 
 class TestOthers():

@@ -1,6 +1,7 @@
 class Statement(object):
-    """This is the base class for many of TRNSYS Statements. It implements
-    common methods such as the repr() method.
+    """This is the base class for many of the TRNSYS Simulation Control and
+    Listing Control Statements. It implements common methods such as the repr()
+    method.
     """
 
     def __init__(self):
@@ -14,8 +15,10 @@ class Statement(object):
 
 
 class Version(Statement):
-    """Added with TRNSYS version 15. The version number is saved by the TRNSYS
-    kernel and can be acted upon.
+    """Added with TRNSYS version 15. The idea of the command is that by labeling
+    decks with the TRNSYS version number that they were created under, it is
+    easy to keep TRNSYS backwards compatible. The version number is saved by the
+    TRNSYS kernel and can be acted upon.
     """
 
     def __init__(self, v=(18, 0)):
@@ -30,108 +33,6 @@ class Version(Statement):
 
     def _to_deck(self):
         return "VERSION {}".format(".".join(map(str, self.v)))
-
-
-class NaNCheck(Statement):
-    """One problem that has plagued TRNSYS simulation debuggers is that in
-    Fortran, the “Not a Number” (NaN) condition can be passed along through
-    numerous subroutines without being flagged as an error. For example, a
-    division by zero results in a variable being set to NaN. This NaN can then
-    be used in subsequent equation, causing them to be set to NaN as well. The
-    problem persists for a time until a Range Check or an Integer Overflow error
-    occurs and actually stops simulation progress. To alleviate the problem, the
-    NAN_CHECK Statement was added as an optional debugging feature in TRNSYS
-    input files.
-    """
-
-    def __init__(self, n=0):
-        """Initialize a NaNCheck object.
-
-        Hint:
-            If the NAN_CHECK statement is present (n=1), then the TRNSYS kernel
-            checks every output of each component at each iteration and
-            generates a clean error if ever one of those outputs has been set to
-            the FORTRAN NaN condition. Because this checking is very time
-            consuming, users are not advised to leave NAN_CHECK set in their
-            input files as it causes simulations to run much more slowly.
-
-        Args:
-            n (int): Is 0 if the NAN_CHECK feature is not desired or 1 if
-                NAN_CHECK feature is desired. Default is 0.
-        """
-        super().__init__()
-        self.n = n
-        self.doc = "The NAN_CHECK Statement"
-
-    def _to_deck(self):
-        return "NAN_CHECK {}".format(self.n)
-
-
-class OverwriteCheck(Statement):
-    """A common error in non standard and user written TRNSYS Type routines is
-    to reserve too little space in the global output array. By default, each
-    Type is accorded 20 spots in the global TRNSYS output array. However, there
-    is no way to prevent the Type from then writing in (for example) the 21st
-    spot; the entire global output array is always accessible. By activating the
-    OVERWRITE_CHECK statement, the TRNSYS kernel checks to make sure that each
-    Type did not write outside its allotted space. As with the NAN_CHECK
-    statement, OVERWRITE_CHECK is a time consuming process and should only be
-    used as a debugging tool when a simulation is ending in error.
-    """
-
-    def __init__(self, n=0):
-        """Initialize an OVERWRITE_CHECK object.
-
-        Hint:
-            OVERWRITE_CHECK is a time consuming process and should only be used
-            as a debugging tool when a simulation is ending in error.
-
-        Args:
-            n (int): Is 0 if the OVERWRITE_CHECK feature is not desired or 1 if
-                OVERWRITE_CHECK feature is desired.
-        """
-        super().__init__()
-        self.n = n
-        self.doc = "The OVERWRITE_CHECK Statement"
-
-    def _to_deck(self):
-        return "OVERWRITE_CHECK {}".format(self.n)
-
-
-class TimeReport(Statement):
-
-    # Todo: Implement the TimeReport Statement
-
-    def __init__(self):
-        super().__init__()
-        self.doc = "The TIME_REPORT Statement"
-
-
-class Constants(Statement):
-
-    # Todo: Implement the Constants Statement
-
-    def __init__(self):
-        super().__init__()
-        self.doc = "The CONSTANTS Statement"
-
-
-class Equations(Statement):
-
-    # Todo: Implement the Equations Statement
-
-    def __init__(self):
-        super().__init__()
-        self.doc = "The EQUATIONS Statement"
-
-
-class List(Statement):
-
-    # Todo: Implement the List Statement
-
-    def __init__(self):
-        super().__init__()
-        self.doc = "The LIST Statement"
 
 
 class Simulation(Statement):
@@ -221,6 +122,122 @@ class Limits(Statement):
         return str(head)
 
 
+class NaNCheck(Statement):
+    """One problem that has plagued TRNSYS simulation debuggers is that in
+    Fortran, the “Not a Number” (NaN) condition can be passed along through
+    numerous subroutines without being flagged as an error. For example, a
+    division by zero results in a variable being set to NaN. This NaN can then
+    be used in subsequent equation, causing them to be set to NaN as well. The
+    problem persists for a time until a Range Check or an Integer Overflow error
+    occurs and actually stops simulation progress. To alleviate the problem, the
+    NAN_CHECK Statement was added as an optional debugging feature in TRNSYS
+    input files.
+    """
+
+    def __init__(self, n=0):
+        """Initialize a NaNCheck object.
+
+        Hint:
+            If the NAN_CHECK statement is present (n=1), then the TRNSYS kernel
+            checks every output of each component at each iteration and
+            generates a clean error if ever one of those outputs has been set to
+            the FORTRAN NaN condition. Because this checking is very time
+            consuming, users are not advised to leave NAN_CHECK set in their
+            input files as it causes simulations to run much more slowly.
+
+        Args:
+            n (int): Is 0 if the NAN_CHECK feature is not desired or 1 if
+                NAN_CHECK feature is desired. Default is 0.
+        """
+        super().__init__()
+        self.n = n
+        self.doc = "The NAN_CHECK Statement"
+
+    def _to_deck(self):
+        return "NAN_CHECK {}".format(self.n)
+
+
+class OverwriteCheck(Statement):
+    """A common error in non standard and user written TRNSYS Type routines is
+    to reserve too little space in the global output array. By default, each
+    Type is accorded 20 spots in the global TRNSYS output array. However, there
+    is no way to prevent the Type from then writing in (for example) the 21st
+    spot; the entire global output array is always accessible. By activating the
+    OVERWRITE_CHECK statement, the TRNSYS kernel checks to make sure that each
+    Type did not write outside its allotted space. As with the NAN_CHECK
+    statement, OVERWRITE_CHECK is a time consuming process and should only be
+    used as a debugging tool when a simulation is ending in error.
+    """
+
+    def __init__(self, n=0):
+        """Initialize an OVERWRITE_CHECK object.
+
+        Hint:
+            OVERWRITE_CHECK is a time consuming process and should only be used
+            as a debugging tool when a simulation is ending in error.
+
+        Args:
+            n (int): Is 0 if the OVERWRITE_CHECK feature is not desired or 1 if
+                OVERWRITE_CHECK feature is desired.
+        """
+        super().__init__()
+        self.n = n
+        self.doc = "The OVERWRITE_CHECK Statement"
+
+    def _to_deck(self):
+        return "OVERWRITE_CHECK {}".format(self.n)
+
+
+class TimeReport(Statement):
+    """The statement TIME_REPORT turns on or off the internal calculation of the
+    time spent on each unit. If this feature is desired, the listing file will
+    contain this information at the end of the file.
+    """
+
+    # Todo: Implement the TimeReport Statement
+
+    def __init__(self, n=0):
+        """Initialize a TIME_REPORT object.
+
+        Args:
+            n (int): Is 0 if the TIME_REPORT feature is not desired or 1 if
+                TIME_REPORT feature is desired.
+        """
+        super().__init__()
+        self.n = n
+        self.doc = "The TIME_REPORT Statement"
+
+    def _to_deck(self):
+        return "TIME_REPORT {n}".format(n=self.n)
+
+
+class Constants(Statement):
+
+    # Todo: Implement the Constants Statement
+
+    def __init__(self):
+        super().__init__()
+        self.doc = "The CONSTANTS Statement"
+
+
+class Equations(Statement):
+
+    # Todo: Implement the Equations Statement
+
+    def __init__(self):
+        super().__init__()
+        self.doc = "The EQUATIONS Statement"
+
+
+class List(Statement):
+
+    # Todo: Implement the List Statement
+
+    def __init__(self):
+        super().__init__()
+        self.doc = "The LIST Statement"
+
+
 class DFQ(Statement):
     """The optional DFQ card allows the user to select one of three algorithms
     built into TRNSYS to numerically solve differential equations (see Manual
@@ -237,11 +254,12 @@ class DFQ(Statement):
 
         Note:
             The three numerical integration algorithms are:
-                1. Modified-Euler method (a 2nd order Runge-Kutta method)
-                2. Non-self-starting Heun's method (a 2nd order
-                   Predictor-Corrector method)
-                3. Fourth-order Adams method (a 4th order Predictor-Corrector
-                   method)
+
+            1. Modified-Euler method (a 2nd order Runge-Kutta method)
+            2. Non-self-starting Heun's method (a 2nd order Predictor-Corrector
+               method)
+            3. Fourth-order Adams method (a 4th order Predictor-Corrector
+               method)
         """
         super().__init__()
         self.k = k
