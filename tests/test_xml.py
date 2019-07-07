@@ -346,34 +346,34 @@ class TestStatements():
     def test_version_statement(self):
         from pyTrnsysType import Version
         ver = Version(v=(17, 3))
-        assert ver.to_deck() == "VERSION 17.3"
+        assert ver._to_deck() == "VERSION 17.3"
 
     def test_simulation_statement(self):
         from pyTrnsysType import Simulation
         simul = Simulation(0, 8760, 1)
-        assert simul.to_deck() == "SIMULATION 0 8760 1"
+        assert simul._to_deck() == "SIMULATION 0 8760 1"
 
     def test_tolerances_statement(self):
         from pyTrnsysType import Tolerances
         tol = Tolerances(0.001, 0.001)
-        assert tol.to_deck() == "TOLERANCES 0.001 0.001"
+        assert tol._to_deck() == "TOLERANCES 0.001 0.001"
 
     def test_limits_statement(self):
         from pyTrnsysType import Limits
         lim = Limits(20, 50)
-        assert lim.to_deck() == "LIMITS 20 50 20"
+        assert lim._to_deck() == "LIMITS 20 50 20"
 
     def test_dfq_statement(self):
         from pyTrnsysType import DFQ
         dfq_statement = DFQ(3)
-        assert dfq_statement.to_deck() == "DFQ 3"
+        assert dfq_statement._to_deck() == "DFQ 3"
 
     def test_nocheck_statement(self, fan_type):
         from pyTrnsysType import NoCheck
         fan_type.copy()
         fan_type._unit = 1  # we need to force the id to one here
         no_check = NoCheck(inputs=list(fan_type.inputs.values()))
-        assert no_check.to_deck() == "NOCHECK 7\n1, 1	1, 2	1, 3	1, " \
+        assert no_check._to_deck() == "NOCHECK 7\n1, 1	1, 2	1, 3	1, " \
                                      "4	1, 5	1, 6	1, 7"
 
         with pytest.raises(ValueError):
@@ -383,9 +383,9 @@ class TestStatements():
     def test_nolist_statement(self):
         from pyTrnsysType import NoList
         no_list = NoList(active=True)
-        assert no_list.to_deck() == "NOLIST"
+        assert no_list._to_deck() == "NOLIST"
         no_list = NoList(active=False)
-        assert no_list.to_deck() == ""
+        assert no_list._to_deck() == ""
 
     @pytest.mark.parametrize('classmethod',
                              ['all', 'debug_template', 'basic_template'])
@@ -398,16 +398,16 @@ class TestStatements():
     def test_nancheck_statement(self):
         from pyTrnsysType import NaNCheck
         nan_check = NaNCheck(n=1)
-        assert nan_check.to_deck() == "NAN_CHECK 1"
+        assert nan_check._to_deck() == "NAN_CHECK 1"
         nan_check = NaNCheck(n=0)
-        assert nan_check.to_deck() == "NAN_CHECK 0"
+        assert nan_check._to_deck() == "NAN_CHECK 0"
 
     def test_overwritecheck_statement(self):
         from pyTrnsysType import OverwriteCheck
         nan_check = OverwriteCheck(n=1)
-        assert nan_check.to_deck() == "OVERWRITE_CHECK 1"
+        assert nan_check._to_deck() == "OVERWRITE_CHECK 1"
         nan_check = OverwriteCheck(n=0)
-        assert nan_check.to_deck() == "OVERWRITE_CHECK 0"
+        assert nan_check._to_deck() == "OVERWRITE_CHECK 0"
 
 
 

@@ -7,9 +7,9 @@ class Statement(object):
         self.doc = ""
 
     def __repr__(self):
-        return self.to_deck()
+        return self._to_deck()
 
-    def to_deck(self):
+    def _to_deck(self):
         return ""
 
 
@@ -28,7 +28,7 @@ class Version(Statement):
         self.v = v
         self.doc = "The VERSION Statement"
 
-    def to_deck(self):
+    def _to_deck(self):
         return "VERSION {}".format(".".join(map(str, self.v)))
 
 
@@ -63,7 +63,7 @@ class NaNCheck(Statement):
         self.n = n
         self.doc = "The NAN_CHECK Statement"
 
-    def to_deck(self):
+    def _to_deck(self):
         return "NAN_CHECK {}".format(self.n)
 
 
@@ -94,7 +94,7 @@ class OverwriteCheck(Statement):
         self.n = n
         self.doc = "The OVERWRITE_CHECK Statement"
 
-    def to_deck(self):
+    def _to_deck(self):
         return "OVERWRITE_CHECK {}".format(self.n)
 
 
@@ -160,7 +160,7 @@ class Simulation(Statement):
         self.step = step
         self.doc = "Start time\tEnd time\tTime step"
 
-    def to_deck(self):
+    def _to_deck(self):
         """SIMULATION to tf Δt"""
         return "SIMULATION {} {} {}".format(self.start, self.stop, self.step)
 
@@ -184,7 +184,7 @@ class Tolerances(Statement):
         self.epsilon_a = epsilon_a
         self.doc = "Integration\tConvergence"
 
-    def to_deck(self):
+    def _to_deck(self):
         """TOLERANCES 0.001 0.001"""
         head = "TOLERANCES {} {}".format(self.epsilon_d, self.epsilon_a)
         return str(head)
@@ -215,7 +215,7 @@ class Limits(Statement):
         self.p = p if p is not None else self.m
         self.doc = "Max iterations\tMax warnings\tTrace limit"
 
-    def to_deck(self):
+    def _to_deck(self):
         """TOLERANCES 0.001 0.001"""
         head = "LIMITS {} {} {}".format(self.m, self.n, self.p)
         return str(head)
@@ -247,7 +247,7 @@ class DFQ(Statement):
         self.k = k
         self.doc = "TRNSYS numerical integration solver method"
 
-    def to_deck(self):
+    def _to_deck(self):
         return str("DFQ {}".format(self.k))
 
 
@@ -270,7 +270,7 @@ class NoCheck(Statement):
         self.inputs = inputs
         self.doc = "CHECK Statement"
 
-    def to_deck(self):
+    def _to_deck(self):
         head = "NOCHECK {}\n".format(len(self.inputs))
         core = "\t".join(
             ["{}, {}".format(
@@ -294,7 +294,7 @@ class NoList(Statement):
         self.active = active
         self.doc = "NOLIST statement"
 
-    def to_deck(self):
+    def _to_deck(self):
         return "NOLIST" if self.active else ""
 
 
@@ -314,7 +314,7 @@ class Map(Statement):
         self.active = active
         self.doc = "MAP statement"
 
-    def to_deck(self):
+    def _to_deck(self):
         return "MAP" if self.active else ""
 
 
@@ -351,7 +351,7 @@ class EqSolver(Statement):
         self.n = n
         self.doc = "EQUATION SOLVER statement"
 
-    def to_deck(self):
+    def _to_deck(self):
         return "EQSOLVER {}".format(self.n)
 
 
@@ -361,7 +361,7 @@ class End(Statement):
         super().__init__()
         self.doc = "The END Statement"
 
-    def to_deck(self):
+    def _to_deck(self):
         return "END"
 
 
@@ -395,6 +395,6 @@ class Solver(Statement):
         self.doc = "Solver statement\tMinimum relaxation factor\tMaximum " \
                    "relaxation factor"
 
-    def to_deck(self):
+    def _to_deck(self):
         return "SOLVER {} {} {}".format(self.k, self.rf_min, self.rf_max) \
             if self.k == 0 else "SOLVER {}".format(self.k)
