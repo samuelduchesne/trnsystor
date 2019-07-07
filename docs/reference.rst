@@ -9,6 +9,9 @@ TrnsysType
 .. automodule:: pyTrnsysType.trnsymodel
   :members:
 
+.. automodule:: pyTrnsysType.input_file
+  :members:
+
 API Pages
 =========
 
@@ -20,3 +23,4 @@ API Pages
   TrnsysModel
   TypeVariable
   MetaData
+

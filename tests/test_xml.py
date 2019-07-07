@@ -110,6 +110,17 @@ class TestTrnsysModel():
 
         assert fan_type.parameters[attr_name].value == new_value
 
+    def test_get_attr_derivative(self, tank_type):
+        """Test setter for class Derivative"""
+        attr_name = 'Initial_temperature_of_node_1'
+        assert tank_type.derivatives[attr_name].value.m == 50.0
+
+    def test_set_attr_derivative(self, tank_type):
+        """Test setter for class Derivative"""
+        attr_name = 'Initial_temperature_of_node_1'
+        tank_type.derivatives[attr_name] = 60
+        assert tank_type.derivatives[attr_name].value.m == 60.0
+
     def test_set_attr_cycle_parameters(self, pipe_type):
         """Test setter for class TypeVariable"""
         attr_name = 'Radial_Distance_of_Node_1'
@@ -197,7 +208,7 @@ class TestTrnsysModel():
                                                     marks=pytest.mark.xfail(
                                                         raises=NotImplementedError))])
     def test_parse_type(self, type_):
-        from pyTrnsysType import parse_type
+        from pyTrnsysType.utils import parse_type
         parse_type(type_)
 
     def test_int_indexing(self, fan_type):
@@ -312,16 +323,16 @@ class TestTrnsysModel():
         pipe_type.connect_to(pipe2, mapping={0: 0})
 
     def test_affine_transform(self):
-        from pyTrnsysType import affine_transform
+        from pyTrnsysType.utils import affine_transform
         geom = Point(10, 10)
         affine_transform(geom, matrix=None)
 
     def test_get_rgb_int(self):
-        from pyTrnsysType import get_rgb_from_int
+        from pyTrnsysType.utils import get_rgb_from_int
         assert get_rgb_from_int(9534163) == (211, 122, 145)
 
     def test_get_int_from_rgb(self):
-        from pyTrnsysType import get_int_from_rgb
+        from pyTrnsysType.utils import get_int_from_rgb
         assert get_int_from_rgb((211, 122, 145)) == 9534163
 
 
@@ -376,9 +387,12 @@ class TestStatements():
         no_list = NoList(active=False)
         assert no_list.to_deck() == ""
 
-    def test_control_cards(self):
+    @pytest.mark.parametrize('classmethod',
+                             ['all', 'debug_template', 'basic_template'])
+    def test_control_cards(self, classmethod):
+        """Call different class methods on ControlCards"""
         from pyTrnsysType import ControlCards
-        cc = ControlCards.with_defaults()
+        cc = getattr(ControlCards, classmethod)()
         print(cc.to_deck())
 
 

@@ -140,7 +140,10 @@ class ExternalFile(object):
             default (str):
             answers (list of str):
             parameter (str):
-            designate (str):
+            designate (bool): If True, the external files are assigned to
+                logical unit numbers from within the TRNSYS input file. Files
+                that are assigned to a logical unit number using a DESIGNATE
+                statement will not be opened by the TRNSYS kernel.
         """
         self.designate = designate
         self.parameter = parameter
@@ -435,6 +438,11 @@ class TrnsysModel(object):
         return self._get_outputs()
 
     @property
+    def derivatives(self):
+        """TypeVariableCollection: returns the model's derivatives"""
+        return self._get_derivatives()
+
+    @property
     def parameters(self):
         """ParameterCollection: returns the model's parameters."""
         return self._get_parameters()
@@ -537,6 +545,11 @@ class TrnsysModel(object):
         self._resolve_cycles('parameter', Parameter)
         param_dict = self._get_ordered_filtered_types(Parameter, 'variables')
         return ParameterCollection.from_dict(param_dict)
+
+    def _get_derivatives(self):
+        self._resolve_cycles('derivative', Derivative)
+        deriv_dict = self._get_ordered_filtered_types(Derivative, 'variables')
+        return VariableCollection.from_dict(deriv_dict)
 
     def _get_external_files(self):
         if self._meta.external_files:
@@ -922,6 +935,11 @@ class Output(TypeVariable):
 
 
 class Derivative(TypeVariable):
+    """the DERIVATIVES for a given TypeModel specify initial values, such as the
+    initial temperatures of various nodes in a thermal storage tank or the
+    initial zone temperatures in a multi zone building.
+    """
+
     def __init__(self, val, **kwargs):
         """A subclass of :class:`TypeVariable` specific to derivatives.
 

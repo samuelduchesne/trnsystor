@@ -82,11 +82,11 @@ pipe1.connect_to(pipe2, mapping={0:0, 1:1})
 The Simulation Cards is a chuck of code that informs TRNSYS of various simulation constrols such as start time end 
 time and time-step. pyTrnsysType implements many of those *Statements* with a series of Statement objects.
 
-For instance, to create simulation cards using default values, simply call the `with_defaults()` constructor:
+For instance, to create simulation cards using default values, simply call the `all()` constructor:
 
 ```pydocstring
 >>> from pyTrnsysType import ControlCards
->>> cc = ControlCards.with_defaults()
+>>> cc = ControlCards.all()
 >>> print(cc)
 *** Control Cards
 SOLVER 0 1 1          ! Solver statement	Minimum relaxation factor	Maximum relaxation factor

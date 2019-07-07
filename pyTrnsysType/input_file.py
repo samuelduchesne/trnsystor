@@ -138,9 +138,12 @@ class Inputs(object):
 
 
 class ExternalFiles(object):
+
+    # todo: Implement DESIGNATE vs ASSIGN. See TRNSYS Manual, section 6.3.17.
+    #  The DESIGNATE Statement and Logical Unit Numbers.
+
     def __init__(self, external_collection):
         """
-
         Args:
             external_collection (ExternalFileCollection):
         """
@@ -198,8 +201,8 @@ class Equation(object):
     @classmethod
     def from_expression(cls, expression):
         """Create an equation from a string expression. Anything before the
-        equal sign ("=") will become a Constant and anything after will
-        become the equality statement.
+        equal sign ("=") will become a Constant and anything after will become
+        the equality statement.
 
         Args:
             expression (str): A user-defined expression to parse
@@ -230,18 +233,16 @@ class EquationCollection(collections.UserList):
     def __init__(self, initlist=None, name=None):
         """Initialize a new EquationCollection.
 
+        Example:
+            >>> equa1 = Equation.from_expression("TdbAmb = [011,001]")
+            >>> equa2 = Equation.from_expression("rhAmb = [011,007]")
+            >>> EquationCollection([equa1, equa2])
+
         Args:
             initlist (Iterable, optional): An iterable.
             name (str): A user defined name for this collection of equations.
                 This name will be used to identify this block of equations in
                 the .dck file;
-
-        Example:
-
-            >>> equa1 = Equation.from_expression("TdbAmb = [011,001]")
-            >>> equa2 = Equation.from_expression("rhAmb = [011,007]")
-            >>> EquationCollection([equa1, equa2])
-
         """
         super(EquationCollection, self).__init__(initlist)
         self.name = Name(name)
@@ -287,7 +288,22 @@ class EquationCollection(collections.UserList):
         return self._unit
 
 
-class Version(object):
+class Statement(object):
+    """This is the base class for many of TRNSYS Statements. It implements
+    common methods such as the repr() method.
+    """
+
+    def __init__(self):
+        self.doc = ""
+
+    def __repr__(self):
+        return self.to_deck()
+
+    def to_deck(self):
+        return ""
+
+
+class Version(Statement):
     """Added with TRNSYS version 15. The version number is saved by the TRNSYS
     kernel and can be acted upon.
     """
@@ -298,66 +314,54 @@ class Version(object):
         Args:
             v (tuple): A tuple of (major, minor) eg. 18.0 :> (18, 0)
         """
+        super().__init__()
         self.v = v
+        self.doc = "The VERSION Statement"
 
     def to_deck(self):
         return "VERSION {}".format(".".join(map(str, self.v)))
 
 
-class Statement(object):
-    """This is the base class for many of TRNSYS Statements. It implements
-    common methods such as the repr() method.
-    """
+class NaNCheck(Statement):
 
-    def __repr__(self):
-        return self.to_deck()
-
-    def to_deck(self):
-        return ""
+    def __init__(self):
+        super().__init__()
+        self.doc = "The NAN_CHECK Statement"
 
 
-class ControlCards(Statement):
-    """The :class:`ControlCards` is a container for all the TRNSYS Statements
-    classes. It implements the to_deck() method which pretty-prints the
-    statements with their docstrings.
-    """
+class OverwriteCheck(Statement):
 
-    def __init__(self, simulation, tolerances, limits, dfq, nocheck, nolist,
-                 map, eqsolver, solver):
-        """
-        Args:
-            simulation:
-            tolerances:
-            limits:
-            dfq:
-            nocheck:
-            nolist:
-            map:
-            eqsolver:
-            solver:
-        """
-        self.solver = solver
-        self.map = map
-        self.nolist = nolist
-        self.nocheck = nocheck
-        self.dfq = dfq
-        self.simulation = simulation
-        self.tolerances = tolerances
-        self.limits = limits
-        self.eqsolver = eqsolver
+    def __init__(self):
+        super().__init__()
+        self.doc = "The OVERWRITE_CHECK Statement"
 
-    @classmethod
-    def with_defaults(cls):
-        return cls(Simulation(), Tolerances(), Limits(), DFQ(), NoCheck(),
-                   NoList(), Map(), EqSolver(), Solver())
 
-    def to_deck(self):
-        head = "*** Control Cards\n"
-        v_ = ((param.to_deck(), "! {}".format(
-            param.doc))
-              for param in self.__dict__.values())
-        statements = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
-        return str(head) + str(statements)
+class TimeReport(Statement):
+
+    def __init__(self):
+        super().__init__()
+        self.doc = "The TIME_REPORT Statement"
+
+
+class Constants(Statement):
+
+    def __init__(self):
+        super().__init__()
+        self.doc = "The CONSTANTS Statement"
+
+
+class Equations(Statement):
+
+    def __init__(self):
+        super().__init__()
+        self.doc = "The EQUATIONS Statement"
+
+
+class List(Statement):
+
+    def __init__(self):
+        super().__init__()
+        self.doc = "The LIST Statement"
 
 
 class Simulation(Statement):
@@ -380,6 +384,7 @@ class Simulation(Statement):
             stop (int): The hour of the year at which the simulation is to end.
             step (float): The time step to be used (hours).
         """
+        super().__init__()
         self.start = start
         self.stop = stop
         self.step = step
@@ -404,6 +409,7 @@ class Tolerances(Statement):
                 tolerance controlling the convergence of input and output
                 variables.
         """
+        super().__init__()
         self.epsilon_d = epsilon_d
         self.epsilon_a = epsilon_a
         self.doc = "Integration\tConvergence"
@@ -433,6 +439,7 @@ class Limits(Statement):
                 Section 2.3.5) for all subsequent calls in the timestep. When p
                 is not specified by the user, TRNSYS sets p equal to m.
         """
+        super().__init__()
         self.m = m
         self.n = n
         self.p = p if p is not None else self.m
@@ -466,6 +473,7 @@ class DFQ(Statement):
                 3. Fourth-order Adams method (a 4th order Predictor-Corrector
                    method)
         """
+        super().__init__()
         self.k = k
         self.doc = "TRNSYS numerical integration solver method"
 
@@ -483,6 +491,7 @@ class NoCheck(Statement):
         Args:
             inputs (list of Input):
         """
+        super().__init__()
         if not inputs:
             inputs = []
         if len(inputs) > 20:
@@ -511,6 +520,7 @@ class NoList(Statement):
         Args:
             active (bool): Setting active to True will add the NOLIST statement
         """
+        super().__init__()
         self.active = active
         self.doc = "NOLIST statement"
 
@@ -530,6 +540,7 @@ class Map(Statement):
         Args:
             active (bool): Setting active to True will add the MAP statement
         """
+        super().__init__()
         self.active = active
         self.doc = "MAP statement"
 
@@ -545,33 +556,43 @@ class EqSolver(Statement):
     """
 
     def __init__(self, n=0):
-        """
+        """Hint:
+            :attr:`n` can have any of the following values:
+
+            1. n=0 (default if no value is provided) if a component output or
+               TIME changes, update the block of equations that depend upon
+               those values. Then update components that depend upon the first
+               block of equations. Continue looping until all equations have
+               been updated appropriately. This equation blocking method is most
+               like the method used in TRNSYS version 15 and before.
+            2. n=1 if a component output or TIME changes by more than the value
+               set in the TOLERANCES Statement (see Section 6.3.3), update the
+               block of equations that depend upon those values. Then update
+               components that depend upon the first block of equations.
+               Continue looping until all equations have been updated
+               appropriately.
+            3. n=2 treat equations as a component and update them only after
+               updating all components.
+
         Args:
             n (int): The order in which the equations are solved.
-
-        Note:
-            Where n can have any of the following values:
-                1. n=0 (default if no value is provided) if a component output
-                   or TIME changes, update the block of equations that depend
-                   upon those values. Then update components that depend upon
-                   the first block of equations. Continue looping until all
-                   equations have been updated appropriately. This equation
-                   blocking method is most like the method used in TRNSYS
-                   version 15 and before.
-                2. n=1 if a component output or TIME changes by more than the
-                   value set in the TOLERANCES Statement (see Section 6.3.3),
-                   update the block of equations that depend upon those values.
-                   Then update components that depend upon the first block of
-                   equations. Continue looping until all equations have been
-                   updated appropriately.
-                3. n=2 treat equations as a component and update them only after
-                   updating all components.
         """
+        super().__init__()
         self.n = n
         self.doc = "EQUATION SOLVER statement"
 
     def to_deck(self):
         return "EQSOLVER {}".format(self.n)
+
+
+class End(Statement):
+
+    def __init__(self):
+        super().__init__()
+        self.doc = "The END Statement"
+
+    def to_deck(self):
+        return "END"
 
 
 class Solver(Statement):
@@ -597,6 +618,7 @@ class Solver(Statement):
                 * 0: Successive Substitution
                 * 1: Powell’s Method
         """
+        super().__init__()
         self.rf_max = rf_max
         self.rf_min = rf_min
         self.k = k
@@ -606,3 +628,132 @@ class Solver(Statement):
     def to_deck(self):
         return "SOLVER {} {} {}".format(self.k, self.rf_min, self.rf_max) \
             if self.k == 0 else "SOLVER {}".format(self.k)
+
+
+class ControlCards(object):
+    """The :class:`ControlCards` is a container for all the TRNSYS Simulation
+    Control Statements and Listing Control Statements. It implements the
+    :func:`to_deck` method which pretty-prints the statements with their
+    docstrings.
+    """
+
+    def __init__(self, version, simulation, tolerances=None, limits=None,
+                 nancheck=None, overwritecheck=None, timereport=None,
+                 constants=None, equations=None, dfq=None, nocheck=None,
+                 eqsolver=None, solver=None, nolist=None, list=None, map=None):
+        """Each simulation must have SIMULATION and END statements. The other
+        simulation control statements are optional. Default values are assumed
+        for TOLERANCES, LIMITS, SOLVER, EQSOLVER and DFQ if they are not present
+
+        Args:
+            version (Version): The VERSION Statement. labels the deck with the
+                TRNSYS version number. See :class:`Version` for more details.
+            simulation (Simulation): The SIMULATION Statement.determines the
+                starting and stopping times of the simulation as well as the
+                time step to be used. See :class:`Simulation` for more details.
+            tolerances (Tolerances, optional): Convergence Tolerances (
+                TOLERANCES). Specifies the error tolerances to be used during a
+                TRNSYS simulation. See :class:`Tolerances` for more details.
+            limits (Limits, optional): The LIMITS Statement. Sets limits on the
+                number of iterations that will be performed by TRNSYS during a
+                time step before it is determined that the differential
+                equations and/or algebraic equations are not converging. See
+                :class:`Limits` for more details.
+            nancheck (NaNCheck, optional): The NAN_CHECK Statement. An optional
+                debugging feature in TRNSYS. If the NAN_CHECK statement is
+                present, then the TRNSYS kernel checks every output of each
+                component at each iteration and generates a clean error if ever
+                one of those outputs has been set to the FORTRAN NaN condition.
+                See :class:`NaNCheck` for more details.
+            overwritecheck (OverwriteCheck, optional): The OVERWRITE_CHECK
+                Statement. An optional debugging feature in TRNSYS. Checks to
+                make sure that each Type did not write outside its allotted
+                space. See :class:`OverwriteCheck` for more details.
+            timereport (TimeReport, optional): The TIME_REPORT Statement. Turns
+                on or off the internal calculation of the time spent on each
+                unit. See :class:`TimeReport` for more details.
+            constants (Constants, optional): The CONSTANTS Statement. See
+                :class:`Constants` for more details.
+            equations (Equations, optional): The EQUATIONS Statement. See
+                :class:`Equations` for more details.
+            dfq (DFQ, optional): Allows the user to select one of three
+                algorithms built into TRNSYS to numerically solve differential
+                equations. See :class:`DFQ` for more details.
+            nocheck (NoCheck, optional): The Convergence Check Suppression
+                Statement. Remove up to 20 inputs for the convergence check. See
+                :class:`NoCheck` for more details.
+            eqsolver (EqSolver, optional): The Equation Solving Method
+                Statement. The order in which blocks of EQUATIONS are solved is
+                controlled by the EQSOLVER statement. See :class:`EqSolver` for
+                more details.
+            solver (Solver, optional): The SOLVER Statement. Select the
+                computational scheme. See :class:`Solver` for more details.
+            nolist (NoList, optional): The NOLIST Statement. See :class:`NoList`
+                for more details.
+            list (List, optional): The LIST Statement. See :class:`List` for
+                more details.
+            map (Map, optional): The MAP Statement. See :class:`Map` for more
+                details.
+
+        Note:
+            Some Statements have not been implemented because only TRNSYS
+            gods 😇
+            use them. Here is a list of Statements that have been ignored:
+
+            - The Convergence Promotion Statement (ACCELERATE)
+            - The Calling Order Specification Statement (LOOP)
+        """
+        super().__init__()
+        self.version = version
+        self.simulation = simulation
+
+        self.tolerances = tolerances
+        self.limits = limits
+        self.nancheck = nancheck
+        self.overwritecheck = overwritecheck
+        self.timereport = timereport
+
+        self.dfq = dfq
+        self.nocheck = nocheck
+        self.eqsolver = eqsolver
+        self.solver = solver
+
+        # Listing Control Statements
+        self.nolist = nolist
+        self.list = list
+        self.map = map
+
+        self.equations = equations
+        self.constants = constants
+
+        self.end = End()
+
+    @classmethod
+    def all(cls):
+        """Returns a SimulationCard with all available Statements initialized
+        with their default values. This class method is not recommended since
+        many of the Statements are a time consuming process and should be
+        used as a debugging tool."""
+        return cls(Version(), Simulation(), Tolerances(), Limits(), NaNCheck(),
+                   OverwriteCheck(), TimeReport(), Constants(), Equations(),
+                   DFQ(), NoCheck(), EqSolver(), Solver(), NoList(), List(),
+                   Map())
+
+    @classmethod
+    def debug_template(cls):
+        """Returns a SimulationCard with useful debugging Statements."""
+        return cls(Version(), Simulation(), map=Map(), nancheck=NaNCheck(),
+                   overwritecheck=OverwriteCheck())
+
+    @classmethod
+    def basic_template(cls):
+        """Returns a SimulationCard with only the required Statements"""
+        return cls(Version(), Simulation())
+
+    def to_deck(self):
+        head = "*** Control Cards\n"
+        v_ = ((str(param), "! {}".format(
+            param.doc))
+              for param in self.__dict__.values() if param)
+        statements = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
+        return str(head) + str(statements)
