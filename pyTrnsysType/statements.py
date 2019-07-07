@@ -212,21 +212,50 @@ class TimeReport(Statement):
 
 
 class Constants(Statement):
+    """The CONSTANTS statement is useful when simulating a number of systems
+    with identical component configurations but with different parameter values,
+    initial input values, or initial values of time dependent variables.
+    """
 
-    # Todo: Implement the Constants Statement
+    # Todo: Finish the Constants Statement
 
-    def __init__(self):
+    def __init__(self, constants=None):
+        """Initialize a Constants object.
+
+        Args:
+            constants (ConstantCollection or list of ConstantCollection):
+        """
         super().__init__()
+        self.constants = constants
         self.doc = "The CONSTANTS Statement"
+
+    def _to_deck(self):
+        return "CONSTANTS 0" if not self.constants else "todo"
 
 
 class Equations(Statement):
+    """The EQUATIONS statement allows variables to be defined as algebraic
+    functions of constants, previously defined variables, and outputs from
+    TRNSYS components. These variables can then be used in place of numbers in
+    the TRNSYS input file to represent inputs to components; numerical values of
+    parameters; and initial values of inputs and time-dependent variables.
+    """
 
-    # Todo: Implement the Equations Statement
+    # Todo: Finish the Equations Statement
 
-    def __init__(self):
+    def __init__(self, equations=None):
+        """Initialize an Equations object.
+
+        Args:
+            equations (EquationCollection or list of EquationCollection,
+                optional):
+        """
         super().__init__()
+        self.equations = equations
         self.doc = "The EQUATIONS Statement"
+
+    def _to_deck(self):
+        return "EQUATIONS 0" if not self.equations else "todo"
 
 
 class List(Statement):

@@ -185,13 +185,17 @@ class Format:
     pass
 
 
+class Constant(object):
+    """"""
+    pass
+
+
+class ConstantCollection(collections.UserList):
+    pass
+
+
 class Equation(object):
-    """The EQUATIONS statement allows variables to be defined as algebraic
-    functions of constants, previously defined variables, and outputs from
-    TRNSYS components. These variables can then be used in place of numbers in
-    the TRNSYS input file to represent inputs to components; numerical values of
-    parameters; and initial values of inputs and time-dependent variables.
-    """
+    """"""
 
     _new_id = itertools.count(start=1)
 
