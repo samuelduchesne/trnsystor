@@ -339,7 +339,7 @@ class TestTrnsysModel():
 class TestStatements():
 
     def test_statement_class(self):
-        from pyTrnsysType import Statement
+        from pyTrnsysType.statements import Statement
         statement = Statement()
         assert print(statement) == None
 
