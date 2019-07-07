@@ -7,7 +7,7 @@ from shapely.geometry import Point, LineString
 @pytest.fixture(scope='class')
 def fan_type():
     """Fixture to create a TrnsysModel from xml"""
-    from pyTrnsysType import TrnsysModel
+    from pyTrnsysType.trnsymodel import TrnsysModel
     fan1 = TrnsysModel.from_xml(Path("tests/input_files/Type146.xml"))
     yield fan1
 
@@ -15,14 +15,14 @@ def fan_type():
 @pytest.fixture(scope='class')
 def pipe_type():
     """Fixture to create a TrnsysModel from xml. Also tests using a Path"""
-    from pyTrnsysType import TrnsysModel
+    from pyTrnsysType.trnsymodel import TrnsysModel
     pipe = TrnsysModel.from_xml("tests/input_files/Type951.xml")
     yield pipe
 
 
 @pytest.fixture(scope='class')
 def tank_type():
-    from pyTrnsysType import TrnsysModel
+    from pyTrnsysType.trnsymodel import TrnsysModel
     with patch('builtins.input', return_value='y'):
         tank = TrnsysModel.from_xml("tests/input_files/Type4a.xml")
         yield tank
@@ -30,7 +30,7 @@ def tank_type():
 
 @pytest.fixture(scope='class')
 def weather_type():
-    from pyTrnsysType import TrnsysModel
+    from pyTrnsysType.trnsymodel import TrnsysModel
     with patch('builtins.input', return_value='y'):
         weather = TrnsysModel.from_xml("tests/input_files/Type15-3.xml")
         yield weather
@@ -42,7 +42,7 @@ class TestTrnsysModel():
     def test_chiller_type(self, input):
         """Fixture to create a TrnsysModel from xml from an xml that contains
         unknown tags. Should primpt user. Passes when input == 'y'"""
-        from pyTrnsysType import TrnsysModel
+        from pyTrnsysType.trnsymodel import TrnsysModel
         fan1 = TrnsysModel.from_xml("tests/input_files/Type107-simplified.xml")
         return fan1
 
@@ -76,7 +76,7 @@ class TestTrnsysModel():
         assert n_nodes == expected_2
 
     def test_cancel_missing_tag(self, tank_type):
-        from pyTrnsysType import TrnsysModel
+        from pyTrnsysType.trnsymodel import TrnsysModel
         with pytest.raises(NotImplementedError):
             with patch('builtins.input', return_value='N'):
                 tank = TrnsysModel.from_xml("tests/input_files/Type4a.xml")
@@ -264,7 +264,7 @@ class TestTrnsysModel():
         print(weather_type.to_deck())
 
     def test_get_external_file(self, weather_type):
-        from pyTrnsysType import ExternalFile
+        from pyTrnsysType.trnsymodel import ExternalFile
         assert isinstance(weather_type.external_files[0], ExternalFile)
         assert isinstance(weather_type.external_files[
                               'Which_file_contains_the_Energy_weather_data_'],
@@ -344,32 +344,32 @@ class TestStatements():
         assert print(statement) == None
 
     def test_version_statement(self):
-        from pyTrnsysType import Version
+        from pyTrnsysType.statements import Version
         ver = Version(v=(17, 3))
         assert ver._to_deck() == "VERSION 17.3"
 
     def test_simulation_statement(self):
-        from pyTrnsysType import Simulation
+        from pyTrnsysType.statements import Simulation
         simul = Simulation(0, 8760, 1)
         assert simul._to_deck() == "SIMULATION 0 8760 1"
 
     def test_tolerances_statement(self):
-        from pyTrnsysType import Tolerances
+        from pyTrnsysType.statements import Tolerances
         tol = Tolerances(0.001, 0.001)
         assert tol._to_deck() == "TOLERANCES 0.001 0.001"
 
     def test_limits_statement(self):
-        from pyTrnsysType import Limits
+        from pyTrnsysType.statements import Limits
         lim = Limits(20, 50)
         assert lim._to_deck() == "LIMITS 20 50 20"
 
     def test_dfq_statement(self):
-        from pyTrnsysType import DFQ
+        from pyTrnsysType.statements import DFQ
         dfq_statement = DFQ(3)
         assert dfq_statement._to_deck() == "DFQ 3"
 
     def test_nocheck_statement(self, fan_type):
-        from pyTrnsysType import NoCheck
+        from pyTrnsysType.statements import NoCheck
         fan_type.copy()
         fan_type._unit = 1  # we need to force the id to one here
         no_check = NoCheck(inputs=list(fan_type.inputs.values()))
@@ -381,7 +381,7 @@ class TestStatements():
             no_check = NoCheck(inputs=list(fan_type.inputs.values()) * 10)
 
     def test_nolist_statement(self):
-        from pyTrnsysType import NoList
+        from pyTrnsysType.statements import NoList
         no_list = NoList(active=True)
         assert no_list._to_deck() == "NOLIST"
         no_list = NoList(active=False)
@@ -391,26 +391,26 @@ class TestStatements():
                              ['all', 'debug_template', 'basic_template'])
     def test_control_cards(self, classmethod):
         """Call different class methods on ControlCards"""
-        from pyTrnsysType import ControlCards
+        from pyTrnsysType.input_file import ControlCards
         cc = getattr(ControlCards, classmethod)()
         print(cc.to_deck())
 
     def test_nancheck_statement(self):
-        from pyTrnsysType import NaNCheck
+        from pyTrnsysType.statements import NaNCheck
         nan_check = NaNCheck(n=1)
         assert nan_check._to_deck() == "NAN_CHECK 1"
         nan_check = NaNCheck(n=0)
         assert nan_check._to_deck() == "NAN_CHECK 0"
 
     def test_overwritecheck_statement(self):
-        from pyTrnsysType import OverwriteCheck
+        from pyTrnsysType.statements import OverwriteCheck
         nan_check = OverwriteCheck(n=1)
         assert nan_check._to_deck() == "OVERWRITE_CHECK 1"
         nan_check = OverwriteCheck(n=0)
         assert nan_check._to_deck() == "OVERWRITE_CHECK 0"
 
     def test_timereport_statement(self):
-        from pyTrnsysType import TimeReport
+        from pyTrnsysType.statements import TimeReport
         nan_check = TimeReport(n=1)
         assert nan_check._to_deck() == "TIME_REPORT 1"
         nan_check = TimeReport(n=0)
@@ -421,14 +421,14 @@ class TestOthers():
 
     @pytest.fixture()
     def equation(self):
-        from pyTrnsysType import Equation
+        from pyTrnsysType.input_file import Equation
         equa1 = Equation()
 
         yield equa1
 
     @pytest.fixture()
     def equation_block(self):
-        from pyTrnsysType import Equation, EquationCollection
+        from pyTrnsysType.input_file import Equation, EquationCollection
 
         equa1 = Equation.from_expression("TdbAmb = [011,001]")
         equa2 = Equation.from_expression("rhAmb = [011,007]")
@@ -443,7 +443,7 @@ class TestOthers():
         assert equation_block.unit_number > 0
 
     def test_equation_collection(self, equation_block):
-        from pyTrnsysType import Equation, EquationCollection
+        from pyTrnsysType.input_file import Equation, EquationCollection
 
         equa_col_2 = EquationCollection([equa for equa in equation_block],
                                         name='test')
@@ -457,7 +457,7 @@ class TestOthers():
             equa1 = Equation.from_expression("TdbAmb : [011,001]")
 
     def test_equation_with_typevariable(self, fan_type):
-        from pyTrnsysType import Equation, EquationCollection
+        from pyTrnsysType.input_file import Equation, EquationCollection
         fan_type._unit = 1
         equa1 = Equation("T_out", fan_type.outputs[0])
         equa_block = EquationCollection([equa1])
@@ -467,7 +467,7 @@ class TestOthers():
 
     def test_two_unnamed_equationcollection(self, fan_type):
         """make sure objects with same name=None can be created"""
-        from pyTrnsysType import Equation, EquationCollection
+        from pyTrnsysType.input_file import Equation, EquationCollection
 
         eq1 = Equation("A", fan_type.outputs[0])
         EquationCollection([eq1])
