@@ -167,14 +167,17 @@ class ExternalFiles(object):
 
 
 class Derivatives:
+    # Todo: Implement Derivatives
     pass
 
 
 class Trace:
+    # Todo: Implement Trace
     pass
 
 
 class Format:
+    # Todo: Implement Format
     pass
 
 
@@ -324,12 +327,16 @@ class Version(Statement):
 
 class NaNCheck(Statement):
 
+    # Todo: Implement the NaNCheck Statement
+
     def __init__(self):
         super().__init__()
         self.doc = "The NAN_CHECK Statement"
 
 
 class OverwriteCheck(Statement):
+
+    # Todo: Implement the OverwriteCheck Statement
 
     def __init__(self):
         super().__init__()
@@ -338,12 +345,16 @@ class OverwriteCheck(Statement):
 
 class TimeReport(Statement):
 
+    # Todo: Implement the TimeReport Statement
+
     def __init__(self):
         super().__init__()
         self.doc = "The TIME_REPORT Statement"
 
 
 class Constants(Statement):
+
+    # Todo: Implement the Constants Statement
 
     def __init__(self):
         super().__init__()
@@ -352,12 +363,16 @@ class Constants(Statement):
 
 class Equations(Statement):
 
+    # Todo: Implement the Equations Statement
+
     def __init__(self):
         super().__init__()
         self.doc = "The EQUATIONS Statement"
 
 
 class List(Statement):
+
+    # Todo: Implement the List Statement
 
     def __init__(self):
         super().__init__()
@@ -696,8 +711,7 @@ class ControlCards(object):
                 details.
 
         Note:
-            Some Statements have not been implemented because only TRNSYS
-            gods 😇
+            Some Statements have not been implemented because only TRNSYS gods 😇
             use them. Here is a list of Statements that have been ignored:
 
             - The Convergence Promotion Statement (ACCELERATE)
@@ -732,8 +746,9 @@ class ControlCards(object):
     def all(cls):
         """Returns a SimulationCard with all available Statements initialized
         with their default values. This class method is not recommended since
-        many of the Statements are a time consuming process and should be
-        used as a debugging tool."""
+        many of the Statements are a time consuming process and should be used
+        as a debugging tool.
+        """
         return cls(Version(), Simulation(), Tolerances(), Limits(), NaNCheck(),
                    OverwriteCheck(), TimeReport(), Constants(), Equations(),
                    DFQ(), NoCheck(), EqSolver(), Solver(), NoList(), List(),

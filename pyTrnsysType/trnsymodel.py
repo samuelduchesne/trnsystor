@@ -333,7 +333,7 @@ class TrnsysModel(object):
         if mapping is None:
             raise NotImplementedError('Automapping is not yet implemented. '
                                       'Please provide a mapping dict')
-            # Todo: create automapping logic here
+            # Todo: Implement automapping logic here
         else:
             # loop over the mapping and assign :class:`TypeVariable` to
             # `_connected_to` attribute.
