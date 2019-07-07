@@ -17,8 +17,6 @@ Statements
     NaNCheck
     OverwriteCheck
     TimeReport
-    Constants
-    Equations
     List
     Simulation
     Tolerances
@@ -31,13 +29,17 @@ Statements
     End
     Solver
 
+.. currentmodule:: pyTrnsysType.input_file
+.. autosummary::
+    :template: autosummary.rst
+    :nosignatures:
+    :toctree: reference
+
+    Constant
+    Equation
+    ControlCards
+
 .. automodule:: pyTrnsysType.trnsymodel
-  :members:
-
-TRNSYS Deck File
------------------
-
-.. automodule:: pyTrnsysType.input_file
   :members:
 
 API Pages

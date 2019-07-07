@@ -187,35 +187,43 @@ class Format:
 
 class Constant(Statement):
     """The CONSTANTS statement is useful when simulating a number of systems
-    with identical component configurations but with different parameter
-    values, initial input values, or initial values of time dependent
-    variables."""
+    with identical component configurations but with different parameter values,
+    initial input values, or initial values of time dependent variables.
+    """
 
     _new_id = itertools.count(start=1)
 
     def __init__(self, name=None, equals_to=None, doc=None):
-        super().__init__(doc)
+        """
+        Args:
+            name (str): The left hand side of the equation.
+            equals_to (str, TypeVariable): The right hand side of the equation.
+            doc (str, optional): A small description optionally printed in the
+                deck file.
+        """
+        super().__init__()
         self._n = next(self._new_id)
         self.name = name
         self.equals_to = equals_to
+        self.doc = doc
 
     @classmethod
     def from_expression(cls, expression, doc=None):
-        """Create a Constant from a string expression. Anything before the
-        equal sign ("=") will become the Constant's name and anything after
-        will become the equality statement.
-
-        Args:
-            expression (str): A user-defined expression to parse.
-            doc (str, optional): A small description optionally printed in
-                the deck file.
+        """Create a Constant from a string expression. Anything before the equal
+        sign ("=") will become the Constant's name and anything after will
+        become the equality statement.
 
         Hint:
             The simple expressions are processed much as FORTRAN arithmetic
             statements are, with one significant exceptions. Expressions are
             evaluated from left to right with no precedence accorded to any
-            operation over another. This rule must constantly be borne in
-            mind when writing long expressions.
+            operation over another. This rule must constantly be borne in mind
+            when writing long expressions.
+
+        Args:
+            expression (str): A user-defined expression to parse.
+            doc (str, optional): A small description optionally printed in the
+                deck file.
         """
         if "=" not in expression:
             raise ValueError(
@@ -234,7 +242,6 @@ class Constant(Statement):
 
 
 class ConstantCollection(collections.UserList):
-    """"""
 
     def __init__(self, initlist=None, name=None):
         """Initialize a new ConstantCollection.
@@ -295,36 +302,48 @@ class ConstantCollection(collections.UserList):
 
 
 class Equation(Statement):
-    """"""
+    """The EQUATIONS statement allows variables to be defined as algebraic
+    functions of constants, previously defined variables, and outputs from
+    TRNSYS components. These variables can then be used in place of numbers in
+    the TRNSYS input file to represent inputs to components; numerical values of
+    parameters; and initial values of inputs and time-dependent variables. The
+    capabilities of the EQUATIONS statement overlap but greatly exceed those of
+    the CONSTANTS statement described in the previous section.
+    """
 
     _new_id = itertools.count(start=1)
 
-    def __init__(self, name=None, equals_to=None):
+    def __init__(self, name=None, equals_to=None, doc=None):
         """
         Args:
-            name:
-            equals_to:
+            name (str): The left hand side of the equation.
+            equals_to (str, TypeVariable): The right hand side of the equation.
+            doc (str, optional): A small description optionally printed in the
+                deck file.
         """
         super().__init__()
         self._n = next(self._new_id)
         self.name = name
         self.equals_to = equals_to
+        self.doc = doc
 
     @classmethod
-    def from_expression(cls, expression):
+    def from_expression(cls, expression, doc=None):
         """Create an equation from a string expression. Anything before the
         equal sign ("=") will become a Constant and anything after will become
         the equality statement.
 
         Args:
             expression (str): A user-defined expression to parse
+            doc (str, optional): A small description optionally printed in the
+                deck file.
         """
         if "=" not in expression:
             raise ValueError(
                 "The from_expression constructor must contain an expression "
                 "with the equal sign")
         a, b = expression.split("=")
-        return cls(a.strip(), b.strip())
+        return cls(a.strip(), b.strip(), doc=doc)
 
     @property
     def eq_number(self):
@@ -345,7 +364,8 @@ class EquationCollection(collections.UserList):
     functions of constants, previously defined variables, and outputs from
     TRNSYS components. These variables can then be used in place of numbers in
     the TRNSYS input file to represent inputs to components; numerical values of
-    parameters; and initial values of inputs and time-dependent variables."""
+    parameters; and initial values of inputs and time-dependent variables.
+    """
 
     def __init__(self, initlist=None, name=None):
         """Initialize a new EquationCollection.
@@ -471,8 +491,7 @@ class ControlCards(object):
                 details.
 
         Note:
-            Some Statements have not been implemented because only TRNSYS
-            gods 😇
+            Some Statements have not been implemented because only TRNSYS gods 😇
             use them. Here is a list of Statements that have been ignored:
 
             - The Convergence Promotion Statement (ACCELERATE)
@@ -527,8 +546,9 @@ class ControlCards(object):
         return cls(Version(), Simulation())
 
     def _to_deck(self):
-        """Creates a string representation. If the :attr:`doc` where
-        specified, a small description is printed in comments"""
+        """Creates a string representation. If the :attr:`doc` where specified,
+        a small description is printed in comments
+        """
         head = "*** Control Cards\n"
         v_ = ((str(param), "! {}".format(
             param.doc))

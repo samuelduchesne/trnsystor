@@ -4,8 +4,8 @@ class Statement(object):
     method.
     """
 
-    def __init__(self, doc=""):
-        self.doc = doc
+    def __init__(self):
+        self.doc = ""
 
     def __repr__(self):
         return self._to_deck()
