@@ -133,7 +133,7 @@ class TestTrnsysModel():
 
     def test_to_deck(self, fan_type):
         """test to Input File representation of a TrnsysModel"""
-        print(fan_type.to_deck())
+        print(fan_type._to_deck())
 
     def test_set_attr_cycle_question(self, tank_type):
         attr_name = \
@@ -252,7 +252,7 @@ class TestTrnsysModel():
         fan_2 = fan_type.copy()
         fan_type.connect_to(fan_2, mapping={0: 0, 1: 1})
 
-        print(fan_2.to_deck())
+        print(fan_2._to_deck())
 
     def test_magic_type_variables(self, fan_type):
         for input in fan_type.inputs.values():
@@ -261,7 +261,7 @@ class TestTrnsysModel():
             assert input - 2 == float(input) - 2
 
     def test_external_file(self, weather_type):
-        print(weather_type.to_deck())
+        print(weather_type._to_deck())
 
     def test_get_external_file(self, weather_type):
         from pyTrnsysType.trnsymodel import ExternalFile
@@ -393,7 +393,7 @@ class TestStatements():
         """Call different class methods on ControlCards"""
         from pyTrnsysType.input_file import ControlCards
         cc = getattr(ControlCards, classmethod)()
-        print(cc.to_deck())
+        print(cc._to_deck())
 
     def test_nancheck_statement(self):
         from pyTrnsysType.statements import NaNCheck
@@ -417,13 +417,14 @@ class TestStatements():
         assert nan_check._to_deck() == "TIME_REPORT 0"
 
 
-class TestOthers():
+class TestConstantsAndEquations():
 
     @pytest.fixture()
     def equation(self):
         from pyTrnsysType.input_file import Equation
         equa1 = Equation()
 
+        assert equa1.eq_number > 1
         yield equa1
 
     @pytest.fixture()
@@ -439,6 +440,26 @@ class TestOthers():
                                         name='test')
         yield equa_col_1
 
+    @pytest.fixture()
+    def constant(self):
+        from pyTrnsysType.input_file import Constant
+        c_1 = Constant()
+
+        assert c_1.constant_number > 1
+        yield c_1
+
+    @pytest.fixture()
+    def constant_block(self):
+        from pyTrnsysType.input_file import Constant, ConstantCollection
+
+        c_1 = Constant.from_expression("A = 1", doc="A is a constant")
+        c_2 = Constant.from_expression("B = 2")
+        c_3 = Constant.from_expression("C = A * B + 2")
+
+        c_block = ConstantCollection([c_1, c_2, c_3], name="test constants")
+
+        yield c_block
+
     def test_unit_number(self, equation_block):
         assert equation_block.unit_number > 0
 
@@ -450,7 +471,7 @@ class TestOthers():
 
         assert equation_block.name != equa_col_2.name
         assert equation_block.size == 4
-        assert equation_block.to_deck() == equation_block.to_deck()
+        assert equation_block._to_deck() == equation_block._to_deck()
 
         # An equal sign needs to be included in an expression
         with pytest.raises(ValueError):
@@ -461,8 +482,8 @@ class TestOthers():
         fan_type._unit = 1
         equa1 = Equation("T_out", fan_type.outputs[0])
         equa_block = EquationCollection([equa1])
-        assert equa1.to_deck() == '[1, 1]'
-        assert equa_block.to_deck() == '* EQUATIONS "None"\n\nEQUATIONS ' \
+        assert str(equa1) == '[1, 1]'
+        assert str(equa_block) == '* EQUATIONS "None"\n\nEQUATIONS ' \
                                        '1\nT_out  =  [1, 1]'
 
     def test_two_unnamed_equationcollection(self, fan_type):
@@ -472,3 +493,14 @@ class TestOthers():
         eq1 = Equation("A", fan_type.outputs[0])
         EquationCollection([eq1])
         EquationCollection([eq1])
+
+    def test_constant_collection(self, constant_block):
+        from pyTrnsysType.input_file import Constant, ConstantCollection
+
+        c_block_2 = ConstantCollection([c for c in constant_block],
+                                        name='test c block')
+        assert constant_block.name != c_block_2.name
+        assert constant_block.size == 3
+        assert str(constant_block)
+        assert str(c_block_2)
+        print(constant_block)

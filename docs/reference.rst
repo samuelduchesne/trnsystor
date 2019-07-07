@@ -3,7 +3,7 @@
 Reference
 ===========================
 
-TrnsysType
+Statements
 ----------
 
 .. currentmodule:: pyTrnsysType.statements

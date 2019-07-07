@@ -4,8 +4,8 @@ class Statement(object):
     method.
     """
 
-    def __init__(self):
-        self.doc = ""
+    def __init__(self, doc=""):
+        self.doc = doc
 
     def __repr__(self):
         return self._to_deck()
@@ -259,11 +259,23 @@ class Equations(Statement):
 
 
 class List(Statement):
+    """The LIST statement is used to turn on the TRNSYS processor listing
+    after it has been turned off by a NOLIST statement."""
 
     # Todo: Implement the List Statement
 
-    def __init__(self):
+    def __init__(self, activate=False):
+        """
+        Hint:
+            The listing is assumed to be on at the beginning of a TRNSYS
+            input file. As many LIST cards as desired may appear in a TRNSYS
+            input file and may be located anywhere in the input file.
+
+        Args:
+            activate (bool):
+        """
         super().__init__()
+        self.activate = activate
         self.doc = "The LIST Statement"
 
 
@@ -403,6 +415,9 @@ class EqSolver(Statement):
 
 
 class End(Statement):
+    """The END statement must be the last line of a TRNSYS input file. It
+    signals the TRNSYS processor that no more control statements follow and
+    that the simulation may begin."""
 
     def __init__(self):
         super().__init__()

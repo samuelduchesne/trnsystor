@@ -7,7 +7,7 @@ from pyTrnsysType import TypeVariable, TrnsysModel
 from pyTrnsysType.statements import Version, NaNCheck, OverwriteCheck, \
     TimeReport, Constants, Equations, List, Simulation, Tolerances, Limits, \
     DFQ, \
-    NoCheck, NoList, Map, EqSolver, End, Solver
+    NoCheck, NoList, Map, EqSolver, End, Solver, Statement
 from .trnsymodel import ParameterCollection, InputCollection, \
     ExternalFileCollection
 
@@ -69,7 +69,7 @@ class UnitType(object):
         self.m = m
 
     def __repr__(self):
-        """Overload __repr__() and str() to implement self.to_deck()"""
+        """Overload __repr__() and str() to implement self._to_deck()"""
         return self.to_deck()
 
     def to_deck(self):
@@ -95,7 +95,7 @@ class Parameters(object):
             self.n = n
 
     def __repr__(self):
-        """Overload __repr__() and str() to implement self.to_deck()"""
+        """Overload __repr__() and str() to implement self._to_deck()"""
         return self.to_deck()
 
     def to_deck(self):
@@ -122,7 +122,7 @@ class Inputs(object):
             self.n = n
 
     def __repr__(self):
-        """Overload __repr__() and str() to implement self.to_deck()"""
+        """Overload __repr__() and str() to implement self._to_deck()"""
         return self.to_deck()
 
     def to_deck(self):
@@ -154,7 +154,7 @@ class ExternalFiles(object):
         self.external_files = external_collection
 
     def __repr__(self):
-        """Overload __repr__() and str() to implement self.to_deck()"""
+        """Overload __repr__() and str() to implement self._to_deck()"""
         return self.to_deck()
 
     def to_deck(self):
@@ -185,16 +185,116 @@ class Format:
     pass
 
 
-class Constant(object):
-    """"""
-    pass
+class Constant(Statement):
+    """The CONSTANTS statement is useful when simulating a number of systems
+    with identical component configurations but with different parameter
+    values, initial input values, or initial values of time dependent
+    variables."""
+
+    _new_id = itertools.count(start=1)
+
+    def __init__(self, name=None, equals_to=None, doc=None):
+        super().__init__(doc)
+        self._n = next(self._new_id)
+        self.name = name
+        self.equals_to = equals_to
+
+    @classmethod
+    def from_expression(cls, expression, doc=None):
+        """Create a Constant from a string expression. Anything before the
+        equal sign ("=") will become the Constant's name and anything after
+        will become the equality statement.
+
+        Args:
+            expression (str): A user-defined expression to parse.
+            doc (str, optional): A small description optionally printed in
+                the deck file.
+
+        Hint:
+            The simple expressions are processed much as FORTRAN arithmetic
+            statements are, with one significant exceptions. Expressions are
+            evaluated from left to right with no precedence accorded to any
+            operation over another. This rule must constantly be borne in
+            mind when writing long expressions.
+        """
+        if "=" not in expression:
+            raise ValueError(
+                "The from_expression constructor must contain an expression "
+                "with the equal sign")
+        a, b = expression.split("=")
+        return cls(a.strip(), b.strip(), doc=doc)
+
+    @property
+    def constant_number(self):
+        """The equation number. Unique"""
+        return self._n
+
+    def _to_deck(self):
+        return self.equals_to
 
 
 class ConstantCollection(collections.UserList):
-    pass
+    """"""
+
+    def __init__(self, initlist=None, name=None):
+        """Initialize a new ConstantCollection.
+
+        Example:
+            >>> c_1 = Constant.from_expression("A = 1")
+            >>> c_2 = Constant.from_expression("B = 2")
+            >>> ConstantCollection([c_1, c_2])
+
+        Args:
+            initlist (Iterable, optional): An iterable.
+            name (str): A user defined name for this collection of constants.
+                This name will be used to identify this block of constants in
+                the .dck file;
+        """
+        super().__init__(initlist)
+        self.name = Name(name)
+        self._unit = next(TrnsysModel.new_id)
+
+    def __getitem__(self, key):
+        """
+        Args:
+            key:
+        """
+        value = super().__getitem__(key)
+        return value
+
+    def __repr__(self):
+        return self._to_deck()
+
+    def _to_deck(self):
+        """To deck representation
+
+        Examples::
+
+            CONSTANTS n
+            NAME1 = ... constant 1 ...
+            NAME2 = ... constant 2 ...
+            •
+            •
+            •
+            NAMEn = ... constant n ...
+        """
+        header_comment = '* CONSTANTS "{}"\n\n'.format(self.name)
+        head = "CONSTANTS {}\n".format(len(self))
+        v_ = ((equa.name, "=", str(equa))
+              for equa in self)
+        core = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
+        return str(header_comment) + str(head) + str(core)
+
+    @property
+    def size(self):
+        return len(self)
+
+    @property
+    def unit_number(self):
+        return self._unit
 
 
-class Equation(object):
+class Equation(Statement):
     """"""
 
     _new_id = itertools.count(start=1)
@@ -205,6 +305,7 @@ class Equation(object):
             name:
             equals_to:
         """
+        super().__init__()
         self._n = next(self._new_id)
         self.name = name
         self.equals_to = equals_to
@@ -226,11 +327,11 @@ class Equation(object):
         return cls(a.strip(), b.strip())
 
     @property
-    def number(self):
+    def eq_number(self):
         """The equation number. Unique"""
         return self._n
 
-    def to_deck(self):
+    def _to_deck(self):
         if isinstance(self.equals_to, TypeVariable):
             return "[{unit_number}, {output_id}]".format(
                 unit_number=self.equals_to.model.unit_number,
@@ -240,6 +341,11 @@ class Equation(object):
 
 
 class EquationCollection(collections.UserList):
+    """The EQUATIONS statement allows variables to be defined as algebraic
+    functions of constants, previously defined variables, and outputs from
+    TRNSYS components. These variables can then be used in place of numbers in
+    the TRNSYS input file to represent inputs to components; numerical values of
+    parameters; and initial values of inputs and time-dependent variables."""
 
     def __init__(self, initlist=None, name=None):
         """Initialize a new EquationCollection.
@@ -268,9 +374,9 @@ class EquationCollection(collections.UserList):
         return value
 
     def __repr__(self):
-        return self.to_deck()
+        return self._to_deck()
 
-    def to_deck(self):
+    def _to_deck(self):
         """To deck representation
 
         Examples::
@@ -285,7 +391,7 @@ class EquationCollection(collections.UserList):
         """
         header_comment = '* EQUATIONS "{}"\n\n'.format(self.name)
         head = "EQUATIONS {}\n".format(len(self))
-        v_ = ((equa.name, "=", equa.to_deck())
+        v_ = ((equa.name, "=", equa._to_deck())
               for equa in self)
         core = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
         return str(header_comment) + str(head) + str(core)
@@ -302,7 +408,7 @@ class EquationCollection(collections.UserList):
 class ControlCards(object):
     """The :class:`ControlCards` is a container for all the TRNSYS Simulation
     Control Statements and Listing Control Statements. It implements the
-    :func:`to_deck` method which pretty-prints the statements with their
+    :func:`_to_deck` method which pretty-prints the statements with their
     docstrings.
     """
 
@@ -365,7 +471,8 @@ class ControlCards(object):
                 details.
 
         Note:
-            Some Statements have not been implemented because only TRNSYS gods 😇
+            Some Statements have not been implemented because only TRNSYS
+            gods 😇
             use them. Here is a list of Statements that have been ignored:
 
             - The Convergence Promotion Statement (ACCELERATE)
@@ -419,7 +526,9 @@ class ControlCards(object):
         """Returns a SimulationCard with only the required Statements"""
         return cls(Version(), Simulation())
 
-    def to_deck(self):
+    def _to_deck(self):
+        """Creates a string representation. If the :attr:`doc` where
+        specified, a small description is printed in comments"""
         head = "*** Control Cards\n"
         v_ = ((str(param), "! {}".format(
             param.doc))

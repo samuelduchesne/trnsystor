@@ -265,18 +265,6 @@ class TrnsysModel(object):
                 all_types.append(t)
             return all_types[0]
 
-    def to_deck(self):
-        """print the Input File (.dck) representation of this TrnsysModel"""
-        input = pyTrnsysType.UnitType(self.unit_number, self.type_number,
-                                      self.name)
-        params = pyTrnsysType.Parameters(self.parameters,
-                                         n=self.parameters.size)
-        inputs = pyTrnsysType.Inputs(self.inputs, n=self.inputs.size)
-
-        externals = pyTrnsysType.ExternalFiles(self.external_files)
-
-        return str(input) + str(params) + str(inputs) + str(externals)
-
     def copy(self, invalidate_connections=True):
         """copy object
 
@@ -659,6 +647,18 @@ class TrnsysModel(object):
                         item.order += len(idxs)  # so that oder number is unique
                         item._iscycle = True
                         self._meta.variables.update({id(item): item})
+
+    def _to_deck(self):
+        """print the Input File (.dck) representation of this TrnsysModel"""
+        input = pyTrnsysType.UnitType(self.unit_number, self.type_number,
+                                      self.name)
+        params = pyTrnsysType.Parameters(self.parameters,
+                                         n=self.parameters.size)
+        inputs = pyTrnsysType.Inputs(self.inputs, n=self.inputs.size)
+
+        externals = pyTrnsysType.ExternalFiles(self.external_files)
+
+        return str(input) + str(params) + str(inputs) + str(externals)
 
 
 class TypeVariable(object):
