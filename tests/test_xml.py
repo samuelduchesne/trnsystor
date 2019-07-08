@@ -491,6 +491,10 @@ class TestConstantsAndEquations():
                                               (tank_type.outputs[0],
                                                start))
 
+    def test_empty_equationcollection(self):
+        from pyTrnsysType.input_file import EquationCollection
+        eq = EquationCollection()
+
     def test_equation_collection(self, equation_block):
         from pyTrnsysType.input_file import Equation, EquationCollection
 

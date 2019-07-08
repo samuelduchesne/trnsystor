@@ -307,14 +307,17 @@ class ConstantCollection(collections.UserDict):
             E (dict of Constant): The constant to add or update in D (self).
             F (dict of Constant): Other constants to update are passed.
         """
-        for v in E.values():
-            if not isinstance(v, Constant):
-                raise TypeError('Can only update an ConstantCollection with a'
-                                'Constant, not a {}'.format(type(v)))
-        _e = {v.name: v for v in E.values()}
-        k: Constant
-        _f = {v.name: v for k, v in F.values()}
-        _e.update(_f)
+        if isinstance(E, Constant):
+            _e = {E.name: E}
+        else:
+            for v in E.values():
+                if not isinstance(v, Constant):
+                    raise TypeError('Can only update an ConstantCollection with a'
+                                    'Constant, not a {}'.format(type(v)))
+            _e = {v.name: v for v in E.values()}
+            k: Constant
+            _f = {v.name: v for k, v in F.values()}
+            _e.update(_f)
         super().update(_e)
 
     def _to_deck(self):
@@ -572,14 +575,17 @@ class EquationCollection(collections.UserDict):
             E (dict of Equation): The equation to add or update in D (self).
             F (dict of Equation): Other Equations to update are passed.
         """
-        for v in E.values():
-            if not isinstance(v, Equation):
-                raise TypeError('Can only update an EquationCollection with an'
-                                'Equation, not a {}'.format(type(v)))
-        _e = {v.name: v for v in E.values()}
-        k: Equation
-        _f = {v.name: v for k, v in F.values()}
-        _e.update(_f)
+        if isinstance(E, Equation):
+            _e = {E.name: E}
+        else:
+            for v in E.values():
+                if not isinstance(v, Equation):
+                    raise TypeError('Can only update an EquationCollection with an'
+                                    'Equation, not a {}'.format(type(v)))
+            _e = {v.name: v for v in E.values()}
+            k: Equation
+            _f = {v.name: v for k, v in F.values()}
+            _e.update(_f)
         super(EquationCollection, self).update(_e)
 
     @property
