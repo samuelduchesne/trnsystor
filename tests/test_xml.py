@@ -463,6 +463,15 @@ class TestConstantsAndEquations():
     def test_unit_number(self, equation_block):
         assert equation_block.unit_number > 0
 
+    def test_equation_symbolic(self, tank_type, fan_type):
+        name = "var_a"
+        exp = "log(a) + b / 12"
+        from pyTrnsysType.input_file import Equation
+        eq = Equation.from_symbolic_expression(name, exp, tank_type.outputs[0],
+                                               fan_type.outputs[1])
+        print(eq)
+
+
     def test_equation_collection(self, equation_block):
         from pyTrnsysType.input_file import Equation, EquationCollection
 
@@ -482,7 +491,7 @@ class TestConstantsAndEquations():
         fan_type._unit = 1
         equa1 = Equation("T_out", fan_type.outputs[0])
         equa_block = EquationCollection([equa1])
-        assert str(equa1) == '[1, 1]'
+        assert str(equa1) == 'T_out = [1, 1]'
         assert str(equa_block) == '* EQUATIONS "None"\n\nEQUATIONS ' \
                                        '1\nT_out  =  [1, 1]'
 

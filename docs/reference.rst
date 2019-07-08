@@ -38,6 +38,8 @@ Statements
     Constant
     Equation
     ControlCards
+    ConstantCollection
+    EquationCollection
 
 .. automodule:: pyTrnsysType.trnsymodel
   :members:

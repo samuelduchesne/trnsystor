@@ -4,6 +4,9 @@ import re
 from pint import UnitRegistry
 from pint.quantity import _Quantity
 from shapely.geometry import LineString
+from sympy import Symbol, Expr, cacheit
+from sympy.core.assumptions import StdFactKB
+from sympy.core.logic import fuzzy_bool
 
 
 def affine_transform(geom, matrix=None):
@@ -185,3 +188,71 @@ def redistribute_vertices(geom, distance):
 
 
 ureg = UnitRegistry()
+
+from sympy.printing import StrPrinter
+
+
+class MyLatexPrinter(StrPrinter):
+    """Print derivative of a function of symbols in a shorter form.
+    """
+
+    def _print_Symbol(self, expr):
+        return "[{}, {}]".format(
+            expr.model.model.unit_number,
+            expr.model.one_based_idx)
+
+
+def print_my_latex(expr):
+    """ Most of the printers define their own wrappers for print().
+    These wrappers usually take printer settings. Our printer does not have
+    any settings.
+    """
+    return MyLatexPrinter().doprint(expr)
+
+
+def pre(expr):
+    print(expr)
+    for arg in expr.args:
+        pre(arg)
+
+
+class TypeVariableSymbol(Symbol):
+    def __new__(cls, name, **assumptions):
+        """Symbols are identified by name and assumptions::
+
+        >>> from sympy import Symbol
+        >>> Symbol("x") == Symbol("x")
+        True
+        >>> Symbol("x", real=True) == Symbol("x", real=False)
+        False
+
+        """
+        cls._sanitize(assumptions, cls)
+        return TypeVariableSymbol.__xnew_cached_(cls, name, **assumptions)
+
+    def __new_stage2__(cls, model, **assumptions):
+        obj = Expr.__new__(cls)
+        obj.name = model.name
+        obj.model = model
+
+        # TODO: Issue #8873: Forcing the commutative assumption here means
+        # later code such as ``srepr()`` cannot tell whether the user
+        # specified ``commutative=True`` or omitted it.  To workaround this,
+        # we keep a copy of the assumptions dict, then create the StdFactKB,
+        # and finally overwrite its ``._generator`` with the dict copy.  This
+        # is a bit of a hack because we assume StdFactKB merely copies the
+        # given dict as ``._generator``, but future modification might, e.g.,
+        # compute a minimal equivalent assumption set.
+        tmp_asm_copy = assumptions.copy()
+
+        # be strict about commutativity
+        is_commutative = fuzzy_bool(assumptions.get('commutative', True))
+        assumptions['commutative'] = is_commutative
+        obj._assumptions = StdFactKB(assumptions)
+        obj._assumptions._generator = tmp_asm_copy  # Issue #8873
+        return obj
+
+    __xnew__ = staticmethod(
+        __new_stage2__)  # never cached (e.g. dummy)
+    __xnew_cached_ = staticmethod(
+        cacheit(__new_stage2__))  # symbols are always cached
