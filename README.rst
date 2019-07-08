@@ -22,8 +22,7 @@ Usage
 -----
 
 Since TRNSYS 18, type proformas can be exported to XML schemas. *pyTrnsysType* builds on this easy to read data 
-structure to easily create TrnsysModel using the most popular scripting language in the data science community: 
-[python](https://www.economist.com/graphic-detail/2018/07/26/python-is-becoming-the-worlds-most-popular-coding-language).
+structure to easily create TrnsysModel using the most popular scripting language in the data science community: Python_.
 
 From the xml file of a type proforma, simply create a TrnsysModel object by invoking the `from_xml()` constructor. 
 Make sure to pass a string to the method by reading the `_io.TextIOWrapper` produced by the `open()` method:
@@ -141,3 +140,4 @@ One can create
                                         name='test')
 
 
+.. _Python: https://www.economist.com/graphic-detail/2018/07/26/python-is-becoming-the-worlds-most-popular-coding-language
