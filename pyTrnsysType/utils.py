@@ -217,11 +217,14 @@ class DeckFilePrinter(StrPrinter):
         """print the TypeVariable's unit_number and output number. :param expr:
 
         Args:
-            expr:
+            expr (TypeVariable or Equation):
         """
-        return "[{}, {}]".format(
-            expr.model.model.unit_number,
-            expr.model.one_based_idx)
+        try:
+            return "[{}, {}]".format(
+                    expr.model.model.unit_number,
+                    expr.model.one_based_idx)
+        except:
+            return expr.name
 
 
 def print_my_latex(expr):

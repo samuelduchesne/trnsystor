@@ -374,7 +374,7 @@ class TestStatements():
         fan_type._unit = 1  # we need to force the id to one here
         no_check = NoCheck(inputs=list(fan_type.inputs.values()))
         assert no_check._to_deck() == "NOCHECK 7\n1, 1	1, 2	1, 3	1, " \
-                                     "4	1, 5	1, 6	1, 7"
+                                      "4	1, 5	1, 6	1, 7"
 
         with pytest.raises(ValueError):
             # check exceeding input limits. Multiply list by 10.
@@ -463,14 +463,33 @@ class TestConstantsAndEquations():
     def test_unit_number(self, equation_block):
         assert equation_block.unit_number > 0
 
-    def test_equation_symbolic(self, tank_type, fan_type):
+    def test_symbolic_expression(self, tank_type, fan_type):
+        from pyTrnsysType import Constant
         name = "var_a"
-        exp = "log(a) + b / 12"
+        exp = "log(a) + (b / 12 - c) * d"
         from pyTrnsysType.input_file import Equation
-        eq = Equation.from_symbolic_expression(name, exp, tank_type.outputs[0],
-                                               fan_type.outputs[1])
+        start = Equation('start', 0)
+        cp = Constant('specific_heat', 4.19)
+        eq = Equation.from_symbolic_expression(name, exp,
+                                               *(tank_type.outputs[0],
+                                                 start,
+                                                 fan_type.outputs[0],
+                                                 cp),
+                                               )
         print(eq)
 
+    def test_malformed_symbolic_expression(self, tank_type, fan_type):
+        """passed only two args while expression asks for 3"""
+        from pyTrnsysType import Constant
+        name = "var_a"
+        exp = "log(a) + b / 12 - c"
+        c_ = Constant.from_expression("start=0")
+        from pyTrnsysType.input_file import Equation
+        start = Equation('start', 0)
+        with pytest.raises(AttributeError):
+            Equation.from_symbolic_expression(name, exp,
+                                              (tank_type.outputs[0],
+                                               start))
 
     def test_equation_collection(self, equation_block):
         from pyTrnsysType.input_file import Equation, EquationCollection
@@ -493,7 +512,7 @@ class TestConstantsAndEquations():
         equa_block = EquationCollection([equa1])
         assert str(equa1) == 'T_out = [1, 1]'
         assert str(equa_block) == '* EQUATIONS "None"\n\nEQUATIONS ' \
-                                       '1\nT_out  =  [1, 1]'
+                                  '1\nT_out  =  [1, 1]'
 
     def test_two_unnamed_equationcollection(self, fan_type):
         """make sure objects with same name=None can be created"""
@@ -504,10 +523,10 @@ class TestConstantsAndEquations():
         EquationCollection([eq1])
 
     def test_constant_collection(self, constant_block):
-        from pyTrnsysType.input_file import Constant, ConstantCollection
+        from pyTrnsysType.input_file import ConstantCollection
 
         c_block_2 = ConstantCollection([c for c in constant_block],
-                                        name='test c block')
+                                       name='test c block')
         assert constant_block.name != c_block_2.name
         assert constant_block.size == 3
         assert str(constant_block)

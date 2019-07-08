@@ -416,8 +416,9 @@ class EqSolver(Statement):
 
 class End(Statement):
     """The END statement must be the last line of a TRNSYS input file. It
-    signals the TRNSYS processor that no more control statements follow and
-    that the simulation may begin."""
+    signals the TRNSYS processor that no more control statements follow and that
+    the simulation may begin.
+    """
 
     def __init__(self):
         super().__init__()

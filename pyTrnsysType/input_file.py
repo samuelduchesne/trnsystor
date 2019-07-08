@@ -1,8 +1,10 @@
 import collections
 import itertools
+import re
 
 import tabulate
-from sympy import Expr
+from path import Path
+from sympy import Expr, Symbol
 
 from pyTrnsysType import TypeVariable, TrnsysModel
 from pyTrnsysType.statements import Version, NaNCheck, OverwriteCheck, \
@@ -194,6 +196,7 @@ class Constant(Statement):
     """
 
     _new_id = itertools.count(start=1)
+    instances = {}
 
     def __init__(self, name=None, equals_to=None, doc=None):
         """
@@ -204,10 +207,20 @@ class Constant(Statement):
                 deck file.
         """
         super().__init__()
-        self._n = next(self._new_id)
-        self.name = name
-        self.equals_to = equals_to
-        self.doc = doc
+        try:
+            c_ = Constant.instances[name]
+        except:
+            self._n = next(self._new_id)
+            self.name = name
+            self.equals_to = equals_to
+            self.doc = doc
+        else:
+            self._n = c_._n
+            self.name = c_.name
+            self.equals_to = c_.equals_to
+            self.doc = c_.doc
+        finally:
+            Constant.instances.update({self.name: self})
 
     @classmethod
     def from_expression(cls, expression, doc=None):
@@ -360,9 +373,17 @@ class Equation(Statement):
         return cls(a.strip(), b.strip(), doc=doc)
 
     @classmethod
-    def from_symbolic_expression(cls, name, func, *args, doc=None):
-        """Crate an equation from a string with a catch. The underlying engine
-        will use Sympy and symbolic variables.
+    def from_symbolic_expression(cls, name, exp, *args, doc=None):
+        """Crate an equation with a combination of a generic expression (with placeholder variables) and a list of arguments. The underlying engine
+        will use Sympy and symbolic variables. You can use a mixture of
+        :class:`TypeVariable` and :class:`Equation`, :class:`Constant` as
+        well as the python default :class:`str`.
+
+        .. Important::
+
+            If a `str` is passed in place of an expression argument (
+            :attr:`args`), make sure to declare that string as an Equation or
+            a Constant later in the routine.
 
         Examples:
             In this example, we define a variable (var_a) and we want it to be
@@ -409,7 +430,7 @@ class Equation(Statement):
         Args:
             name (str): The name of the variable (left-hand side), of the
                 equation.
-            func (str): The expression to evaluate. Use any variable name and
+            exp (str): The expression to evaluate. Use any variable name and
                 mathematical expression.
             *args (tuple): A tuple of :class:`TypeVariable` that will replace
                 the any variable name specified in the above expression.
@@ -420,9 +441,22 @@ class Equation(Statement):
             Equation: The Equation Statement object.
         """
         from sympy.parsing.sympy_parser import parse_expr
-        exp = parse_expr(func)
-        for i, arg in enumerate(list(exp.free_symbols)):
-            exp = exp.subs(arg, TypeVariableSymbol(args[i]))
+        exp = parse_expr(exp)
+
+        if len(exp.free_symbols) != len(args):
+            raise AttributeError(
+                'The expression does not have the same number of '
+                'variables as arguments passed to the symbolic expression '
+                'parser.')
+        for i, arg in enumerate(
+                sorted(exp.free_symbols, key=lambda sym: sym.name)):
+            new_symbol = args[i]
+            if isinstance(new_symbol, TypeVariable):
+                exp = exp.subs(arg, TypeVariableSymbol(new_symbol))
+            elif isinstance(new_symbol, (Equation, Constant)):
+                exp = exp.subs(arg, Symbol(new_symbol.name))
+            else:
+                exp = exp.subs(arg, Symbol(new_symbol))
         return cls(name, exp)
 
     @property
@@ -524,10 +558,11 @@ class ControlCards(object):
     docstrings.
     """
 
-    def __init__(self, version, simulation, tolerances=None, limits=None,
-                 nancheck=None, overwritecheck=None, timereport=None,
-                 constants=None, equations=None, dfq=None, nocheck=None,
-                 eqsolver=None, solver=None, nolist=None, list=None, map=None):
+    def __init__(self, version=None, simulation=None, tolerances=None,
+                 limits=None, nancheck=None, overwritecheck=None,
+                 timereport=None, constants=None, equations=None, dfq=None,
+                 nocheck=None, eqsolver=None, solver=None, nolist=None,
+                 list=None, map=None):
         """Each simulation must have SIMULATION and END statements. The other
         simulation control statements are optional. Default values are assumed
         for TOLERANCES, LIMITS, SOLVER, EQSOLVER and DFQ if they are not present
@@ -611,7 +646,9 @@ class ControlCards(object):
         self.map = map
 
         self.equations = equations
-        self.constants = constants
+        self.constants = []
+        if constants:
+            self.constants.append(constants)
 
         self.end = End()
 
@@ -645,6 +682,6 @@ class ControlCards(object):
         head = "*** Control Cards\n"
         v_ = ((str(param), "! {}".format(
             param.doc))
-              for param in self.__dict__.values() if param)
+              for param in self.__dict__.values() if hasattr(param, 'doc'))
         statements = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
         return str(head) + str(statements)
