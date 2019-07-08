@@ -73,7 +73,16 @@ Statements
 Utils
 -----
 
-.. automodule:: pyTrnsysType.utils
-    :members:
+.. currentmodule:: pyTrnsysType.utils
+.. autosummary::
+    :template: autosummary.rst
+    :nosignatures:
+    :toctree: reference
 
+    affine_transform
+    get_int_from_rgb
+    get_rgb_from_int
+    DeckFilePrinter
+    print_my_latex
+    TypeVariableSymbol
 

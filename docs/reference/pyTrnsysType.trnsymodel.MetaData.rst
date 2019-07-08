@@ -4,6 +4,9 @@ pyTrnsysType.trnsymodel.MetaData
 
 .. currentmodule:: pyTrnsysType.trnsymodel
 
-.. autoclass:: MetaData
+.. autoclass:: MetaData 
    :members:
    :inherited-members:
+   
+
+

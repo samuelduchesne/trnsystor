@@ -3,7 +3,10 @@
 
 .. currentmodule:: {{ module }}
 
-.. auto{{ objtype }}:: {{ objname }}
+.. auto{{ objtype }}:: {{ objname }} {% if objtype in ['class'] %}
    :members:
    :inherited-members:
+   {% endif %}
+
+
 

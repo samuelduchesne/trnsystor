@@ -314,9 +314,9 @@ class Equation(Statement):
 
     Hint:
         In pyTrnsysType, the Equation class works hand in hand with the
-        :class:`EquationCollection` class. This class behaves a little bit
-        like the equation component in the TRNSYS Studio, meaning that you
-        can list equation in a block, give it a name, etc. See the
+        :class:`EquationCollection` class. This class behaves a little bit like
+        the equation component in the TRNSYS Studio, meaning that you can list
+        equation in a block, give it a name, etc. See the
         :class:`EquationCollection` class for more details.
     """
 
@@ -343,11 +343,12 @@ class Equation(Statement):
         the equality statement.
 
         Example:
-            Create a simple expression like so: >>> equa1 =
-            Equation.from_expression("TdbAmb = [011,001]")
+            Create a simple expression like so:
+
+            >>> equa1 = Equation.from_expression("TdbAmb = [011,001]")
 
         Args:
-            expression (str): A user-defined expression to parse
+            expression (str): A user-defined expression to parse.
             doc (str, optional): A small description optionally printed in the
                 deck file.
         """
@@ -383,20 +384,22 @@ class Equation(Statement):
             >>> # would be also equivalent to
             >>> exp = "log(x) + y / 12"
 
-            1. here, we define the actual variables (the type outputs) after
+            3. here, we define the actual variables (the type outputs) after
             loading our model from its proforma:
 
             >>> from pyTrnsysType import TrnsysModel
             >>> fan = TrnsysModel.from_xml("fan_type.xml")
             >>> vars = (fan.outputs[0], fan.outputs[1])
 
-            Important:
+            .. Important::
+
                 The order of the symbolic variable encountered in the string
                 expression (step 2), from left to right, must be the same for
-                the tuple of variables.
+                the tuple of variables. For instance, `a` is followed by `b`,
+                therefore `fan.outputs[0]` is followed by `fan.outputs[1]`.
 
-            1. finally, we create the Equation. Note that vars is passed with
-               the '*' declaration to unpack the tuple.
+            4. finally, we create the Equation. Note that vars is passed with
+            the '*' declaration to unpack the tuple.
 
             >>> from pyTrnsysType.input_file import Equation
             >>> eq = Equation.from_symbolic_expression(name, exp, *vars)
@@ -451,10 +454,9 @@ class EquationCollection(collections.UserList):
     block, give it a name, etc.
 
     Hint:
-        Creating equations in PyTrnsysType is done trough the
-        :class:`Equation` class. Equations are than collected in this
-        EquationCollection. See the :class:`Equation` class for more details.
-
+        Creating equations in PyTrnsysType is done trough the :class:`Equation`
+        class. Equations are than collected in this EquationCollection. See the
+        :class:`Equation` class for more details.
     """
 
     def __init__(self, initlist=None, name=None):
@@ -581,8 +583,7 @@ class ControlCards(object):
                 details.
 
         Note:
-            Some Statements have not been implemented because only TRNSYS
-            gods 😇
+            Some Statements have not been implemented because only TRNSYS gods 😇
             use them. Here is a list of Statements that have been ignored:
 
             - The Convergence Promotion Statement (ACCELERATE)

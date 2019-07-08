@@ -37,7 +37,13 @@ def affine_transform(geom, matrix=None):
 
 
 def get_rgb_from_int(rgb_int):
-    """
+    """Simple utility to convert an rgb int color to its red, green and blue
+    colors. Values are used ranging from 0 to 255 for each of the components.
+
+    Important:
+        Unlike Java, the TRNSYS Studio will want an integer where bits 0-7 are
+        the blue value, 8-15 the green, and 16-23 the red.
+
     Examples:
         Get the rgb tuple from a an rgb int.
 
@@ -57,13 +63,22 @@ def get_rgb_from_int(rgb_int):
 
 
 def get_int_from_rgb(rgb):
-    """
+    """Simple utility to convert an RBG color to its TRNSYS Studio compatible
+    int color. Values are used ranging from 0 to 255 for each of the components.
+
+    Important:
+        Unlike Java, the TRNSYS Studio will want an integer where bits 0-7 are
+        the blue value, 8-15 the green, and 16-23 the red.
+
     Examples:
-        Get the rgb int from an rgb 3-tuple >>> get_int_from_rgb((211, 122,
-        145)) 9534163
+        Get the rgb int from an rgb 3-tuple
+
+        >>> get_int_from_rgb((211, 122, 145))
+        9534163
 
     Args:
-        rgb (tuple): (r, g, b)
+        rgb (tuple): The red, green and blue values. All values assumed to be in
+            range [0, 255].
 
     Returns:
         (int): the rgb int.
@@ -194,12 +209,13 @@ from sympy.printing import StrPrinter
 
 class DeckFilePrinter(StrPrinter):
     """Print derivative of a function of symbols in deck file form. This will
-    override the :func:`sympy.printing.str.StrPrinter#_print_Symbol` method
-    to print the TypeVariable's unit_number and output number.
+    override the :func:`sympy.printing.str.StrPrinter#_print_Symbol` method to
+    print the TypeVariable's unit_number and output number.
     """
 
     def _print_Symbol(self, expr):
-        """print the TypeVariable's unit_number and output number.
+        """print the TypeVariable's unit_number and output number. :param expr:
+
         Args:
             expr:
         """
@@ -224,20 +240,24 @@ class TypeVariableSymbol(Symbol):
     hopefully nothing bad will happen.
     """
 
-    def __new__(cls, name, **assumptions):
-        """TypeVariableSymbol are identified by TypeVariable and assumptions::
+    def __new__(cls, type_variable, **assumptions):
+        """TypeVariableSymbol are identified by TypeVariable and assumptions:
 
-        >>> from sympy import Symbol
-        >>> Symbol("x") == Symbol("x")
-
-        True >>> Symbol("x", real=True) == Symbol("x", real=False) False
+        >>> from pyTrnsysType import TypeVariableSymbol
+        >>> TypeVariableSymbol("x") == TypeVariableSymbol("x")
+        True
+        >>> TypeVariableSymbol("x", real=True) == TypeVariableSymbol("x",
+        real=False)
+        False
 
         Args:
-            name:
-            **assumptions:
+            type_variable (TypeVariable): The TypeVariable to defined as a
+                Symbol.
+            **assumptions: See :mod:`sympy.core.assumptions` for more details.
         """
         cls._sanitize(assumptions, cls)
-        return TypeVariableSymbol.__xnew_cached_(cls, name, **assumptions)
+        return TypeVariableSymbol.__xnew_cached_(cls, type_variable,
+                                                 **assumptions)
 
     def __new_stage2__(cls, model, **assumptions):
         """

@@ -4,6 +4,9 @@ pyTrnsysType.trnsymodel.TypeVariable
 
 .. currentmodule:: pyTrnsysType.trnsymodel
 
-.. autoclass:: TypeVariable
+.. autoclass:: TypeVariable 
    :members:
    :inherited-members:
+   
+
+
