@@ -5,3 +5,6 @@ beautifulsoup4
 tabulate
 path.py
 shapely
+numpy
+matplotlib
+sympy==1.4

@@ -7,3 +7,4 @@ warn_if_outdated('pyTrnsysType', __version__)
 
 from .trnsymodel import *
 from .input_file import *
+from .utils import *
