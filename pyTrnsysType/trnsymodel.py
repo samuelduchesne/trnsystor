@@ -1228,7 +1228,7 @@ class AnchorPoint(object):
             In the Studio, a component has 8 anchor points at the four corners
             and four edges. units.Links can be created on these connections.
 
-            .. image:: _static/anchor-pts.png
+            .. image:: ../_static/anchor-pts.png
         """
         from shapely.affinity import translate
         center = self.centroid

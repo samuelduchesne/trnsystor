@@ -1,7 +1,35 @@
 .. _reference:
 
 Reference
-===========================
+=========
+
+TrnsysModel
+-----------
+
+.. currentmodule:: pyTrnsysType.trnsymodel
+.. autosummary::
+    :template: autosummary.rst
+    :nosignatures:
+    :toctree: reference/
+
+    MetaData
+    ExternalFile
+    ExternalFileCollection
+    TrnsysModel
+    TypeVariable
+    TypeCycle
+    CycleCollection
+    Parameter
+    Input
+    Output
+    Derivative
+    VariableCollection
+    InputCollection
+    OutputCollection
+    ParameterCollection
+    StudioHeader
+    LinkStyle
+    AnchorPoint
 
 Statements
 ----------
@@ -41,18 +69,11 @@ Statements
     ConstantCollection
     EquationCollection
 
-.. automodule:: pyTrnsysType.trnsymodel
-  :members:
 
-API Pages
-=========
+Utils
+-----
 
-.. currentmodule:: pyTrnsysType.trnsymodel
-.. autosummary::
-  :template: autosummary.rst
-  :toctree: reference/
+.. automodule:: pyTrnsysType.utils
+    :members:
 
-  TrnsysModel
-  TypeVariable
-  MetaData
 

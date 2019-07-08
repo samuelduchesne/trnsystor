@@ -192,57 +192,63 @@ ureg = UnitRegistry()
 from sympy.printing import StrPrinter
 
 
-class MyLatexPrinter(StrPrinter):
-    """Print derivative of a function of symbols in a shorter form.
+class DeckFilePrinter(StrPrinter):
+    """Print derivative of a function of symbols in deck file form. This will
+    override the :func:`sympy.printing.str.StrPrinter#_print_Symbol` method
+    to print the TypeVariable's unit_number and output number.
     """
 
     def _print_Symbol(self, expr):
+        """print the TypeVariable's unit_number and output number.
+        Args:
+            expr:
+        """
         return "[{}, {}]".format(
             expr.model.model.unit_number,
             expr.model.one_based_idx)
 
 
 def print_my_latex(expr):
-    """ Most of the printers define their own wrappers for print().
-    These wrappers usually take printer settings. Our printer does not have
-    any settings.
+    """Most of the printers define their own wrappers for print(). These
+    wrappers usually take printer settings. Our printer does not have any
+    settings.
+
+    Args:
+        expr:
     """
-    return MyLatexPrinter().doprint(expr)
-
-
-def pre(expr):
-    print(expr)
-    for arg in expr.args:
-        pre(arg)
+    return DeckFilePrinter().doprint(expr)
 
 
 class TypeVariableSymbol(Symbol):
+    """This is a subclass of the sympy Symbol class. It is a bit of a hack, so
+    hopefully nothing bad will happen.
+    """
+
     def __new__(cls, name, **assumptions):
-        """Symbols are identified by name and assumptions::
+        """TypeVariableSymbol are identified by TypeVariable and assumptions::
 
         >>> from sympy import Symbol
         >>> Symbol("x") == Symbol("x")
-        True
-        >>> Symbol("x", real=True) == Symbol("x", real=False)
-        False
 
+        True >>> Symbol("x", real=True) == Symbol("x", real=False) False
+
+        Args:
+            name:
+            **assumptions:
         """
         cls._sanitize(assumptions, cls)
         return TypeVariableSymbol.__xnew_cached_(cls, name, **assumptions)
 
     def __new_stage2__(cls, model, **assumptions):
+        """
+        Args:
+            model:
+            **assumptions:
+        """
         obj = Expr.__new__(cls)
         obj.name = model.name
         obj.model = model
 
-        # TODO: Issue #8873: Forcing the commutative assumption here means
-        # later code such as ``srepr()`` cannot tell whether the user
-        # specified ``commutative=True`` or omitted it.  To workaround this,
-        # we keep a copy of the assumptions dict, then create the StdFactKB,
-        # and finally overwrite its ``._generator`` with the dict copy.  This
-        # is a bit of a hack because we assume StdFactKB merely copies the
-        # given dict as ``._generator``, but future modification might, e.g.,
-        # compute a minimal equivalent assumption set.
         tmp_asm_copy = assumptions.copy()
 
         # be strict about commutativity

@@ -7,4 +7,4 @@ path.py
 shapely
 numpy
 matplotlib
-sympy
+sympy==1.4

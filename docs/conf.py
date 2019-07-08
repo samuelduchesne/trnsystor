@@ -99,4 +99,5 @@ intersphinx_mapping = {'python': ('https://docs.python.org/3', None),
                            'https://networkx.github.io/objects.inv'),
                        'pint': ('https://pint.readthedocs.io/en/0.9/', None),
                        'path': ('https://pathpy.readthedocs.io/en/stable/',
-                                None)}
+                                None),
+                       'sympy':('https://docs.sympy.org/latest/', None)}
