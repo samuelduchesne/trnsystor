@@ -352,9 +352,9 @@ class TrnsysModel(object):
             self.inputs[key].__dict__['_connected_to'] = None
 
     def set_link_style(self, other, loc='best', color='#1f78b4',
-                       path=None, **kwargs):
-        """Set outgoing link styles. Adds a LinkStyle object to the origin
-        Model's studio attribute.
+                       linestyle='-', linewidth=1,
+                       path=None):
+        """Set outgoing link styles between self and other.
 
         Args:
             other (TrnsysModel): The destination model.
@@ -371,9 +371,11 @@ class TrnsysModel(object):
                 :class:`TrnsysModel` and the destination :class:`TrnsysModel`.
             color (str): color string. Can be a single color format string
                 (default='#1f78b4').
+            linestyle (str): Possible values: '-' or 'solid', '--' or 'dashed',
+                '-.' or 'dashdot', ':' or 'dotted', '-.' or 'dashdotdot'.
+            linewidth (float): The width of the line in points.
             path (LineString or MultiLineString, optional): The path of the
                 link.
-            **kwargs:
         """
         if self == other:
             # trying to connect to itself.
@@ -381,15 +383,15 @@ class TrnsysModel(object):
                                       'connecting a TrnsysModel to itself')
         if other is None:
             raise ValueError('Other is None')
-        color_rgb = tuple([u * 255 for u in colorConverter.to_rgb(color)])
-        e = None
-        f = None
-        g = None
-        h = None
-        self.studio.link_styles.append(
-            LinkStyle(self, other, loc,
-                      e, color_rgb, f, g, h, path)
-        )
+
+        style = LinkStyle(self, other, loc, path=path)
+
+        style.set_color(color)
+        style.set_linestyle(linestyle)
+        style.set_linewidth(linewidth)
+        u = self.unit_number
+        v = other.unit_number
+        self.studio.link_styles.update({(u, v): style})
 
     def set_canvas_position(self, pt):
         """Set position of self in the canvas. Use cartesian coordinates: origin
@@ -1067,7 +1069,7 @@ class StudioHeader(object):
         """
         if layer is None:
             layer = ["Main"]
-        self.link_styles = []
+        self.link_styles = {}
         self.layer = layer
         self.position = position
         self.model = model
@@ -1084,12 +1086,24 @@ class StudioHeader(object):
         return cls(model.unit_name, model.model, position, layer)
 
 
-class LinkStyle(object):
-    def __init__(self, u, v, loc, e, rgb, f, g, h, path):
-        """
-        {anchors}:{e}:{rgb_int}:{f}:{g}:{h}: 40:20:0:20:1:0:0:0:1:189,462:
-        432,462: 432,455: 459,455
+def _linestyle_to_studio(ls):
+    """
+    Args:
+        ls:
+    """
+    linestyle_dict = {'-': 0, 'solid': 0,
+                      '--': 1, 'dashed': 1,
+                      ':': 2, 'dotted': 2,
+                      '-.': 3, 'dashdot': 3,
+                      '-..': 4, 'dashdotdot': 4}
+    _ls = linestyle_dict.get(ls)
+    return _ls
 
+
+class LinkStyle(object):
+    def __init__(self, u, v, loc, color='black', linestyle='-', linewidth=None,
+                 path=None):
+        """
         Args:
             u (TrnsysModel): from Model.
             v (TrnsysModel): to Model.
@@ -1104,11 +1118,10 @@ class LinkStyle(object):
                 destination :class:`TrnsysModel` (other). The location can also
                 be a 2-tuple giving the coordinates of the origin
                 :class:`TrnsysModel` and the destination :class:`TrnsysModel`.
-            e:
-            rgb (tuple): The color of the line
-            f:
-            g:
-            h:
+            color (color): The color of the line.
+            linestyle (str): Possible values: '-' or 'solid', '--' or 'dashed',
+                '-.' or 'dashdot', ':' or 'dotted', '-.' or 'dashdotdot'.
+            linewidth (float): The link line width in points.
             path (LineString or MultiLineString):
         """
         if isinstance(loc, tuple):
@@ -1120,10 +1133,9 @@ class LinkStyle(object):
         self.u = u
         self.u_anchor_name, self.v_anchor_name = \
             AnchorPoint(self.u).studio_anchor(self.v, (loc_u, loc_v))
-        self.rgb = rgb
-        self.f = f
-        self.g = g
-        self.h = h
+        self._color = color
+        self._linestyle = linestyle
+        self._linewidth = linewidth
 
         if path is None:
             u = AnchorPoint(self.u).anchor_points[self.u_anchor_name]
@@ -1134,19 +1146,67 @@ class LinkStyle(object):
             self.path = path
 
     def __repr__(self):
-        return self.to_deck()
+        return self._to_deck()
 
-    def to_deck(self):
+    def set_color(self, color):
+        """Set the color of the line.
+
+        Args:
+            color (color):
+        """
+        self._color = color
+
+    def get_color(self):
+        """Return the line color."""
+        return self._color
+
+    def set_linestyle(self, ls):
+        """Set the linestyle of the line.
+
+        Args:
+            ls (str): Possible values: '-' or 'solid', '--' or 'dashed', '-.' or
+                'dashdot', ':' or 'dotted', '-.' or 'dashdotdot'.
+        """
+        if isinstance(ls, str):
+            self._linestyle = ls
+
+    def get_linestyle(self):
+        """Return the linestyle.
+
+        See also :meth:`~pyTrnsysType.trnsymodel.LinkStyle.set_linestyle`.
+        """
+        return self._linestyle
+
+    def set_linewidth(self, lw):
+        """Set the line width in points.
+
+        Args:
+            lw (float): The line width in points.
+        """
+        self._linewidth = lw
+
+    def get_linewidth(self):
+        """Return the linewidth.
+
+        See also :meth:`~pyTrnsysType.trnsymodel.LinkStyle.set_linewidth`.
+        """
+        return self._linewidth
+
+    def _to_deck(self):
         """0:20:40:20:1:0:0:0:1:513,441:471,441:471,430:447,430"""
         anchors = ":".join([":".join(map(str, AnchorPoint(
             self.u).studio_anchor_mapping[self.u_anchor_name])),
                             ":".join(map(str, AnchorPoint(
                                 self.u).studio_anchor_mapping[
-                                self.v_anchor_name]))])
-        color = get_int_from_rgb(self.rgb)
+                                self.v_anchor_name]))]) + ":"
+
+        color = str(get_int_from_rgb(tuple(
+            [u * 255 for u in colorConverter.to_rgb(self.get_color())]))) + ":"
         path = ",".join([":".join(map(str, n.astype(int).tolist()))
                          for n in np.array(self.path)])
-        return anchors + ":1:" + str(color) + path
+        linestyle = str(_linestyle_to_studio(self.get_linestyle())) + ":"
+        linewidth = str(self.get_linewidth()) + ":"
+        return anchors + "1:" + color + linestyle + linewidth + "1:" + path
 
 
 class AnchorPoint(object):

@@ -298,7 +298,7 @@ class TestTrnsysModel():
         fan2 = fan_type.copy()
         fan2.set_canvas_position((100, 100))
         fan_type.set_link_style(fan2, loc=('top-left', 'top-right'))
-        print(fan_type.studio.link_styles[0])
+        [print(stl) for stl in fan_type.studio.link_styles.values()]
 
         with pytest.raises(ValueError):
             # In case None is passed, should raise Value Error
@@ -315,7 +315,7 @@ class TestTrnsysModel():
         fan2 = fan_type.copy()
         fan2.set_canvas_position((100, 50))
         fan_type.set_link_style(fan2, loc='best')
-        print(fan_type.studio.link_styles[0])
+        [print(stl) for stl in fan_type.studio.link_styles.values()]
 
     @pytest.mark.xfail()
     def test_set_anchor_point(self, pipe_type):

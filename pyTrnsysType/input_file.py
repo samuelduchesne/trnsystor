@@ -583,7 +583,8 @@ class ControlCards(object):
                 details.
 
         Note:
-            Some Statements have not been implemented because only TRNSYS gods 😇
+            Some Statements have not been implemented because only TRNSYS 
+            gods 😇
             use them. Here is a list of Statements that have been ignored:
 
             - The Convergence Promotion Statement (ACCELERATE)
