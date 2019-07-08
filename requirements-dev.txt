@@ -3,3 +3,4 @@ mock
 pytest-cov
 coverage
 coveralls
+sphinx>=2.1
