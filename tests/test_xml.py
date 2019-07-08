@@ -526,7 +526,7 @@ class TestConstantsAndEquations():
     def test_constant_collection(self, constant_block):
         from pyTrnsysType.input_file import ConstantCollection
 
-        c_block_2 = ConstantCollection([c for c in constant_block],
+        c_block_2 = ConstantCollection([c for c in constant_block.values()],
                                        name='test c block')
         assert constant_block.name != c_block_2.name
         assert constant_block.size == 3

@@ -254,9 +254,15 @@ class Constant(Statement):
         return self.equals_to
 
 
-class ConstantCollection(collections.UserList):
+class ConstantCollection(collections.UserDict):
+    """A class that behaves like a dict and that collects one or more
+    :class:`Constants`.
 
-    def __init__(self, initlist=None, name=None):
+    You can pass a dict of Equation or you can pass a list of Equation. In
+    the latter, the :attr:`Equation.name` attribute will be used as a key.
+    """
+
+    def __init__(self, mutable=None, name=None):
         """Initialize a new ConstantCollection.
 
         Example:
@@ -265,12 +271,16 @@ class ConstantCollection(collections.UserList):
             >>> ConstantCollection([c_1, c_2])
 
         Args:
-            initlist (Iterable, optional): An iterable.
+            mutable (Iterable, optional): An iterable.
             name (str): A user defined name for this collection of constants.
                 This name will be used to identify this block of constants in
                 the .dck file;
         """
-        super().__init__(initlist)
+        if isinstance(mutable, list):
+            _dict = {f.name: f for f in mutable}
+        else:
+            _dict = mutable
+        super().__init__(_dict)
         self.name = Name(name)
         self._unit = next(TrnsysModel.new_id)
 
@@ -284,6 +294,28 @@ class ConstantCollection(collections.UserList):
 
     def __repr__(self):
         return self._to_deck()
+
+    def update(self, E=None, **F):
+        """D.update([E, ]**F) -> None.  Update D from dict/iterable E and F.
+        If E is present and has a .keys() method, then does:  for k in E: D[
+        k] = E[k]
+        If E is present and lacks a .keys() method, then does:  for k,
+        v in E: D[k] = v
+        In either case, this is followed by: for k in F:  D[k] = F[k]
+
+        Args:
+            E (dict of Constant): The constant to add or update in D (self).
+            F (dict of Constant): Other constants to update are passed.
+        """
+        for v in E.values():
+            if not isinstance(v, Constant):
+                raise TypeError('Can only update an ConstantCollection with a'
+                                'Constant, not a {}'.format(type(v)))
+        _e = {v.name: v for v in E.values()}
+        k: Constant
+        _f = {v.name: v for k, v in F.values()}
+        _e.update(_f)
+        super().update(_e)
 
     def _to_deck(self):
         """To deck representation
@@ -301,7 +333,7 @@ class ConstantCollection(collections.UserList):
         header_comment = '* CONSTANTS "{}"\n\n'.format(self.name)
         head = "CONSTANTS {}\n".format(len(self))
         v_ = ((equa.name, "=", str(equa))
-              for equa in self)
+              for equa in self.values())
         core = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
         return str(header_comment) + str(head) + str(core)
 
@@ -486,13 +518,16 @@ class EquationCollection(collections.UserDict):
     component in the TRNSYS Studio, meaning that you can list equation in a
     block, give it a name, etc.
 
+    You can pass a dict of Equation or you can pass a list of Equation. In
+    this case, the :attr:`Equation.name` attribute will be used as a key.
+
     Hint:
         Creating equations in PyTrnsysType is done trough the :class:`Equation`
         class. Equations are than collected in this EquationCollection. See the
         :class:`Equation` class for more details.
     """
 
-    def __init__(self, initlist=None, name=None):
+    def __init__(self, mutable=None, name=None):
         """Initialize a new EquationCollection.
 
         Example:
@@ -501,13 +536,16 @@ class EquationCollection(collections.UserDict):
             >>> EquationCollection([equa1, equa2])
 
         Args:
-            initlist (Iterable, optional): An iterable.
+            mutable (Iterable, optional): An iterable (dict or list).
             name (str): A user defined name for this collection of equations.
                 This name will be used to identify this block of equations in
                 the .dck file;
         """
-        super(EquationCollection, self).__init__({f.name: f for f in
-                                                    initlist})
+        if isinstance(mutable, list):
+            _dict = {f.name: f for f in mutable}
+        else:
+            _dict = mutable
+        super().__init__(_dict)
         self.name = Name(name)
         self._unit = next(TrnsysModel.new_id)
 
