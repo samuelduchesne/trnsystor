@@ -1,7 +1,9 @@
 import collections
 import itertools
+import re
 
 import tabulate
+from path import Path
 from sympy import Expr, Symbol
 
 from pyTrnsysType import TypeVariable, TrnsysModel
@@ -304,17 +306,21 @@ class ConstantCollection(collections.UserDict):
         In either case, this is followed by: for k in F:  D[k] = F[k]
 
         Args:
-            E (dict of Constant): The constant to add or update in D (self).
-            F (dict of Constant): Other constants to update are passed.
+            E (dict or Constant): The constant to add or update in D (self).
+            F (dict or Constant): Other constants to update are passed.
         """
-        for v in E.values():
-            if not isinstance(v, Constant):
-                raise TypeError('Can only update an ConstantCollection with a'
-                                'Constant, not a {}'.format(type(v)))
-        _e = {v.name: v for v in E.values()}
-        k: Constant
-        _f = {v.name: v for k, v in F.values()}
-        _e.update(_f)
+        if isinstance(E, Constant):
+            _e = {E.name: E}
+        else:
+            for v in E.values():
+                if not isinstance(v, Constant):
+                    raise TypeError(
+                        'Can only update an ConstantCollection with a'
+                        'Constant, not a {}'.format(type(v)))
+            _e = {v.name: v for v in E.values()}
+            k: Constant
+            _f = {v.name: v for k, v in F.values()}
+            _e.update(_f)
         super().update(_e)
 
     def _to_deck(self):
@@ -572,14 +578,18 @@ class EquationCollection(collections.UserDict):
             E (dict of Equation): The equation to add or update in D (self).
             F (dict of Equation): Other Equations to update are passed.
         """
-        for v in E.values():
-            if not isinstance(v, Equation):
-                raise TypeError('Can only update an EquationCollection with an'
-                                'Equation, not a {}'.format(type(v)))
-        _e = {v.name: v for v in E.values()}
-        k: Equation
-        _f = {v.name: v for k, v in F.values()}
-        _e.update(_f)
+        if isinstance(E, Equation):
+            _e = {E.name: E}
+        else:
+            for v in E.values():
+                if not isinstance(v, Equation):
+                    raise TypeError(
+                        'Can only update an EquationCollection with an'
+                        'Equation, not a {}'.format(type(v)))
+            _e = {v.name: v for v in E.values()}
+            k: Equation
+            _f = {v.name: v for k, v in F.values()}
+            _e.update(_f)
         super(EquationCollection, self).update(_e)
 
     @property
@@ -745,3 +755,182 @@ class ControlCards(object):
               for param in self.__dict__.values() if hasattr(param, 'doc'))
         statements = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
         return str(head) + str(statements)
+
+    def set_statement(self, statement):
+        self.__setattr__(statement.__class__.__name__.lower(), statement)
+
+
+__statements__ = ['']
+
+
+class Deck(object):
+    """"""
+
+    def __init__(self, name, control_card):
+        self.control_card = control_card
+        self.name = name
+
+    @classmethod
+    def _from_deckfile(cls, file):
+        file = Path(file)
+        with open(file) as dcklines:
+            dck = cls(name=file.basename, control_card=None)
+            cc = ControlCards()
+            dck._control_card = cc
+            line = dcklines.readline()
+            while line:
+                # at each line check for a match with a regex
+                key, match = dck._parse_line(line)
+
+                if key == 'version':
+                    version = match.group('version')
+                    v_ = Version.from_string(version)
+                    cc.set_statement(v_)
+
+                if key == 'constants':
+                    n_cnts = match.group(key)
+                    cb = ConstantCollection()
+                    for n in range(int(n_cnts)):
+                        line = next(dcklines)
+                        cb.update(Constant.from_expression(line))
+                    cc.set_statement(cb)
+
+                if key == 'simulation':
+                    sss = match.group(key)
+                    s_ = Simulation(*map(Constant, sss.split()))
+                    repr(s_.start)
+                    cc.set_statement(s_)
+
+                if key == 'tolerances':
+                    sss = match.group(key)
+                    t_ = Tolerances(*(map(float, map(str.strip, sss.split()))))
+                    cc.set_statement(t_)
+
+                if key == 'limits':
+                    sss = match.group(key)
+                    l_ = Limits(*(map(int, map(str.strip, sss.split()))))
+                    cc.set_statement(l_)
+
+                if key == 'dfq':
+                    k = match.group(key)
+                    cc.set_statement(DFQ(k.strip()))
+
+                if key == 'width':
+                    w = match.group(key)
+                    # todo: Implement Width
+
+                if key == 'list':
+                    k = match.group(key)
+                    cc.set_statement(List(*k.strip().split()))
+
+                if key == 'solver':
+                    k = match.group(key)
+                    cc.set_statement(Solver(*k.strip().split()))
+
+                if key == 'nancheck':
+                    k = match.group(key)
+                    cc.set_statement(NaNCheck(*k.strip().split()))
+
+                if key == 'overwritecheck':
+                    k = match.group(key)
+                    cc.set_statement(OverwriteCheck(*k.strip().split()))
+
+                if key == 'timereport':
+                    k = match.group(key)
+                    cc.set_statement(TimeReport(*k.strip().split()))
+
+                if key == 'eqsolver':
+                    k = match.group(key)
+                    cc.set_statement(EqSolver(*k.strip().split()))
+
+                # identify a table header 
+                if key == 'equations':
+                    eq = []
+                    # extract number of line, i.e., Name or Score
+                    n_equations = match.group('equations')
+                    line = dcklines.readline()
+                    # read each line of the table until a blank line
+                    for n in range(int(n_equations)):
+                        # extract number and value
+                        value = line.strip()
+                        # create equation
+                        eq.append(Equation.from_expression(value))
+                        # append the dictionary to the data list
+                        line = dcklines.readline()
+                    # read studio markup
+                    key, match = dck._parse_line(line)
+                    if key == 'unitname':
+                        unit_name = match.group(key)
+                    key, match = dck._parse_line(line)
+                    if key == 'layer':
+                        layer = match.group(key)
+                    key, match = dck._parse_line(line)
+                    if key == 'position':
+                        pos = match.group(key)
+                    ec = EquationCollection(eq)
+                    ec
+
+                    cc.equations.append()
+
+                line = dcklines.readline()
+
+        return dck
+
+    def _parse_line(self, line):
+        """
+        Do a regex search against all defined regexes and
+        return the key and match result of the first matching regex
+
+        """
+
+        for key, rx in self._setup_re().items():
+            match = rx.search(line)
+            if match:
+                return key, match
+        # if there are no matches
+        return None, None
+
+    def _setup_re(self):
+        # set up regular expressions
+        # use https://regexper.com to visualise these if required
+        rx_dict = {
+            'version': re.compile(
+                r'(?i)(?P<key>^version)(?P<version>.*?)(?=(?:!|\\n|$))'),
+            'constants': re.compile(
+                r'(?i)(?P<key>^constants)(?P<constants>.*?)(?=(?:!|\\n|$))'),
+            'simulation': re.compile(r'(?i)(?P<key>^simulation)('
+                                     r'?P<simulation>.*?)(?=(?:!|$))'),
+            'tolerances': re.compile(r'(?i)(?P<key>^tolerances)('
+                                     r'?P<tolerances>.*?)(?=('
+                                     r'?:!|$))'),
+            'limits': re.compile(r'(?i)(?P<key>^limits)(?P<limits>.*?)(?=('
+                                 r'?:!|$))'),
+            'dfq': re.compile(r'(?i)(?P<key>^dfq)(?P<dfq>.*?)(?=(?:!|$))'),
+            'width': re.compile(r'(?i)(?P<key>^width)(?P<width>.*?)(?=('
+                                r'?:!|$))'),
+            'list': re.compile(r'(?i)(?P<key>^list)(?P<list>.*?)(?=('
+                               r'?:!|$))'),
+            'solver': re.compile(r'(?i)(?P<key>^solver)(?P<solver>.*?)(?=('
+                                 r'?:!|$))'),
+            'nancheck': re.compile(
+                r'(?i)(?P<key>^nan_check)(?P<nancheck>.*?)(?=('
+                r'?:!|$))'),
+            'overwritecheck': re.compile(
+                r'(?i)(?P<key>^overwrite_check)(?P<overwritecheck>.*?)(?=('
+                r'?:!|$))'),
+            'timereport': re.compile(
+                r'(?i)(?P<key>^time_report)(?P<timereport>.*?)(?=('
+                r'?:!|$))'),
+            'eqsolver': re.compile(
+                r'(?i)(?P<key>^eqsolver)(?P<eqsolver>.*?)(?=('
+                r'?:!|$))'),
+            'equations': re.compile(
+                r'(?i)(?P<key>^equations)(?P<equations>.*?)(?=(?:!|$))'),
+            'unitname': re.compile(
+                r'(?i)(?P<key>^\*\$unit_name)(?P<unitname>.*?)(?=(?:!|$))'),
+            'layer': re.compile(
+                r'(?i)(?P<key>^\*\$layer)(?P<layer>.*?)(?=(?:!|$))'),
+            'position': re.compile(
+                r'(?i)(?P<key>^\*\$position)(?P<position>.*?)(?=(?:!|$))'),
+        }
+        return rx_dict

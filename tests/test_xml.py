@@ -491,6 +491,10 @@ class TestConstantsAndEquations():
                                               (tank_type.outputs[0],
                                                start))
 
+    def test_empty_equationcollection(self):
+        from pyTrnsysType.input_file import EquationCollection
+        eq = EquationCollection()
+
     def test_equation_collection(self, equation_block):
         from pyTrnsysType.input_file import Equation, EquationCollection
 
@@ -533,3 +537,12 @@ class TestConstantsAndEquations():
         assert str(constant_block)
         assert str(c_block_2)
         print(constant_block)
+
+
+class TestDeck():
+
+    def test_from_deckfile(self):
+        from pyTrnsysType import Deck
+        file = "tests/input_files/test_deck.dck"
+        dck = Deck._from_deckfile(file)
+        assert dck

@@ -1,3 +1,6 @@
+import re
+
+
 class Statement(object):
     """This is the base class for many of the TRNSYS Simulation Control and
     Listing Control Statements. It implements common methods such as the repr()
@@ -31,8 +34,15 @@ class Version(Statement):
         self.v = v
         self.doc = "The VERSION Statement"
 
+    @classmethod
+    def from_string(cls, string):
+        return cls(map(int, string.split('.')))
+
     def _to_deck(self):
         return "VERSION {}".format(".".join(map(str, self.v)))
+
+    def _get_re(self):
+        return dict(version=re.compile(r'VERSION = (?P<version>.*)\n'))
 
 
 class Simulation(Statement):
@@ -150,7 +160,7 @@ class NaNCheck(Statement):
                 NAN_CHECK feature is desired. Default is 0.
         """
         super().__init__()
-        self.n = n
+        self.n = int(n)
         self.doc = "The NAN_CHECK Statement"
 
     def _to_deck(self):
@@ -181,7 +191,7 @@ class OverwriteCheck(Statement):
                 OVERWRITE_CHECK feature is desired.
         """
         super().__init__()
-        self.n = n
+        self.n = int(n)
         self.doc = "The OVERWRITE_CHECK Statement"
 
     def _to_deck(self):
