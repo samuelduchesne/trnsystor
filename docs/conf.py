@@ -14,6 +14,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('pyTrnsysType'))
 
 # -- Project information -----------------------------------------------------
 
@@ -43,8 +44,8 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx.ext.napoleon',
-    'recommonmark',
     'sphinx.ext.autosummary',
+    'm2r',
 ]
 
 # Add any paths that contain templates here, relative to this directory.

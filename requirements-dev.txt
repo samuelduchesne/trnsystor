@@ -4,3 +4,4 @@ pytest-cov
 coverage
 coveralls
 sphinx>=2.1
+m2r

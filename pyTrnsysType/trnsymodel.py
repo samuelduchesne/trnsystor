@@ -202,9 +202,11 @@ class ExternalFileCollection(collections.UserDict):
 
     @classmethod
     def from_dict(cls, dictionary):
-        """
+        """Construct an :class:`~ExternalFileCollection` from a dict of
+        :class:`~ExternalFile` objects with the object's id as a key.
+
         Args:
-            dictionary:
+            dictionary (dict): The dict of {key: :class:`~ExternalFile`}
         """
         item = cls()
         for key in dictionary:

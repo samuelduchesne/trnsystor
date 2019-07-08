@@ -21,7 +21,7 @@ structure to easily create TrnsysModel using the most popular scripting language
 From the xml file of a type proforma, simply create a TrnsysModel object by invoking the `from_xml()` constructor. 
 Make sure to pass a string to the method by reading the `_io.TextIOWrapper` produced by the `open()` method:
 
-```pydocstring
+```python
 >>> from pyTrnsysType import TrnsysModel
 >>> with open("tests/input_files/Type951.xml") as xml:
 ...     pipe1 = TrnsysModel.from_xml(xml.read())
@@ -29,7 +29,7 @@ Make sure to pass a string to the method by reading the `_io.TextIOWrapper` prod
 
 Calling `pipe1` will display it's Type number and Name:
 
-```pydocstring
+```python
 >>> pipe1
 Type951: Ecoflex 2-Pipe: Buried Piping System
 ```
@@ -37,7 +37,7 @@ Type951: Ecoflex 2-Pipe: Buried Piping System
 Then, `pipe1` can be used to **get** and **set** attributes such as inputs, outputs and parameters.
 For example, to set the *Number of Fluid Nodes*, simply set the new value as you would change a dict value:
 
-```pydocstring
+```python
 >>> from pyTrnsysType import TrnsysModel
 >>> with open("tests/input_files/Type951.xml") as xml:
 ...    pipe1 = TrnsysModel.from_xml(xml.read())
@@ -84,7 +84,7 @@ time and time-step. pyTrnsysType implements many of those *Statements* with a se
 
 For instance, to create simulation cards using default values, simply call the `all()` constructor:
 
-```pydocstring
+```python
 >>> from pyTrnsysType import ControlCards
 >>> cc = ControlCards.all()
 >>> print(cc)
@@ -108,7 +108,7 @@ handles the block of equations. Here's an example:
 
 First, create a series of Equation by invoking the `from_expression` constructor. This allows you two input the 
 equation as a string. 
-```pydocstring
+```python
 >>> from pyTrnsysType import Equation, EquationCollection
 >>> equa1 = Equation.from_expression("TdbAmb = [011,001]")
 >>> equa2 = Equation.from_expression("rhAmb = [011,007]")
@@ -116,7 +116,7 @@ equation as a string.
 >>> equa4 = Equation.from_expression("vWind = [011,008]")
 ```
 One can crae
-```pydocstring
+```python
 >>> equa_col_1 = EquationCollection([equa1, equa2, equa3, equa4],
                                         name='test')
 ```
