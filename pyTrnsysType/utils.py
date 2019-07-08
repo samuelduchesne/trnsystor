@@ -4,6 +4,9 @@ import re
 from pint import UnitRegistry
 from pint.quantity import _Quantity
 from shapely.geometry import LineString
+from sympy import Symbol, Expr, cacheit
+from sympy.core.assumptions import StdFactKB
+from sympy.core.logic import fuzzy_bool
 
 
 def affine_transform(geom, matrix=None):
@@ -34,7 +37,13 @@ def affine_transform(geom, matrix=None):
 
 
 def get_rgb_from_int(rgb_int):
-    """
+    """Simple utility to convert an rgb int color to its red, green and blue
+    colors. Values are used ranging from 0 to 255 for each of the components.
+
+    Important:
+        Unlike Java, the TRNSYS Studio will want an integer where bits 0-7 are
+        the blue value, 8-15 the green, and 16-23 the red.
+
     Examples:
         Get the rgb tuple from a an rgb int.
 
@@ -54,13 +63,22 @@ def get_rgb_from_int(rgb_int):
 
 
 def get_int_from_rgb(rgb):
-    """
+    """Simple utility to convert an RBG color to its TRNSYS Studio compatible
+    int color. Values are used ranging from 0 to 255 for each of the components.
+
+    Important:
+        Unlike Java, the TRNSYS Studio will want an integer where bits 0-7 are
+        the blue value, 8-15 the green, and 16-23 the red.
+
     Examples:
-        Get the rgb int from an rgb 3-tuple >>> get_int_from_rgb((211, 122,
-        145)) 9534163
+        Get the rgb int from an rgb 3-tuple
+
+        >>> get_int_from_rgb((211, 122, 145))
+        9534163
 
     Args:
-        rgb (tuple): (r, g, b)
+        rgb (tuple): The red, green and blue values. All values assumed to be in
+            range [0, 255].
 
     Returns:
         (int): the rgb int.
@@ -185,3 +203,82 @@ def redistribute_vertices(geom, distance):
 
 
 ureg = UnitRegistry()
+
+from sympy.printing import StrPrinter
+
+
+class DeckFilePrinter(StrPrinter):
+    """Print derivative of a function of symbols in deck file form. This will
+    override the :func:`sympy.printing.str.StrPrinter#_print_Symbol` method to
+    print the TypeVariable's unit_number and output number.
+    """
+
+    def _print_Symbol(self, expr):
+        """print the TypeVariable's unit_number and output number. :param expr:
+
+        Args:
+            expr:
+        """
+        return "[{}, {}]".format(
+            expr.model.model.unit_number,
+            expr.model.one_based_idx)
+
+
+def print_my_latex(expr):
+    """Most of the printers define their own wrappers for print(). These
+    wrappers usually take printer settings. Our printer does not have any
+    settings.
+
+    Args:
+        expr:
+    """
+    return DeckFilePrinter().doprint(expr)
+
+
+class TypeVariableSymbol(Symbol):
+    """This is a subclass of the sympy Symbol class. It is a bit of a hack, so
+    hopefully nothing bad will happen.
+    """
+
+    def __new__(cls, type_variable, **assumptions):
+        """TypeVariableSymbol are identified by TypeVariable and assumptions:
+
+        >>> from pyTrnsysType import TypeVariableSymbol
+        >>> TypeVariableSymbol("x") == TypeVariableSymbol("x")
+        True
+        >>> TypeVariableSymbol("x", real=True) == TypeVariableSymbol("x",
+        real=False)
+        False
+
+        Args:
+            type_variable (TypeVariable): The TypeVariable to defined as a
+                Symbol.
+            **assumptions: See :mod:`sympy.core.assumptions` for more details.
+        """
+        cls._sanitize(assumptions, cls)
+        return TypeVariableSymbol.__xnew_cached_(cls, type_variable,
+                                                 **assumptions)
+
+    def __new_stage2__(cls, model, **assumptions):
+        """
+        Args:
+            model:
+            **assumptions:
+        """
+        obj = Expr.__new__(cls)
+        obj.name = model.name
+        obj.model = model
+
+        tmp_asm_copy = assumptions.copy()
+
+        # be strict about commutativity
+        is_commutative = fuzzy_bool(assumptions.get('commutative', True))
+        assumptions['commutative'] = is_commutative
+        obj._assumptions = StdFactKB(assumptions)
+        obj._assumptions._generator = tmp_asm_copy  # Issue #8873
+        return obj
+
+    __xnew__ = staticmethod(
+        __new_stage2__)  # never cached (e.g. dummy)
+    __xnew_cached_ = staticmethod(
+        cacheit(__new_stage2__))  # symbols are always cached

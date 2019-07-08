@@ -14,6 +14,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('pyTrnsysType'))
 
 # -- Project information -----------------------------------------------------
 
@@ -43,10 +44,11 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx.ext.napoleon',
-    'sphinx_click.ext',
-    'recommonmark',
     'sphinx.ext.autosummary',
+    'recommonmark',
 ]
+
+source_suffix = ['.rst', '.md']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -99,4 +101,5 @@ intersphinx_mapping = {'python': ('https://docs.python.org/3', None),
                            'https://networkx.github.io/objects.inv'),
                        'pint': ('https://pint.readthedocs.io/en/0.9/', None),
                        'path': ('https://pathpy.readthedocs.io/en/stable/',
-                                None)}
+                                None),
+                       'sympy':('https://docs.sympy.org/latest/', None)}

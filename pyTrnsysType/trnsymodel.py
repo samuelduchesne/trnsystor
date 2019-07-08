@@ -202,9 +202,11 @@ class ExternalFileCollection(collections.UserDict):
 
     @classmethod
     def from_dict(cls, dictionary):
-        """
+        """Construct an :class:`~ExternalFileCollection` from a dict of
+        :class:`~ExternalFile` objects with the object's id as a key.
+
         Args:
-            dictionary:
+            dictionary (dict): The dict of {key: :class:`~ExternalFile`}
         """
         item = cls()
         for key in dictionary:
@@ -1228,7 +1230,7 @@ class AnchorPoint(object):
             In the Studio, a component has 8 anchor points at the four corners
             and four edges. units.Links can be created on these connections.
 
-            .. image:: _static/anchor-pts.png
+            .. image:: ../_static/anchor-pts.png
         """
         from shapely.affinity import translate
         center = self.centroid

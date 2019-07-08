@@ -1,7 +1,35 @@
 .. _reference:
 
 Reference
-===========================
+=========
+
+TrnsysModel
+-----------
+
+.. currentmodule:: pyTrnsysType.trnsymodel
+.. autosummary::
+    :template: autosummary.rst
+    :nosignatures:
+    :toctree: reference/
+
+    MetaData
+    ExternalFile
+    ExternalFileCollection
+    TrnsysModel
+    TypeVariable
+    TypeCycle
+    CycleCollection
+    Parameter
+    Input
+    Output
+    Derivative
+    VariableCollection
+    InputCollection
+    OutputCollection
+    ParameterCollection
+    StudioHeader
+    LinkStyle
+    AnchorPoint
 
 Statements
 ----------
@@ -38,19 +66,23 @@ Statements
     Constant
     Equation
     ControlCards
+    ConstantCollection
+    EquationCollection
 
-.. automodule:: pyTrnsysType.trnsymodel
-  :members:
 
-API Pages
-=========
+Utils
+-----
 
-.. currentmodule:: pyTrnsysType.trnsymodel
+.. currentmodule:: pyTrnsysType.utils
 .. autosummary::
-  :template: autosummary.rst
-  :toctree: reference/
+    :template: autosummary.rst
+    :nosignatures:
+    :toctree: reference
 
-  TrnsysModel
-  TypeVariable
-  MetaData
+    affine_transform
+    get_int_from_rgb
+    get_rgb_from_int
+    DeckFilePrinter
+    print_my_latex
+    TypeVariableSymbol
 

@@ -1,6 +1,8 @@
 pyTrnsysType |version|
 ======================
 
+.. include:: ../README.rst
+
 .. toctree::
    :maxdepth: 1
    :caption: Reference Guide
@@ -11,6 +13,7 @@ pyTrnsysType |version|
 Indices and tables
 ==================
 
+.. py:currentmodule:: pyTrnsysType
+
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`

@@ -2,12 +2,14 @@ import collections
 import itertools
 
 import tabulate
+from sympy import Expr
 
 from pyTrnsysType import TypeVariable, TrnsysModel
 from pyTrnsysType.statements import Version, NaNCheck, OverwriteCheck, \
     TimeReport, Constants, Equations, List, Simulation, Tolerances, Limits, \
     DFQ, \
     NoCheck, NoList, Map, EqSolver, End, Solver, Statement
+from pyTrnsysType.utils import print_my_latex, TypeVariableSymbol
 from .trnsymodel import ParameterCollection, InputCollection, \
     ExternalFileCollection
 
@@ -309,6 +311,13 @@ class Equation(Statement):
     parameters; and initial values of inputs and time-dependent variables. The
     capabilities of the EQUATIONS statement overlap but greatly exceed those of
     the CONSTANTS statement described in the previous section.
+
+    Hint:
+        In pyTrnsysType, the Equation class works hand in hand with the
+        :class:`EquationCollection` class. This class behaves a little bit like
+        the equation component in the TRNSYS Studio, meaning that you can list
+        equation in a block, give it a name, etc. See the
+        :class:`EquationCollection` class for more details.
     """
 
     _new_id = itertools.count(start=1)
@@ -333,8 +342,13 @@ class Equation(Statement):
         equal sign ("=") will become a Constant and anything after will become
         the equality statement.
 
+        Example:
+            Create a simple expression like so:
+
+            >>> equa1 = Equation.from_expression("TdbAmb = [011,001]")
+
         Args:
-            expression (str): A user-defined expression to parse
+            expression (str): A user-defined expression to parse.
             doc (str, optional): A small description optionally printed in the
                 deck file.
         """
@@ -345,26 +359,104 @@ class Equation(Statement):
         a, b = expression.split("=")
         return cls(a.strip(), b.strip(), doc=doc)
 
+    @classmethod
+    def from_symbolic_expression(cls, name, func, *args, doc=None):
+        """Crate an equation from a string with a catch. The underlying engine
+        will use Sympy and symbolic variables.
+
+        Examples:
+            In this example, we define a variable (var_a) and we want it to be
+            equal to the 'Outlet Air Humidity Ratio' divided by 12 + log(
+            Temperature to heat source). In a TRNSYS deck file one would have to
+            manually determine the unit numbers and output numbers and write
+            something like : '[1, 2]/12 + log([1, 1])'. With the
+            :func:`~from_symbolic_expression`, we can do this very simply:
+
+            1. first, define the name of the variable:
+
+            >>> name = "var_a"
+
+            2. then, define the expression as a string. Here, the variables `a`
+            and `b` are symbols that represent the two type outputs. Note that
+            their name has bee chosen arbitrarily.
+
+            >>> exp = "log(a) + b / 12"
+            >>> # would be also equivalent to
+            >>> exp = "log(x) + y / 12"
+
+            3. here, we define the actual variables (the type outputs) after
+            loading our model from its proforma:
+
+            >>> from pyTrnsysType import TrnsysModel
+            >>> fan = TrnsysModel.from_xml("fan_type.xml")
+            >>> vars = (fan.outputs[0], fan.outputs[1])
+
+            .. Important::
+
+                The order of the symbolic variable encountered in the string
+                expression (step 2), from left to right, must be the same for
+                the tuple of variables. For instance, `a` is followed by `b`,
+                therefore `fan.outputs[0]` is followed by `fan.outputs[1]`.
+
+            4. finally, we create the Equation. Note that vars is passed with
+            the '*' declaration to unpack the tuple.
+
+            >>> from pyTrnsysType.input_file import Equation
+            >>> eq = Equation.from_symbolic_expression(name, exp, *vars)
+            >>> print(eq)
+            [1, 1]/12 + log([1, 2])
+
+        Args:
+            name (str): The name of the variable (left-hand side), of the
+                equation.
+            func (str): The expression to evaluate. Use any variable name and
+                mathematical expression.
+            *args (tuple): A tuple of :class:`TypeVariable` that will replace
+                the any variable name specified in the above expression.
+            doc (str, optional): A small description optionally printed in the
+                deck file.
+
+        Returns:
+            Equation: The Equation Statement object.
+        """
+        from sympy.parsing.sympy_parser import parse_expr
+        exp = parse_expr(func)
+        for i, arg in enumerate(list(exp.free_symbols)):
+            exp = exp.subs(arg, TypeVariableSymbol(args[i]))
+        return cls(name, exp)
+
     @property
     def eq_number(self):
         """The equation number. Unique"""
         return self._n
+
+    def __repr__(self):
+        return " = ".join([self.name, self._to_deck()])
+
+    def __str__(self):
+        return self.__repr__()
 
     def _to_deck(self):
         if isinstance(self.equals_to, TypeVariable):
             return "[{unit_number}, {output_id}]".format(
                 unit_number=self.equals_to.model.unit_number,
                 output_id=self.equals_to.one_based_idx)
+        elif isinstance(self.equals_to, Expr):
+            return print_my_latex(self.equals_to)
         else:
             return self.equals_to
 
 
 class EquationCollection(collections.UserList):
-    """The EQUATIONS statement allows variables to be defined as algebraic
-    functions of constants, previously defined variables, and outputs from
-    TRNSYS components. These variables can then be used in place of numbers in
-    the TRNSYS input file to represent inputs to components; numerical values of
-    parameters; and initial values of inputs and time-dependent variables.
+    """A class that behaves like a list and that collects one or more
+    :class:`Equations`. This class behaves a little bit like the equation
+    component in the TRNSYS Studio, meaning that you can list equation in a
+    block, give it a name, etc.
+
+    Hint:
+        Creating equations in PyTrnsysType is done trough the :class:`Equation`
+        class. Equations are than collected in this EquationCollection. See the
+        :class:`Equation` class for more details.
     """
 
     def __init__(self, initlist=None, name=None):
