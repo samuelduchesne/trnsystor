@@ -494,7 +494,8 @@ class TestConstantsAndEquations():
     def test_equation_collection(self, equation_block):
         from pyTrnsysType.input_file import Equation, EquationCollection
 
-        equa_col_2 = EquationCollection([equa for equa in equation_block],
+        equa_col_2 = EquationCollection([equa for equa in
+                                         equation_block.values()],
                                         name='test')
 
         assert equation_block.name != equa_col_2.name

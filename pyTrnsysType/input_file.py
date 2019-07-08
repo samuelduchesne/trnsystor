@@ -1,9 +1,7 @@
 import collections
 import itertools
-import re
 
 import tabulate
-from path import Path
 from sympy import Expr, Symbol
 
 from pyTrnsysType import TypeVariable, TrnsysModel
@@ -374,7 +372,8 @@ class Equation(Statement):
 
     @classmethod
     def from_symbolic_expression(cls, name, exp, *args, doc=None):
-        """Crate an equation with a combination of a generic expression (with placeholder variables) and a list of arguments. The underlying engine
+        """Crate an equation with a combination of a generic expression (with
+        placeholder variables) and a list of arguments. The underlying engine
         will use Sympy and symbolic variables. You can use a mixture of
         :class:`TypeVariable` and :class:`Equation`, :class:`Constant` as
         well as the python default :class:`str`.
@@ -481,8 +480,8 @@ class Equation(Statement):
             return self.equals_to
 
 
-class EquationCollection(collections.UserList):
-    """A class that behaves like a list and that collects one or more
+class EquationCollection(collections.UserDict):
+    """A class that behaves like a dict and that collects one or more
     :class:`Equations`. This class behaves a little bit like the equation
     component in the TRNSYS Studio, meaning that you can list equation in a
     block, give it a name, etc.
@@ -507,7 +506,8 @@ class EquationCollection(collections.UserList):
                 This name will be used to identify this block of equations in
                 the .dck file;
         """
-        super(EquationCollection, self).__init__(initlist)
+        super(EquationCollection, self).__init__({f.name: f for f in
+                                                    initlist})
         self.name = Name(name)
         self._unit = next(TrnsysModel.new_id)
 
@@ -521,6 +521,36 @@ class EquationCollection(collections.UserList):
 
     def __repr__(self):
         return self._to_deck()
+
+    def update(self, E=None, **F):
+        """D.update([E, ]**F) -> None.  Update D from dict/iterable E and F.
+        If E is present and has a .keys() method, then does:  for k in E: D[
+        k] = E[k]
+        If E is present and lacks a .keys() method, then does:  for k,
+        v in E: D[k] = v
+        In either case, this is followed by: for k in F:  D[k] = F[k]
+
+        Args:
+            E (dict of Equation): The equation to add or update in D (self).
+            F (dict of Equation): Other Equations to update are passed.
+        """
+        for v in E.values():
+            if not isinstance(v, Equation):
+                raise TypeError('Can only update an EquationCollection with an'
+                                'Equation, not a {}'.format(type(v)))
+        _e = {v.name: v for v in E.values()}
+        k: Equation
+        _f = {v.name: v for k, v in F.values()}
+        _e.update(_f)
+        super(EquationCollection, self).update(_e)
+
+    @property
+    def size(self):
+        return len(self)
+
+    @property
+    def unit_number(self):
+        return self._unit
 
     def _to_deck(self):
         """To deck representation
@@ -538,17 +568,9 @@ class EquationCollection(collections.UserList):
         header_comment = '* EQUATIONS "{}"\n\n'.format(self.name)
         head = "EQUATIONS {}\n".format(len(self))
         v_ = ((equa.name, "=", equa._to_deck())
-              for equa in self)
+              for equa in self.values())
         core = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
         return str(header_comment) + str(head) + str(core)
-
-    @property
-    def size(self):
-        return len(self)
-
-    @property
-    def unit_number(self):
-        return self._unit
 
 
 class ControlCards(object):
