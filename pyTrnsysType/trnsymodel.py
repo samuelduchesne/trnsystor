@@ -439,6 +439,10 @@ class TrnsysModel(Component):
             path (LineString or MultiLineString, optional): The path of the
                 link.
         """
+        if self == other and path is None:
+            # trying to connect to itself.
+            raise NotImplementedError('This version does not support '
+                                      'connecting a TrnsysModel to itself')
         if other is None:
             raise ValueError('Other is None')
 
