@@ -6,7 +6,7 @@ import tabulate
 from path import Path
 from sympy import Expr, Symbol
 
-from pyTrnsysType import TypeVariable, TrnsysModel
+from pyTrnsysType import TypeVariable, TrnsysModel, Component, StudioHeader
 from pyTrnsysType.statements import Version, NaNCheck, OverwriteCheck, \
     TimeReport, Constants, Equations, List, Simulation, Tolerances, Limits, \
     DFQ, \
@@ -256,7 +256,7 @@ class Constant(Statement):
         return self.equals_to
 
 
-class ConstantCollection(collections.UserDict):
+class ConstantCollection(collections.UserDict, Component):
     """A class that behaves like a dict and that collects one or more
     :class:`Constants`.
 
@@ -518,7 +518,7 @@ class Equation(Statement):
             return self.equals_to
 
 
-class EquationCollection(collections.UserDict):
+class EquationCollection(collections.UserDict, Component):
     """A class that behaves like a dict and that collects one or more
     :class:`Equations`. This class behaves a little bit like the equation
     component in the TRNSYS Studio, meaning that you can list equation in a
@@ -554,6 +554,7 @@ class EquationCollection(collections.UserDict):
         super().__init__(_dict)
         self.name = Name(name)
         self._unit = next(TrnsysModel.new_id)
+        self.studio = StudioHeader.from_trnsysmodel(self)
 
     def __getitem__(self, key):
         """
@@ -599,6 +600,16 @@ class EquationCollection(collections.UserDict):
     @property
     def unit_number(self):
         return self._unit
+
+    @property
+    def unit_name(self):
+        """This type does not have a unit_name. Return component name"""
+        return self.name
+
+    @property
+    def model(self):
+        """This model does not have a proforma. Return class name."""
+        return self.__class__.__name__
 
     def _to_deck(self):
         """To deck representation
@@ -861,16 +872,17 @@ class Deck(object):
                     key, match = dck._parse_line(line)
                     if key == 'unitname':
                         unit_name = match.group(key)
+                        line = dcklines.readline()
                     key, match = dck._parse_line(line)
                     if key == 'layer':
                         layer = match.group(key)
+                        line = dcklines.readline()
                     key, match = dck._parse_line(line)
                     if key == 'position':
                         pos = match.group(key)
+                        line = dcklines.readline()
                     ec = EquationCollection(eq)
-                    ec
-
-                    cc.equations.append()
+                    ec.set_canvas_position(map(float, pos.strip().split()))
 
                 line = dcklines.readline()
 

@@ -216,10 +216,66 @@ class ExternalFileCollection(collections.UserDict):
         return item
 
 
-class TrnsysModel(object):
+class Component(object):
+
     new_id = itertools.count(start=1)
 
-    def __init__(self, meta, name, studio=None):
+    def __init__(self, name, meta):
+        self._unit = next(TrnsysModel.new_id)
+        self.name = name
+        self._meta = meta
+        self.studio = StudioHeader.from_trnsysmodel(self)
+
+    def set_canvas_position(self, pt):
+        """Set position of self in the canvas. Use cartesian coordinates: origin
+        0,0 is at bottom-left.
+
+        Info:
+            The Studio Canvas origin corresponds to the top-left of the canvas.
+            The x coordinates increase from left to right, while the y
+            coordinates increase from top to bottom.
+
+            * top-left = "* $POSITION 0 0"
+            * bottom-left = "* $POSITION 0 2000"
+            * top-right = "* $POSITION 2000" 0
+            * bottom-right = "* $POSITION 2000 2000"
+
+            For convenience, users should deal with cartesian coordinates.
+            pyTrnsysType will deal with the transformation.
+
+        Args:
+            pt (Point or 2-tuple): The Point geometry or a tuple of (x, y)
+                coordinates.
+        """
+        if isinstance(pt, Point):
+            self.studio.position = pt
+        else:
+            self.studio.position = Point(*pt)
+
+    @property
+    def unit_number(self):
+        """int: Returns the model's unit number (unique)"""
+        return int(self._unit)
+
+    @property
+    def type_number(self):
+        """int: Returns the model's type number, eg.: 104 for Type104"""
+        return int(self._meta.type)
+
+    @property
+    def unit_name(self):
+        """str: Returns the model's unit name, eg.: 'Type104'"""
+        return "Type{}".format(self.type_number)
+
+    @property
+    def model(self):
+        """str: The path of this model's proforma"""
+        return self._meta.model
+
+
+class TrnsysModel(Component):
+
+    def __init__(self, meta, name):
         """Main Class for holding TRNSYS components. Alone, this __init__ method
         does not do much. See the :func:`from_xml` class method for the official
         constructor of this class.
@@ -227,13 +283,8 @@ class TrnsysModel(object):
         Args:
             meta (MetaData): A class containing the model's metadata.
             name (str): A user-defined name for this model.
-            studio (StudioHeader): A class for handling TRNSYS studio related
-                functions.
         """
-        self._unit = next(TrnsysModel.new_id)
-        self._meta = meta
-        self.name = name
-        self.studio = studio
+        super().__init__(name, meta)
 
     def __repr__(self):
         """str: The String representation of this object."""
@@ -393,32 +444,6 @@ class TrnsysModel(object):
         v = other.unit_number
         self.studio.link_styles.update({(u, v): style})
 
-    def set_canvas_position(self, pt):
-        """Set position of self in the canvas. Use cartesian coordinates: origin
-        0,0 is at bottom-left.
-
-        Info:
-            The Studio Canvas origin corresponds to the top-left of the canvas.
-            The x coordinates increase from left to right, while the y
-            coordinates increase from top to bottom.
-
-            * top-left = "* $POSITION 0 0"
-            * bottom-left = "* $POSITION 0 2000"
-            * top-right = "* $POSITION 2000" 0
-            * bottom-right = "* $POSITION 2000 2000"
-
-            For convenience, users should deal with cartesian coordinates.
-            pyTrnsysType will deal with the transformation.
-
-        Args:
-            pt (Point or 2-tuple): The Point geometry or a tuple of (x, y)
-                coordinates.
-        """
-        if isinstance(pt, Point):
-            self.studio.position = pt
-        else:
-            self.studio.position = Point(*pt)
-
     @property
     def inputs(self):
         """InputCollection: returns the model's inputs."""
@@ -443,26 +468,6 @@ class TrnsysModel(object):
     def external_files(self):
         """ExternalFileCollection: returns the model's external files"""
         return self._get_external_files()
-
-    @property
-    def unit_number(self):
-        """int: Returns the model's unit number (unique)"""
-        return int(self._unit)
-
-    @property
-    def type_number(self):
-        """int: Returns the model's type number, eg.: 104 for Type104"""
-        return int(self._meta.type)
-
-    @property
-    def unit_name(self):
-        """str: Returns the model's unit name, eg.: 'Type104'"""
-        return "Type{}".format(self.type_number)
-
-    @property
-    def model(self):
-        """str: The path of this model's proforma"""
-        return self._meta.model
 
     @property
     def anchor_points(self):
@@ -1079,7 +1084,7 @@ class StudioHeader(object):
     def from_trnsysmodel(cls, model):
         """
         Args:
-            model (TrnsysModel):
+            model (Component):
         """
         position = Point(50, 50)
         layer = ["Main"]
