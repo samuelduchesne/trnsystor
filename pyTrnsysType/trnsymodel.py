@@ -1242,15 +1242,19 @@ class LinkStyle(object):
 class AnchorPoint(object):
     """Handles the anchor point. There are 6 anchor points around a component"""
 
-    def __init__(self, model, offset=10):
+    def __init__(self, model, offset=20, height=40, width=40):
         """
         Args:
-            model (TrnsysModel): The TrnsysModel
+            width (float): The width of the component in points.
+            height (float): The height of the component in points.
+            model (TrnsysModel): The TrnsysModel.
             offset (float): The offset to give the anchor points from the center
                 of the model position.
         """
         self.offset = offset
         self.model = model
+        self.height = height
+        self.width = width
 
     def studio_anchor(self, other, loc):
         """Return the studio anchor based on a location.
@@ -1294,15 +1298,18 @@ class AnchorPoint(object):
 
     @property
     def studio_anchor_mapping(self):
-        return {'top-left': (0, 0),
-                'top-center': (20, 0),
-                'top-right': (40, 0),
-                'center-right': (40, 20),
-                'bottom-right': (40, 40),
-                'bottom-center': (20, 40),
-                'bottom-left': (0, 40),
-                'center-left': (0, 20),
-                }
+        from shapely.affinity import translate
+        p_ = {}
+        minx, miny, maxx, maxy = MultiPoint(
+            [p for p in self.anchor_points.values()]).bounds
+        for k, p in self.anchor_points.items():
+            p_[k] = translate(p, -minx, -maxy)
+        minx, miny, maxx, maxy = MultiPoint([p for p in p_.values()]).bounds
+        for k, p in p_.items():
+            p_[k] = translate(p, 0, -miny)
+        return {k: tuple(itertools.chain(
+            *tuple((map(abs, p) for p in p.coords))
+        )) for k, p in p_.items()}
 
     @property
     def studio_anchor_reverse_mapping(self):
