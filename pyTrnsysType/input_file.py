@@ -933,19 +933,19 @@ class Deck(object):
 
                     # identify linkstyle attributes
                     if key == "linkstyle":
-                        _lns = match.group("linestyle").strip().split(':')
-                        path = match.group("path").strip().split(":")
+                        _lns = match.groupdict()
+                        path = _lns["path"].strip().split(":")
                         mapping = AnchorPoint(
                             dck.models[int(u)]).studio_anchor_reverse_mapping
 
-                        loc = mapping[int(_lns[0]), int(_lns[1])], \
-                              mapping[int(_lns[2]), int(_lns[3])]
+                        loc = mapping[int(_lns['u1']), int(_lns['u2'])], \
+                              mapping[int(_lns['v1']), int(_lns['v2'])]
                         try:
-                            color = get_rgb_from_int(int(_lns[5]))
+                            color = get_rgb_from_int(int(_lns['color']))
                         except:
                             pass
-                        linestyle = _studio_to_linestyle(int(_lns[6]))
-                        linewidth = int(_lns[7])
+                        linestyle = _studio_to_linestyle(int(_lns['linestyle']))
+                        linewidth = int(_lns['linewidth'])
 
                         path = LineString(
                             [list(map(int, p.split(","))) for p in path])
@@ -1020,8 +1020,10 @@ class Deck(object):
                 r'?=(?:!|$))'),
             'link': re.compile(r'(?i)(^\*!link\s)(?P<link>.*?)(?=(?:!|$))'),
             'linkstyle': re.compile(
-                r'(?i)(^\*!connection_set )(?P<linestyle>(?:(?:[\w.]+)('
-                r'?::?))*:)(?P<path>.*)')
+                r'(?i)(?:^\*!connection_set )(?P<u1>.*?):(?P<u2>.*?):('
+                r'?P<v1>.*?):(?P<v2>.*?):(?P<order>.*?):(?P<color>.*?):('
+                r'?P<linestyle>.*?):(?P<linewidth>.*?):(?P<ignored>.*?):('
+                r'?P<path>.*?$)')
         }
         return rx_dict
 
