@@ -252,6 +252,16 @@ class Component(object):
         else:
             self.studio.position = Point(*pt)
 
+    def change_component_layer(self, layers):
+        """Change the component's layer. Pass a list to change multiple layers
+
+        Args:
+            layers (str or list):
+        """
+        if isinstance(layers, str):
+            layers = [layers]
+        self.studio.layer = layers
+
     @property
     def unit_number(self):
         """int: Returns the model's unit number (unique)"""

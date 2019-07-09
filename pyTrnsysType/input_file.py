@@ -576,8 +576,8 @@ class EquationCollection(collections.UserDict, Component):
         In either case, this is followed by: for k in F:  D[k] = F[k]
 
         Args:
-            E (dict of Equation): The equation to add or update in D (self).
-            F (dict of Equation): Other Equations to update are passed.
+            E (dict or Equation): The equation to add or update in D (self).
+            F (dict or Equation): Other Equations to update are passed.
         """
         if isinstance(E, Equation):
             _e = {E.name: E}
@@ -726,7 +726,7 @@ class ControlCards(object):
         self.list = list
         self.map = map
 
-        self.equations = equations
+        self.equations = []
         self.constants = []
         if constants:
             self.constants.append(constants)
@@ -795,7 +795,7 @@ class Deck(object):
 
                 if key == 'version':
                     version = match.group('version')
-                    v_ = Version.from_string(version)
+                    v_ = Version.from_string(version.strip())
                     cc.set_statement(v_)
 
                 if key == 'constants':
@@ -861,28 +861,34 @@ class Deck(object):
                     n_equations = match.group('equations')
                     line = dcklines.readline()
                     # read each line of the table until a blank line
+                    ec = EquationCollection()
                     for n in range(int(n_equations)):
                         # extract number and value
                         value = line.strip()
                         # create equation
-                        eq.append(Equation.from_expression(value))
+                        ec.update(Equation.from_expression(value))
                         # append the dictionary to the data list
                         line = dcklines.readline()
+
                     # read studio markup
                     key, match = dck._parse_line(line)
                     if key == 'unitname':
                         unit_name = match.group(key)
                         line = dcklines.readline()
+                        ec.name = unit_name
                     key, match = dck._parse_line(line)
                     if key == 'layer':
                         layer = match.group(key)
                         line = dcklines.readline()
+                        ec.change_component_layer(layer)
                     key, match = dck._parse_line(line)
                     if key == 'position':
                         pos = match.group(key)
                         line = dcklines.readline()
-                    ec = EquationCollection(eq)
-                    ec.set_canvas_position(map(float, pos.strip().split()))
+                        ec.set_canvas_position(map(float, pos.strip().split()))
+
+
+                    cc.equations.append(ec)
 
                 line = dcklines.readline()
 

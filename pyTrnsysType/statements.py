@@ -36,7 +36,7 @@ class Version(Statement):
 
     @classmethod
     def from_string(cls, string):
-        return cls(map(int, string.split('.')))
+        return cls(*map(int, string.split('.')))
 
     def _to_deck(self):
         return "VERSION {}".format(".".join(map(str, self.v)))
@@ -204,8 +204,6 @@ class TimeReport(Statement):
     contain this information at the end of the file.
     """
 
-    # Todo: Implement the TimeReport Statement
-
     def __init__(self, n=0):
         """Initialize a TIME_REPORT object.
 
@@ -271,8 +269,6 @@ class Equations(Statement):
 class List(Statement):
     """The LIST statement is used to turn on the TRNSYS processor listing
     after it has been turned off by a NOLIST statement."""
-
-    # Todo: Implement the List Statement
 
     def __init__(self, activate=False):
         """
