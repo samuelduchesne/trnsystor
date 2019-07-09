@@ -216,6 +216,24 @@ class ExternalFileCollection(collections.UserDict):
         return item
 
 
+class ComponentCollection(collections.UserDict):
+    """A class that handles collections of components, eg.; TrnsysModels,
+    EquationCollections and ConstantCollections"""
+
+    def __getitem__(self, key):
+        """
+        Args:
+            key:
+        """
+        if isinstance(key, int):
+            value = next((x for x in self if x._unit == key), None)
+        elif isinstance(key, str):
+            value = next((x for x in self if x.name == key), None)
+        else:
+            value = super().__getitem__(key)
+        return value
+
+
 class Component(object):
     new_id = itertools.count(start=1)
 
@@ -224,6 +242,9 @@ class Component(object):
         self.name = name
         self._meta = meta
         self.studio = StudioHeader.from_trnsysmodel(self)
+
+    def __hash__(self):
+        return self.unit_number
 
     def set_canvas_position(self, pt, trnsys_coords=False):
         """Set position of self in the canvas. Use cartesian coordinates: origin

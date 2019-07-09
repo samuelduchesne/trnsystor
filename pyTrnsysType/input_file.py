@@ -4,11 +4,11 @@ import re
 
 import tabulate
 from path import Path
-from shapely.geometry import LineString
+from shapely.geometry import LineString, Point
 from sympy import Expr, Symbol
 
 from pyTrnsysType import TypeVariable, TrnsysModel, Component, StudioHeader, \
-    MetaData, AnchorPoint
+    MetaData, AnchorPoint, ComponentCollection
 from pyTrnsysType.statements import Version, NaNCheck, OverwriteCheck, \
     TimeReport, Constants, Equations, List, Simulation, Tolerances, Limits, \
     DFQ, \
@@ -559,6 +559,9 @@ class EquationCollection(collections.UserDict, Component):
         self._unit = next(TrnsysModel.new_id)
         self.studio = StudioHeader.from_trnsysmodel(self)
 
+    def __hash__(self):
+        return self._unit
+
     def __getitem__(self, key):
         """
         Args:
@@ -781,7 +784,7 @@ class Deck(object):
     """"""
 
     def __init__(self, name, control_card):
-        self.models = {}
+        self.models = ComponentCollection()
         self.control_card = control_card
         self.name = name
 
@@ -859,10 +862,13 @@ class Deck(object):
                     k = match.group(key)
                     cc.set_statement(EqSolver(*k.strip().split()))
 
+                if key == 'userconstants':
+                    line = dcklines.readline()
+                    key, match = dck._parse_line(line)
+
                 # identify an equation block (EquationCollection)
                 if key == 'equations':
-                    eq = []
-                    # extract number of line, i.e., Name or Score
+                    # extract number of line, number of equations
                     n_equations = match.group('equations')
                     line = dcklines.readline()
                     # read each line of the table until a blank line
@@ -871,27 +877,28 @@ class Deck(object):
                         # extract number and value
                         value = line.strip()
                         # create equation
-                        ec.update(Equation.from_expression(value))
-                        # append the dictionary to the data list
-                        line = dcklines.readline()
+                        eq = Equation.from_expression(value)
+                        cc.equations.append(ec)
+                        ec.update(eq)
 
-                    # read studio markup
-                    key, match = dck._parse_line(line)
-                    if key == 'unitname':
-                        unit_name = match.group(key)
-                        line = dcklines.readline()
-                        ec.name = unit_name
-                    key, match = dck._parse_line(line)
-                    if key == 'layer':
-                        layer = match.group(key)
-                        line = dcklines.readline()
-                        ec.change_component_layer(layer)
-                    key, match = dck._parse_line(line)
-                    if key == 'position':
-                        pos = match.group(key)
-                        line = dcklines.readline()
-                        ec.set_canvas_position(map(float, pos.strip().split()))
-                    cc.equations.append(ec)
+                        line = dcklines.readline() # go to next line
+                        # append the dictionary to the data list
+                    dck.append_model(ec)
+
+
+                # read studio markup
+                if key == 'unitnumber':
+                    unit_number = match.group(key)
+                    ec._unit = int(unit_number)
+                if key == 'unitname':
+                    unit_name = match.group(key)
+                    ec.name = unit_name
+                if key == 'layer':
+                    layer = match.group(key)
+                    ec.change_component_layer(layer)
+                if key == 'position':
+                    pos = match.group(key)
+                    ec.set_canvas_position(map(float, pos.strip().split()))
 
                 # identify a unit (TrnsysModel)
                 if key == 'unit':
@@ -935,24 +942,37 @@ class Deck(object):
                     if key == "linkstyle":
                         _lns = match.groupdict()
                         path = _lns["path"].strip().split(":")
-                        mapping = AnchorPoint(
-                            dck.models[int(u)]).studio_anchor_reverse_mapping
 
-                        loc = mapping[int(_lns['u1']), int(_lns['u2'])], \
-                              mapping[int(_lns['v1']), int(_lns['v2'])]
-                        try:
-                            color = get_rgb_from_int(int(_lns['color']))
-                        except:
-                            pass
+                        mapping = AnchorPoint(
+                            next((x for x in dck.models if x._unit ==
+                              int(u)), None)).studio_anchor_reverse_mapping
+
+                        def find_closest(mappinglist, coordinate):
+                            def distance(a, b):
+                                a_ = Point(a)
+                                b_ = Point(b)
+                                return a_.distance(b_)
+
+                            return min(mappinglist, key=lambda x: distance(x,
+                                                                           coordinate))
+
+                        u_coords = (int(_lns['u1']), int(_lns['u2']))
+                        v_coords = (int(_lns['v1']), int(_lns['v2']))
+                        loc = mapping[find_closest(mapping.keys(), u_coords)], \
+                              mapping[find_closest(mapping.keys(), v_coords)]
+                        color = get_rgb_from_int(int(_lns['color']))
                         linestyle = _studio_to_linestyle(int(_lns['linestyle']))
                         linewidth = int(_lns['linewidth'])
 
                         path = LineString(
                             [list(map(int, p.split(","))) for p in path])
 
-                        dck.models[int(u)].set_link_style(dck.models[int(v)],
-                                                          loc, color, linestyle,
-                                                          linewidth, path)
+                        try:
+                            dck.models[int(u)].set_link_style(dck.models[int(v)],
+                                                              loc, color, linestyle,
+                                                              linewidth, path)
+                        except:
+                            pass
 
                 line = dcklines.readline()
 
@@ -1008,6 +1028,8 @@ class Deck(object):
                 r'?:!|$))'),
             'equations': re.compile(
                 r'(?i)(?P<key>^equations)(?P<equations>.*?)(?=(?:!|$))'),
+            'unitnumber': re.compile(r'(?i)(?P<key>^\*\$unit_number)('
+                                     r'?P<unitnumber>.*?)(?=(?:!|$))'),
             'unitname': re.compile(
                 r'(?i)(?P<key>^\*\$unit_name)(?P<unitname>.*?)(?=(?:!|$))'),
             'layer': re.compile(
@@ -1023,9 +1045,11 @@ class Deck(object):
                 r'(?i)(?:^\*!connection_set )(?P<u1>.*?):(?P<u2>.*?):('
                 r'?P<v1>.*?):(?P<v2>.*?):(?P<order>.*?):(?P<color>.*?):('
                 r'?P<linestyle>.*?):(?P<linewidth>.*?):(?P<ignored>.*?):('
-                r'?P<path>.*?$)')
+                r'?P<path>.*?$)'),
+            'userconstants': re.compile(r'(?i)(?P<key>^\*\$user_constants)('
+                                        r'?=(?:!|$))'),
         }
         return rx_dict
 
     def append_model(self, model):
-        self.models.update({model._unit: model})
+        self.models.update({model: model})
