@@ -4,16 +4,19 @@ import re
 
 import tabulate
 from path import Path
+from shapely.geometry import LineString
 from sympy import Expr, Symbol
 
-from pyTrnsysType import TypeVariable, TrnsysModel, Component, StudioHeader
+from pyTrnsysType import TypeVariable, TrnsysModel, Component, StudioHeader, \
+    MetaData, AnchorPoint
 from pyTrnsysType.statements import Version, NaNCheck, OverwriteCheck, \
     TimeReport, Constants, Equations, List, Simulation, Tolerances, Limits, \
     DFQ, \
     NoCheck, NoList, Map, EqSolver, End, Solver, Statement
-from pyTrnsysType.utils import print_my_latex, TypeVariableSymbol
+from pyTrnsysType.utils import print_my_latex, TypeVariableSymbol, \
+    get_rgb_from_int
 from .trnsymodel import ParameterCollection, InputCollection, \
-    ExternalFileCollection
+    ExternalFileCollection, _studio_to_linestyle
 
 
 class Name(object):
@@ -778,6 +781,7 @@ class Deck(object):
     """"""
 
     def __init__(self, name, control_card):
+        self.models = {}
         self.control_card = control_card
         self.name = name
 
@@ -798,6 +802,7 @@ class Deck(object):
                     v_ = Version.from_string(version.strip())
                     cc.set_statement(v_)
 
+                # identify a ConstantCollection
                 if key == 'constants':
                     n_cnts = match.group(key)
                     cb = ConstantCollection()
@@ -854,7 +859,7 @@ class Deck(object):
                     k = match.group(key)
                     cc.set_statement(EqSolver(*k.strip().split()))
 
-                # identify a table header 
+                # identify an equation block (EquationCollection)
                 if key == 'equations':
                     eq = []
                     # extract number of line, i.e., Name or Score
@@ -886,9 +891,68 @@ class Deck(object):
                         pos = match.group(key)
                         line = dcklines.readline()
                         ec.set_canvas_position(map(float, pos.strip().split()))
-
-
                     cc.equations.append(ec)
+
+                # identify a unit (TrnsysModel)
+                if key == 'unit':
+                    models = []
+                    # extract unit_number, type_number and name
+                    u = match.group('unitnumber').strip()
+                    t = match.group('typenumber').strip()
+                    n = match.group('name').strip()
+
+                    _meta = MetaData(type=t)
+                    model = TrnsysModel(_meta, name=n)
+                    model._unit = int(u)
+                    line = dcklines.readline()
+
+                    # read studio markup
+                    for n in range(4):
+                        key, match = dck._parse_line(line)
+                        if key == 'unitname':
+                            unit_name = match.group(key)
+                            model.name = unit_name
+                        if key == 'layer':
+                            layer = match.group(key)
+                            model.change_component_layer(layer)
+                        if key == 'position':
+                            pos = match.group(key)
+                            model.set_canvas_position(
+                                map(float, pos.strip().split()), True)
+                        line = dcklines.readline()
+
+                    dck.append_model(model)
+
+                # identify linkstyles
+                if key == 'link':
+                    # identify u,v unit numbers
+                    u, v = match.group(key).strip().split(':')
+
+                    line = dcklines.readline()
+                    key, match = dck._parse_line(line)
+
+                    # identify linkstyle attributes
+                    if key == "linkstyle":
+                        _lns = match.group("linestyle").strip().split(':')
+                        path = match.group("path").strip().split(":")
+                        mapping = AnchorPoint(
+                            dck.models[int(u)]).studio_anchor_reverse_mapping
+
+                        loc = mapping[int(_lns[0]), int(_lns[1])], \
+                              mapping[int(_lns[2]), int(_lns[3])]
+                        try:
+                            color = get_rgb_from_int(int(_lns[5]))
+                        except:
+                            pass
+                        linestyle = _studio_to_linestyle(int(_lns[6]))
+                        linewidth = int(_lns[7])
+
+                        path = LineString(
+                            [list(map(int, p.split(","))) for p in path])
+
+                        dck.models[int(u)].set_link_style(dck.models[int(v)],
+                                                          loc, color, linestyle,
+                                                          linewidth, path)
 
                 line = dcklines.readline()
 
@@ -950,5 +1014,16 @@ class Deck(object):
                 r'(?i)(?P<key>^\*\$layer)(?P<layer>.*?)(?=(?:!|$))'),
             'position': re.compile(
                 r'(?i)(?P<key>^\*\$position)(?P<position>.*?)(?=(?:!|$))'),
+            'unit': re.compile(
+                r'(?i)(^unit)(?P<unitnumber>.*?)(type)(?P<typenumber>.*\s)('
+                r'?P<name>\s.*?)('
+                r'?=(?:!|$))'),
+            'link': re.compile(r'(?i)(^\*!link\s)(?P<link>.*?)(?=(?:!|$))'),
+            'linkstyle': re.compile(
+                r'(?i)(^\*!connection_set )(?P<linestyle>(?:(?:[\w.]+)('
+                r'?::?))*:)(?P<path>.*)')
         }
         return rx_dict
+
+    def append_model(self, model):
+        self.models.update({model._unit: model})
