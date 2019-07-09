@@ -5,6 +5,6 @@ __version__ = '1.1.2-dev'
 from outdated import warn_if_outdated
 warn_if_outdated('pyTrnsysType', __version__)
 
+from .utils import *
 from .trnsymodel import *
 from .input_file import *
-from .utils import *

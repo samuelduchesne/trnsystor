@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup, Tag
 from matplotlib.colors import colorConverter
 from path import Path
 from pint.quantity import _Quantity
-from shapely.geometry import Point, LineString, MultiLineString
+from shapely.geometry import Point, LineString, MultiLineString, MultiPoint
 
 import pyTrnsysType
 from pyTrnsysType.utils import get_int_from_rgb, _parse_value, parse_type, \
@@ -217,7 +217,6 @@ class ExternalFileCollection(collections.UserDict):
 
 
 class Component(object):
-
     new_id = itertools.count(start=1)
 
     def __init__(self, name, meta):
@@ -226,7 +225,7 @@ class Component(object):
         self._meta = meta
         self.studio = StudioHeader.from_trnsysmodel(self)
 
-    def set_canvas_position(self, pt):
+    def set_canvas_position(self, pt, trnsys_coords=False):
         """Set position of self in the canvas. Use cartesian coordinates: origin
         0,0 is at bottom-left.
 
@@ -244,13 +243,15 @@ class Component(object):
             pyTrnsysType will deal with the transformation.
 
         Args:
+            trnsys_coords:
             pt (Point or 2-tuple): The Point geometry or a tuple of (x, y)
                 coordinates.
         """
-        if isinstance(pt, Point):
-            self.studio.position = pt
-        else:
-            self.studio.position = Point(*pt)
+        if not isinstance(pt, Point):
+            pt = Point(*pt)
+        if trnsys_coords:
+            pt = pyTrnsysType.affine_transform(pt)
+        self.studio.position = pt
 
     def change_component_layer(self, layers):
         """Change the component's layer. Pass a list to change multiple layers
@@ -438,10 +439,6 @@ class TrnsysModel(Component):
             path (LineString or MultiLineString, optional): The path of the
                 link.
         """
-        if self == other:
-            # trying to connect to itself.
-            raise NotImplementedError('This version does not support '
-                                      'connecting a TrnsysModel to itself')
         if other is None:
             raise ValueError('Other is None')
 
@@ -485,6 +482,10 @@ class TrnsysModel(Component):
         location ('top-left', etc.) as a key.
         """
         return AnchorPoint(self).anchor_points
+
+    @property
+    def reverse_anchor_points(self):
+        return AnchorPoint(self).reverse_anchor_points
 
     @property
     def centroid(self):
@@ -1115,6 +1116,20 @@ def _linestyle_to_studio(ls):
     return _ls
 
 
+def _studio_to_linestyle(ls):
+    """
+    Args:
+        ls:
+    """
+    linestyle_dict = {0: '-',
+                      1: '--',
+                      2: ':',
+                      3: '-.',
+                      4: '-..'}
+    _ls = linestyle_dict.get(ls)
+    return _ls
+
+
 class LinkStyle(object):
     def __init__(self, u, v, loc, color='black', linestyle='-', linewidth=None,
                  path=None):
@@ -1287,6 +1302,18 @@ class AnchorPoint(object):
                 'bottom-center': (20, 40),
                 'bottom-left': (0, 40),
                 'center-left': (0, 20),
+                }
+
+    @property
+    def studio_anchor_reverse_mapping(self):
+        return {(0, 0): 'top-left',
+                (20, 0): 'top-center',
+                (40, 0): 'top-right',
+                (40, 20): 'center-right',
+                (40, 40): 'bottom-right',
+                (20, 40): 'bottom-center',
+                (0, 40): 'bottom-left',
+                (0, 20): 'center-left',
                 }
 
     def get_octo_pts_dict(self, offset=10):
