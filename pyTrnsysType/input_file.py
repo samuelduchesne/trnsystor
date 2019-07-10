@@ -408,6 +408,7 @@ class Equation(Statement):
         self.equals_to = equals_to
         self.doc = doc
         self.model = model
+        self.is_connected = False
 
     @classmethod
     def from_expression(cls, expression, doc=None):
@@ -873,6 +874,24 @@ class Deck(object):
         # assert missing types
         # todo: list types that could not be parsed
         return dck
+
+    @property
+    def graph(self):
+        import networkx as nx
+        G = nx.MultiDiGraph()
+        for component in self.models:
+            try:
+                for output, typevar in component.inputs.items():
+                    if typevar.is_connected:
+                        u = component
+                        v = typevar.connected_to.model
+                        G.add_node(u.unit_number, model=u, pos=u.centroid)
+                        G.add_node(v.unit_number, model=v, pos=v.centroid)
+                        G.add_edge(u.unit_number, v.unit_number, key=output,
+                                   from_model=u, to_model=v)
+            except:
+                pass
+        return G
 
     def append_model(self, model):
         self.models.update(model)

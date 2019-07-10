@@ -568,7 +568,13 @@ class TestDeck():
             yield dck
 
     def test_deck_graph(self, test_deck):
-        assert test_deck
+        import networkx as nx
+        import matplotlib.pyplot as plt
+        G = test_deck.graph
+        assert not nx.is_empty(G)
+        pos = {unit: tuple((pos.x, pos.y)) for unit, pos in G.nodes(data='pos')}
+        nx.draw_networkx(G, pos=pos)
+        plt.show()
 
 
 class TestComponent():
