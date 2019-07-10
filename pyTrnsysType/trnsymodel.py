@@ -131,6 +131,18 @@ class MetaData(object):
         """
         return getattr(self, item)
 
+    @classmethod
+    def from_xml(cls, xml, **kwargs):
+        xml_file = Path(xml)
+        with open(xml_file) as xml:
+            soup = BeautifulSoup(xml, 'xml')
+            my_objects = soup.findAll("TrnsysModel")
+            for trnsystype in my_objects:
+                name = kwargs.pop('name', None)
+                meta = cls.from_tag(trnsystype, **kwargs)
+                return meta
+
+
 
 class ExternalFile(object):
     logic_unit = itertools.count(start=30)
@@ -252,7 +264,8 @@ class ComponentCollection(collections.UserDict):
         elif isinstance(key, str):
             value = next((x for x in self.data.values() if x.name == key), None)
         else:
-            value = super().__getitem__(key)
+            value = next((x for x in self.data.values() if x.unit_number ==
+                          key.unit_number), None)
         return value
 
     def __setitem__(self, key, value):
@@ -275,16 +288,16 @@ class ComponentCollection(collections.UserDict):
             F (dict or Equation): Other Equations to update are passed.
         """
         if isinstance(E, Component):
-            _e = {E.unit_number: E}
+            _e = {E: E}
         else:
             for v in E.values():
                 if not isinstance(v, Component):
                     raise TypeError(
                         'Can only update an ComponentCollection with'
                         'Component, not a {}'.format(type(v)))
-            _e = {v.unit_number: v for v in E.values()}
+            _e = {v: v for v in E.values()}
             k: Component
-            _f = {v.unit_number: v for k, v in F.values()}
+            _f = {v: v for k, v in F.values()}
             _e.update(_f)
         super(ComponentCollection, self).update(_e)
 
@@ -300,7 +313,8 @@ class ComponentCollection(collections.UserDict):
 
 
 class Component(metaclass=ABCMeta):
-    new_id = itertools.count(start=1)
+    new_id = itertools.count(start=0)  # starts at 0; the first instance will
+    # have unit_number == 1, which is the correct behavior.
 
     def __init__(self, name, meta):
         """
@@ -790,6 +804,11 @@ class TrnsysModel(Component):
         externals = pyTrnsysType.ExternalFiles(self.external_files)
 
         return str(input) + str(params) + str(inputs) + str(externals)
+
+    def update_meta(self, new_meta):
+        for attr in self._meta.__dict__:
+            if hasattr(new_meta, attr):
+                setattr(self._meta, attr, getattr(new_meta, attr))
 
 
 class TypeVariable(object):
