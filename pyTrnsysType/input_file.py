@@ -1191,6 +1191,7 @@ class Deck(object):
                 r'(?i)(?P<key>^parameters)(?P<parameters>.*?)(?=(?:!|$))'),
             'inputs': re.compile(
                 r'(?i)(?P<key>^inputs)(?P<inputs>.*?)(?=(?:!|$))'),
-            'typevariable': re.compile(r'(?P<typevariable>.*?)(?=(?:!|$))'),
+            'typevariable': re.compile(
+                r'^(?![*$!\s])(?P<typevariable>.*?)(?=(?:!|$))'),
         }
         return rx_dict
