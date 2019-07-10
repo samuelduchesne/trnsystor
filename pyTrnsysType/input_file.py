@@ -1,5 +1,6 @@
 import collections
 import itertools
+import logging as lg
 import re
 
 import tabulate
@@ -306,6 +307,9 @@ class ConstantCollection(collections.UserDict, Component):
     def __repr__(self):
         return self._to_deck()
 
+    def __hash__(self):
+        return self.unit_number
+
     def update(self, E=None, **F):
         """D.update([E, ]**F) -> None.  Update D from dict/iterable E and F.
         If E is present and has a .keys() method, then does:  for k in E: D[
@@ -592,7 +596,7 @@ class EquationCollection(collections.UserDict, Component):
         return value
 
     def __hash__(self):
-        return self._unit
+        return self.unit_number
 
     def __repr__(self):
         return self._to_deck()
@@ -855,7 +859,7 @@ class Deck(object):
         self.name = name
 
     @classmethod
-    def _from_deckfile(cls, file):
+    def _from_deckfile(cls, file, proforma_root=None):
         file = Path(file)
         with open(file) as dcklines:
             dck = cls(name=file.basename, control_card=None)
@@ -991,6 +995,30 @@ class Deck(object):
                             pos = match.group(key)
                             model.set_canvas_position(
                                 map(float, pos.strip().split()), True)
+                        if key == 'model':
+                            _mod = match.group('model')
+                            xml = Path(_mod.replace("\\", "/"))
+                            xml_basename = xml.basename()
+                            try:
+                                new_meta = MetaData.from_xml(xml)
+                            except:
+                                # replace extension with ".xml" and retry
+                                xml_basename = xml_basename.stripext() + ".xml"
+                                proforma_root = Path(proforma_root)
+                                if proforma_root is None:
+                                    proforma_root = Path.getcwd()
+                                xmls = proforma_root.glob('*.xml')
+                                xml = next((x for x in xmls if x.basename() ==
+                                            xml_basename), None)
+                                if not xml:
+                                    msg = 'The proforma {} could not be found ' \
+                                          'at' \
+                                          ' "{}"'.format(xml_basename,
+                                                         proforma_root)
+                                    lg.warning(msg)
+                                    break
+                                new_meta = MetaData.from_xml(xml)
+                            model.update_meta(new_meta)
                         line = dcklines.readline()
 
                     dck.append_model(model)
@@ -1041,6 +1069,8 @@ class Deck(object):
 
                 line = dcklines.readline()
 
+        # assert missing types
+        # todo: list types that could not be parsed
         return dck
 
     def _parse_line(self, line):
@@ -1105,6 +1135,8 @@ class Deck(object):
                 r'(?i)(^unit)(?P<unitnumber>.*?)(type)(?P<typenumber>.*\s)('
                 r'?P<name>\s.*?)('
                 r'?=(?:!|$))'),
+            'model': re.compile(r'(?i)(?P<key>^\*\$model)(?P<model>.*?)(?=('
+                                r'?:!|$))'),
             'link': re.compile(r'(?i)(^\*!link\s)(?P<link>.*?)(?=(?:!|$))'),
             'linkstyle': re.compile(
                 r'(?i)(?:^\*!connection_set )(?P<u1>.*?):(?P<u2>.*?):('

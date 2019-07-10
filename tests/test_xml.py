@@ -552,8 +552,9 @@ class TestDeck():
     def test_from_deckfile(self):
         from pyTrnsysType import Deck
         file = "tests/input_files/test_deck.dck"
-        dck = Deck._from_deckfile(file)
-        assert dck
+        with patch('builtins.input', return_value='y'):
+            dck = Deck._from_deckfile(file, proforma_root="tests/input_files")
+            assert dck
 
 
 class TestComponent():
