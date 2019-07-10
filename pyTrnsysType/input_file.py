@@ -4,9 +4,6 @@ import re
 
 import tabulate
 from path import Path
-from shapely.geometry import LineString, Point
-from sympy import Expr, Symbol
-
 from pyTrnsysType import TypeVariable, TrnsysModel, Component, StudioHeader, \
     MetaData, AnchorPoint, ComponentCollection
 from pyTrnsysType.statements import Version, NaNCheck, OverwriteCheck, \
@@ -15,6 +12,9 @@ from pyTrnsysType.statements import Version, NaNCheck, OverwriteCheck, \
     NoCheck, NoList, Map, EqSolver, End, Solver, Statement
 from pyTrnsysType.utils import print_my_latex, TypeVariableSymbol, \
     get_rgb_from_int
+from shapely.geometry import LineString, Point
+from sympy import Expr, Symbol
+
 from .trnsymodel import ParameterCollection, InputCollection, \
     ExternalFileCollection, _studio_to_linestyle
 
@@ -139,12 +139,18 @@ class Inputs(object):
         # UNIT to which the ith INPUT is connected. is an integer number
         # indicating to which OUTPUT (i.e., the 1st, 2nd, etc.) of UNIT
         # number ui the ith INPUT is connected.
-        core = "\t".join(
-            ["{}, {}".format(
-                input.connected_to.model.unit_number,
-                input.connected_to.one_based_idx) if input.is_connected else
-             "0, 0"
-             for input in self.inputs.values()]) + "\n"
+        _ins = []
+        for input in self.inputs.values():
+            if input.is_connected:
+                if isinstance(input.connected_to, TypeVariable):
+                    _ins.append("{}, {}".format(
+                        input.connected_to.model.unit_number,
+                        input.connected_to.one_based_idx))
+                else:
+                    _ins.append(input.connected_to.name)
+            else:
+                _ins.append("0,0")
+        core = "\t\t".join(_ins) + "\n"
         return str(head) + str(core)
 
 
@@ -326,6 +332,14 @@ class ConstantCollection(collections.UserDict, Component):
             _e.update(_f)
         super().update(_e)
 
+    @property
+    def size(self):
+        return len(self)
+
+    @property
+    def unit_number(self):
+        return self._unit
+
     def _to_deck(self):
         """To deck representation
 
@@ -346,13 +360,15 @@ class ConstantCollection(collections.UserDict, Component):
         core = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
         return str(header_comment) + str(head) + str(core)
 
-    @property
-    def size(self):
-        return len(self)
+    def _get_inputs(self):
+        """inputs getter. Sorts by order number each time it is called
+        """
+        return self
 
-    @property
-    def unit_number(self):
-        return self._unit
+    def _get_outputs(self):
+        """outputs getter. Since self is already a  dict, return self.
+        """
+        return self
 
 
 class Equation(Statement):
@@ -374,7 +390,7 @@ class Equation(Statement):
 
     _new_id = itertools.count(start=1)
 
-    def __init__(self, name=None, equals_to=None, doc=None):
+    def __init__(self, name=None, equals_to=None, doc=None, model=None):
         """
         Args:
             name (str): The left hand side of the equation.
@@ -387,6 +403,7 @@ class Equation(Statement):
         self.name = name
         self.equals_to = equals_to
         self.doc = doc
+        self.model = model
 
     @classmethod
     def from_expression(cls, expression, doc=None):
@@ -504,6 +521,10 @@ class Equation(Statement):
         """The equation number. Unique"""
         return self._n
 
+    @property
+    def unit_number(self):
+        return self.model.unit_number
+
     def __repr__(self):
         return " = ".join([self.name, self._to_deck()])
 
@@ -559,19 +580,26 @@ class EquationCollection(collections.UserDict, Component):
         self._unit = next(TrnsysModel.new_id)
         self.studio = StudioHeader.from_trnsysmodel(self)
 
-    def __hash__(self):
-        return self._unit
-
     def __getitem__(self, key):
         """
         Args:
             key:
         """
-        value = super().__getitem__(key)
+        if isinstance(key, int):
+            value = list(self.data.values())[key]
+        else:
+            value = super().__getitem__(key)
         return value
+
+    def __hash__(self):
+        return self._unit
 
     def __repr__(self):
         return self._to_deck()
+
+    def __setitem__(self, key, value):
+        # optional processing here
+        super().__setitem__(key, value)
 
     def update(self, E=None, **F):
         """D.update([E, ]**F) -> None.  Update D from dict/iterable E and F.
@@ -586,6 +614,7 @@ class EquationCollection(collections.UserDict, Component):
             F (dict or Equation): Other Equations to update are passed.
         """
         if isinstance(E, Equation):
+            E.model = self
             _e = {E.name: E}
         else:
             for v in E.values():
@@ -598,6 +627,11 @@ class EquationCollection(collections.UserDict, Component):
             _f = {v.name: v for k, v in F.values()}
             _e.update(_f)
         super(EquationCollection, self).update(_e)
+
+    def setdefault(self, key, value=None):
+        if key not in self:
+            self[key] = value
+        return self[key]
 
     @property
     def size(self):
@@ -636,6 +670,38 @@ class EquationCollection(collections.UserDict, Component):
               for equa in self.values())
         core = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
         return str(header_comment) + str(head) + str(core)
+
+    def _get_inputs(self):
+        """inputs getter. Sorts by order number each time it is called
+        """
+        return self
+
+    def _get_outputs(self):
+        """outputs getter. Since self is already a  dict, return self.
+        """
+        return self
+
+    def _get_ordered_filtered_types(self, classe_, store):
+        """
+        Args:
+            classe_:
+            store:
+        """
+        return collections.OrderedDict(
+            (attr, self._meta[store][attr]) for attr in
+            sorted(self._get_filtered_types(classe_, store),
+                   key=lambda key: self._meta[store][key].order)
+        )
+
+    def _get_filtered_types(self, classe_, store):
+        """
+        Args:
+            classe_:
+            store:
+        """
+        return filter(
+            lambda kv: isinstance(self._meta[store][kv], classe_),
+            self._meta[store])
 
 
 class ControlCards(object):
@@ -881,10 +947,9 @@ class Deck(object):
                         cc.equations.append(ec)
                         ec.update(eq)
 
-                        line = dcklines.readline() # go to next line
+                        line = dcklines.readline()  # go to next line
                         # append the dictionary to the data list
                     dck.append_model(ec)
-
 
                 # read studio markup
                 if key == 'unitnumber':
@@ -944,8 +1009,7 @@ class Deck(object):
                         path = _lns["path"].strip().split(":")
 
                         mapping = AnchorPoint(
-                            next((x for x in dck.models if x._unit ==
-                              int(u)), None)).studio_anchor_reverse_mapping
+                            dck.models[int(u)]).studio_anchor_reverse_mapping
 
                         def find_closest(mappinglist, coordinate):
                             def distance(a, b):
@@ -968,9 +1032,10 @@ class Deck(object):
                             [list(map(int, p.split(","))) for p in path])
 
                         try:
-                            dck.models[int(u)].set_link_style(dck.models[int(v)],
-                                                              loc, color, linestyle,
-                                                              linewidth, path)
+                            dck.models[int(u)].set_link_style(
+                                dck.models[int(v)],
+                                loc, color, linestyle,
+                                linewidth, path)
                         except:
                             pass
 
@@ -1052,4 +1117,4 @@ class Deck(object):
         return rx_dict
 
     def append_model(self, model):
-        self.models.update({model: model})
+        self.models.update(model)

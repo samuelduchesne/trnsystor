@@ -248,6 +248,14 @@ class TestTrnsysModel():
         with pytest.raises(ValueError):
             fan_type.connect_to(fan_2, mapping=mapping)
 
+    def test_connect_eqcollection_to_type(self, fan_type, tank_type):
+        from pyTrnsysType import Equation, EquationCollection
+        ec = EquationCollection(Equation.from_expression('my=b'))
+        ec.set_canvas_position((500, 500))
+        ec.connect_to(fan_type, mapping={0: 0}, link_style={})
+
+        print(fan_type._to_deck())
+
     def test_to_deck_with_connected(self, fan_type):
         fan_2 = fan_type.copy()
         fan_type.connect_to(fan_2, mapping={0: 0, 1: 1})
@@ -546,3 +554,21 @@ class TestDeck():
         file = "tests/input_files/test_deck.dck"
         dck = Deck._from_deckfile(file)
         assert dck
+
+
+class TestComponent():
+
+    def test_unique_hash(self, fan_type):
+        """copying a component should change its hash"""
+        fan_type_2 = fan_type.copy()
+        assert hash(fan_type) != hash(fan_type_2)
+
+
+class TestComponentCollection():
+
+    def test_get_item(self, tank_type):
+        from pyTrnsysType.trnsymodel import ComponentCollection
+        cc = ComponentCollection()
+        cc.update({tank_type: tank_type})
+        cc['Storage Tank; Fixed Inlets, Uniform Losses']._unit = 1
+        assert cc[1] == cc['Storage Tank; Fixed Inlets, Uniform Losses']

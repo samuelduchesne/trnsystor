@@ -2,17 +2,17 @@ import collections
 import copy
 import itertools
 import re
+from abc import ABCMeta, abstractmethod
 
 import numpy as np
+import pyTrnsysType
 from bs4 import BeautifulSoup, Tag
 from matplotlib.colors import colorConverter
 from path import Path
 from pint.quantity import _Quantity
-from shapely.geometry import Point, LineString, MultiLineString, MultiPoint
-
-import pyTrnsysType
 from pyTrnsysType.utils import get_int_from_rgb, _parse_value, parse_type, \
     standerdized_name, redistribute_vertices
+from shapely.geometry import Point, LineString, MultiLineString, MultiPoint
 
 
 class MetaData(object):
@@ -95,15 +95,17 @@ class MetaData(object):
         self.check_extra_tags(kwargs)
 
     @classmethod
-    def from_tag(cls, tag):
+    def from_tag(cls, tag, **kwargs):
         """Class mothod used to create a TrnsysModel from a xml Tag
 
         Args:
             tag (Tag): The XML tag with its attributes and contents.
+            **kwargs:
         """
-        kwargs = {child.name: child for child in tag.children
-                  if isinstance(child, Tag)}
-        return cls(**{attr: kwargs[attr].text for attr in kwargs})
+        meta_args = {child.name: child.text for child in tag.children
+                     if isinstance(child, Tag)}
+        meta_args.update(kwargs)
+        return cls(**{attr: meta_args[attr] for attr in meta_args})
 
     def check_extra_tags(self, kwargs):
         """Detect extra tags in the proforma and warn.
@@ -218,7 +220,21 @@ class ExternalFileCollection(collections.UserDict):
 
 class ComponentCollection(collections.UserDict):
     """A class that handles collections of components, eg.; TrnsysModels,
-    EquationCollections and ConstantCollections"""
+    EquationCollections and ConstantCollections
+
+    Get a component from a ComponentCollection using either the component's
+    unit numer or its full name.
+
+    Examples:
+        >>> from pyTrnsysType.trnsymodel import ComponentCollection
+        >>> cc = ComponentCollection()
+        >>> cc.update({tank_type: tank_type})
+        >>> cc['Storage Tank; Fixed Inlets, Uniform Losses']._unit = 1
+        >>> cc[1]
+        Type146: Single Speed Fan/Blower
+        >>> cc['Single Speed Fan/Blower']
+        Type146: Single Speed Fan/Blower
+    """
 
     def __getitem__(self, key):
         """
@@ -226,18 +242,72 @@ class ComponentCollection(collections.UserDict):
             key:
         """
         if isinstance(key, int):
-            value = next((x for x in self if x._unit == key), None)
+            if key == 0:
+                raise ValueError('In the case of ComponentCollections, '
+                                 'the unit number is by TRNSYS design > 0. '
+                                 'This is a rare case where 0-based indexing '
+                                 'is not observed.')
+            value = next((x for x in self.data.values() if x.unit_number ==
+                          key), None)
         elif isinstance(key, str):
-            value = next((x for x in self if x.name == key), None)
+            value = next((x for x in self.data.values() if x.name == key), None)
         else:
             value = super().__getitem__(key)
         return value
 
+    def __setitem__(self, key, value):
+        # optional processing here
+        """
+        Args:
+            key:
+            value:
+        """
+        super().__setitem__(key, value)
 
-class Component(object):
+    def update(self, E=None, **F):
+        """D.update([E, ]**F) -> None. Update D from dict/iterable E and F. If E
+        is present and has a .keys() method, then does: for k in E: D[ k] = E[k]
+        If E is present and lacks a .keys() method, then does: for k, v in E:
+        D[k] = v In either case, this is followed by: for k in F: D[k] = F[k]
+
+        Args:
+            E (dict or Equation): The equation to add or update in D (self).
+            F (dict or Equation): Other Equations to update are passed.
+        """
+        if isinstance(E, Component):
+            _e = {E.unit_number: E}
+        else:
+            for v in E.values():
+                if not isinstance(v, Component):
+                    raise TypeError(
+                        'Can only update an ComponentCollection with'
+                        'Component, not a {}'.format(type(v)))
+            _e = {v.unit_number: v for v in E.values()}
+            k: Component
+            _f = {v.unit_number: v for k, v in F.values()}
+            _e.update(_f)
+        super(ComponentCollection, self).update(_e)
+
+    def setdefault(self, key, value=None):
+        """
+        Args:
+            key:
+            value:
+        """
+        if key not in self:
+            self[key] = value
+        return self[key]
+
+
+class Component(metaclass=ABCMeta):
     new_id = itertools.count(start=1)
 
     def __init__(self, name, meta):
+        """
+        Args:
+            name:
+            meta:
+        """
         self._unit = next(TrnsysModel.new_id)
         self.name = name
         self._meta = meta
@@ -250,7 +320,7 @@ class Component(object):
         """Set position of self in the canvas. Use cartesian coordinates: origin
         0,0 is at bottom-left.
 
-        Info:
+        Hint:
             The Studio Canvas origin corresponds to the top-left of the canvas.
             The x coordinates increase from left to right, while the y
             coordinates increase from top to bottom.
@@ -264,9 +334,9 @@ class Component(object):
             pyTrnsysType will deal with the transformation.
 
         Args:
-            trnsys_coords:
             pt (Point or 2-tuple): The Point geometry or a tuple of (x, y)
                 coordinates.
+            trnsys_coords:
         """
         if not isinstance(pt, Point):
             pt = Point(*pt)
@@ -304,67 +374,71 @@ class Component(object):
         """str: The path of this model's proforma"""
         return self._meta.model
 
+    @property
+    def inputs(self):
+        """InputCollection: returns the model's inputs."""
+        return self._get_inputs()
 
-class TrnsysModel(Component):
+    @property
+    def outputs(self):
+        """OutputCollection: returns the model's outputs."""
+        return self._get_outputs()
 
-    def __init__(self, meta, name):
-        """Main Class for holding TRNSYS components. Alone, this __init__ method
-        does not do much. See the :func:`from_xml` class method for the official
-        constructor of this class.
+    @abstractmethod
+    def _get_inputs(self):
+        """inputs getter. Sorts by order number and resolves cycles each time it
+        is called
+        """
+        pass
+
+    @abstractmethod
+    def _get_outputs(self):
+        """outputs getter. Sorts by order number and resolves cycles each time
+        it is called
+        """
+        pass
+
+    def set_link_style(self, other, loc='best', color='#1f78b4',
+                       linestyle='-', linewidth=1,
+                       path=None):
+        """Set outgoing link styles between self and other.
 
         Args:
-            meta (MetaData): A class containing the model's metadata.
-            name (str): A user-defined name for this model.
+            other (TrnsysModel): The destination model.
+            loc (str or tuple): loc (str): The location of the anchor. The
+                strings 'top-left', 'top-right', 'bottom-left', 'bottom-right'
+                place the anchor point at the corresponding corner of the
+                :class:`TrnsysModel`. The strings 'top-center', 'center-right',
+                'bottom-center', 'center-left' place the anchor point at the
+                edge of the corresponding :class:`TrnsysModel`. The string
+                'best' places the anchor point at the location, among the eight
+                locations defined so far, with the shortest distance with the
+                destination :class:`TrnsysModel` (other). The location can also
+                be a 2-tuple giving the coordinates of the origin
+                :class:`TrnsysModel` and the destination :class:`TrnsysModel`.
+            color (str): color string. Can be a single color format string
+                (default='#1f78b4').
+            linestyle (str): Possible values: '-' or 'solid', '--' or 'dashed',
+                '-.' or 'dashdot', ':' or 'dotted', '-.' or 'dashdotdot'.
+            linewidth (float): The width of the line in points.
+            path (LineString or MultiLineString, optional): The path of the
+                link.
         """
-        super().__init__(name, meta)
+        if self == other and path is None:
+            # trying to connect to itself.
+            raise NotImplementedError('This version does not support '
+                                      'connecting a TrnsysModel to itself')
+        if other is None:
+            raise ValueError('Other is None')
 
-    def __repr__(self):
-        """str: The String representation of this object."""
-        return 'Type{}: {}'.format(self.type_number, self.name)
+        style = LinkStyle(self, other, loc, path=path)
 
-    @classmethod
-    def from_xml(cls, xml):
-        """Class method to create a :class:`TrnsysModel` from an xml string.
-
-        Examples:
-            Simply pass the xml path to the constructor.
-
-            >>> from pyTrnsysType import TrnsysModel
-            >>> fan1 = TrnsysModel.from_xml("Tests/input_files/Type146.xml")
-
-        Args:
-            xml (str or Path): The path of the xml file.
-
-        Returns:
-            TrnsysType: The TRNSYS model.
-        """
-        xml_file = Path(xml)
-        with open(xml_file) as xml:
-            all_types = []
-            soup = BeautifulSoup(xml, 'xml')
-            my_objects = soup.findAll("TrnsysModel")
-            for trnsystype in my_objects:
-                t = cls._from_tag(trnsystype)
-                t._meta.model = xml_file
-                t.studio = StudioHeader.from_trnsysmodel(t)
-                all_types.append(t)
-            return all_types[0]
-
-    def copy(self, invalidate_connections=True):
-        """copy object
-
-        Args:
-            invalidate_connections (bool): If True, connections to other models
-                will be reset.
-        """
-        new = copy.deepcopy(self)
-        new._unit = next(new.new_id)
-        if invalidate_connections:
-            new.invalidate_connections()
-        from shapely.affinity import translate
-        pt = translate(self.centroid, 50, 0)
-        new.set_canvas_position(pt)
-        return new
+        style.set_color(color)
+        style.set_linestyle(linestyle)
+        style.set_linewidth(linewidth)
+        u = self.unit_number
+        v = other.unit_number
+        self.studio.link_styles.update({(u, v): style})
 
     def connect_to(self, other, mapping=None, link_style=None):
         """Connect the outputs of :attr:`self` to the inputs of :attr:`other`.
@@ -425,6 +499,69 @@ class TrnsysModel(Component):
                         from_self]
         self.set_link_style(other, **link_style)
 
+
+class TrnsysModel(Component):
+
+    def __init__(self, meta, name):
+        """Main Class for holding TRNSYS components. Alone, this __init__ method
+        does not do much. See the :func:`from_xml` class method for the official
+        constructor of this class.
+
+        Args:
+            meta (MetaData): A class containing the model's metadata.
+            name (str): A user-defined name for this model.
+        """
+        super().__init__(name, meta)
+
+    def __repr__(self):
+        """str: The String representation of this object."""
+        return 'Type{}: {}'.format(self.type_number, self.name)
+
+    @classmethod
+    def from_xml(cls, xml, **kwargs):
+        """Class method to create a :class:`TrnsysModel` from an xml string.
+
+        Examples:
+            Simply pass the xml path to the constructor.
+
+            >>> from pyTrnsysType import TrnsysModel
+            >>> fan1 = TrnsysModel.from_xml("Tests/input_files/Type146.xml")
+
+        Args:
+            xml (str or Path): The path of the xml file.
+            **kwargs:
+
+        Returns:
+            TrnsysType: The TRNSYS model.
+        """
+        xml_file = Path(xml)
+        with open(xml_file) as xml:
+            all_types = []
+            soup = BeautifulSoup(xml, 'xml')
+            my_objects = soup.findAll("TrnsysModel")
+            for trnsystype in my_objects:
+                t = cls._from_tag(trnsystype, **kwargs)
+                t._meta.model = xml_file
+                t.studio = StudioHeader.from_trnsysmodel(t)
+                all_types.append(t)
+            return all_types[0]
+
+    def copy(self, invalidate_connections=True):
+        """copy object
+
+        Args:
+            invalidate_connections (bool): If True, connections to other models
+                will be reset.
+        """
+        new = copy.deepcopy(self)
+        new._unit = next(new.new_id)
+        if invalidate_connections:
+            new.invalidate_connections()
+        from shapely.affinity import translate
+        pt = translate(self.centroid, 50, 0)
+        new.set_canvas_position(pt)
+        return new
+
     def invalidate_connections(self):
         """iterate over inputs/outputs and force :attr:`_connected_to` to
         None
@@ -433,58 +570,6 @@ class TrnsysModel(Component):
             self.outputs[key].__dict__['_connected_to'] = None
         for key in self.inputs:
             self.inputs[key].__dict__['_connected_to'] = None
-
-    def set_link_style(self, other, loc='best', color='#1f78b4',
-                       linestyle='-', linewidth=1,
-                       path=None):
-        """Set outgoing link styles between self and other.
-
-        Args:
-            other (TrnsysModel): The destination model.
-            loc (str or tuple): loc (str): The location of the anchor. The
-                strings 'top-left', 'top-right', 'bottom-left', 'bottom-right'
-                place the anchor point at the corresponding corner of the
-                :class:`TrnsysModel`. The strings 'top-center', 'center-right',
-                'bottom-center', 'center-left' place the anchor point at the
-                edge of the corresponding :class:`TrnsysModel`. The string
-                'best' places the anchor point at the location, among the eight
-                locations defined so far, with the shortest distance with the
-                destination :class:`TrnsysModel` (other). The location can also
-                be a 2-tuple giving the coordinates of the origin
-                :class:`TrnsysModel` and the destination :class:`TrnsysModel`.
-            color (str): color string. Can be a single color format string
-                (default='#1f78b4').
-            linestyle (str): Possible values: '-' or 'solid', '--' or 'dashed',
-                '-.' or 'dashdot', ':' or 'dotted', '-.' or 'dashdotdot'.
-            linewidth (float): The width of the line in points.
-            path (LineString or MultiLineString, optional): The path of the
-                link.
-        """
-        if self == other and path is None:
-            # trying to connect to itself.
-            raise NotImplementedError('This version does not support '
-                                      'connecting a TrnsysModel to itself')
-        if other is None:
-            raise ValueError('Other is None')
-
-        style = LinkStyle(self, other, loc, path=path)
-
-        style.set_color(color)
-        style.set_linestyle(linestyle)
-        style.set_linewidth(linewidth)
-        u = self.unit_number
-        v = other.unit_number
-        self.studio.link_styles.update({(u, v): style})
-
-    @property
-    def inputs(self):
-        """InputCollection: returns the model's inputs."""
-        return self._get_inputs()
-
-    @property
-    def outputs(self):
-        """OutputCollection: returns the model's outputs."""
-        return self._get_outputs()
 
     @property
     def derivatives(self):
@@ -518,17 +603,18 @@ class TrnsysModel(Component):
         return self.studio.position
 
     @classmethod
-    def _from_tag(cls, tag):
+    def _from_tag(cls, tag, **kwargs):
         """Class method to create a :class:`TrnsysModel` from a tag
 
         Args:
             tag (Tag): The XML tag with its attributes and contents.
+            **kwargs:
 
         Returns:
             TrnsysModel: The TRNSYS model.
         """
-        meta = MetaData.from_tag(tag)
-        name = tag.find('object').text
+        name = kwargs.pop('name', tag.find('object').text)
+        meta = MetaData.from_tag(tag, **kwargs)
 
         model = cls(meta, name)
         type_vars = [TypeVariable.from_tag(tag, model=model)
@@ -707,11 +793,21 @@ class TrnsysModel(Component):
 
 
 class TypeVariable(object):
+    """
+    :class:`TypeVariable` is the main object class that handles storage of
+    TRNSYS component parameters, inputs, outputs and derivatives. Parameters,
+    Inputs, Outputs and Derivatives are all subclasses of TypeVariable.
+
+    * See :class:`Parameter` for more details.
+    * See :class:`Input` for more details.
+    * See :class:`Output` for more details.
+    * See :class:`Derivative` for more details.
+    """
 
     def __init__(self, val, order=None, name=None, role=None, dimension=None,
                  unit=None, type=None, min=None, max=None, boundaries=None,
                  default=None, symbol=None, definition=None, model=None):
-        """Class containing a proforma variable.
+        """Initialize a TypeVariable with the following attributes:
 
         Args:
             val (int, float, _Quantity): The actual value holded by this object.
@@ -980,9 +1076,9 @@ class Output(TypeVariable):
 
 
 class Derivative(TypeVariable):
-    """the DERIVATIVES for a given TypeModel specify initial values, such as the
-    initial temperatures of various nodes in a thermal storage tank or the
-    initial zone temperatures in a multi zone building.
+    """the DERIVATIVES for a given :class:`TrnsysModel` specify initial values,
+    such as the initial temperatures of various nodes in a thermal storage tank
+    or the initial zone temperatures in a multi zone building.
     """
 
     def __init__(self, val, **kwargs):
@@ -1270,11 +1366,11 @@ class AnchorPoint(object):
     def __init__(self, model, offset=20, height=40, width=40):
         """
         Args:
-            width (float): The width of the component in points.
-            height (float): The height of the component in points.
             model (TrnsysModel): The TrnsysModel.
             offset (float): The offset to give the anchor points from the center
                 of the model position.
+            height (float): The height of the component in points.
+            width (float): The width of the component in points.
         """
         self.offset = offset
         self.model = model
