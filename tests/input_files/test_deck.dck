@@ -90,6 +90,7 @@ UNIT 3 TYPE 65	 LIQUID SIDE
 PARAMETERS 12
 5		! 1 Nb. of left-axis variables
 3		! 2 Nb. of right-axis variables
+
 -30		! 3 Left axis minimum
 40		! 4 Left axis maximum
 0.0		! 5 Right axis minimum
@@ -100,6 +101,7 @@ nPlots		! 7 Number of plots per simulation
 -1		! 10 Logical unit for output file
 0		! 11 Output file units
 0		! 12 Output file delimiter
+
 INPUTS 8
 4,1 		! Boulder, CO:Dry bulb temperature ->Left axis variable-1
 2,1 		! PV/T:Outlet fluid temperature ->Left axis variable-2

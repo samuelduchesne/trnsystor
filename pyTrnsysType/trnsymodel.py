@@ -1157,7 +1157,7 @@ class VariableCollection(collections.UserDict):
         if isinstance(value, TypeVariable):
             """if a TypeVariable is given, simply set it"""
             super().__setitem__(key, value)
-        elif isinstance(value, (int, float)):
+        elif isinstance(value, (int, float, str)):
             """a str, float, int, etc. is passed"""
             value = _parse_value(value, self[key].type, self[key].unit,
                                  (self[key].min, self[key].max))

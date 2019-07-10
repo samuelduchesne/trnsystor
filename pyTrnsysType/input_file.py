@@ -980,48 +980,35 @@ class Deck(object):
                     _meta = MetaData(type=t)
                     model = TrnsysModel(_meta, name=n)
                     model._unit = int(u)
-                    line = dcklines.readline()
 
                     # read studio markup
-                    for n in range(4):
-                        key, match = dck._parse_line(line)
-                        if key == 'unitname':
-                            unit_name = match.group(key)
-                            model.name = unit_name
-                        if key == 'layer':
-                            layer = match.group(key)
-                            model.change_component_layer(layer)
-                        if key == 'position':
-                            pos = match.group(key)
-                            model.set_canvas_position(
-                                map(float, pos.strip().split()), True)
-                        if key == 'model':
-                            _mod = match.group('model')
-                            xml = Path(_mod.replace("\\", "/"))
-                            xml_basename = xml.basename()
-                            try:
-                                new_meta = MetaData.from_xml(xml)
-                            except:
-                                # replace extension with ".xml" and retry
-                                xml_basename = xml_basename.stripext() + ".xml"
-                                proforma_root = Path(proforma_root)
-                                if proforma_root is None:
-                                    proforma_root = Path.getcwd()
-                                xmls = proforma_root.glob('*.xml')
-                                xml = next((x for x in xmls if x.basename() ==
-                                            xml_basename), None)
-                                if not xml:
-                                    msg = 'The proforma {} could not be found ' \
-                                          'at' \
-                                          ' "{}"'.format(xml_basename,
-                                                         proforma_root)
-                                    lg.warning(msg)
-                                    break
-                                new_meta = MetaData.from_xml(xml)
-                            model.update_meta(new_meta)
-                        line = dcklines.readline()
+                    cls.unit_studio_markup(dck, dcklines, key,
+                                           line, match, model,
+                                           proforma_root)
 
                     dck.append_model(model)
+
+                if key == 'parameters' or key == 'inputs':
+                    if model._meta.variables:
+                        n_params = int(match.group(key).strip())
+                        i = -1
+                        while line:
+                            i += 1
+                            line = dcklines.readline()
+                            if not line.strip():
+                                line = "\n"
+                                i -= 1
+                            else:
+                                varkey, match = dck._parse_line(line)
+                                if varkey == 'typevariable':
+                                    tvar = match.group('typevariable').strip()
+                                    try:
+                                        getattr(model, key)[i] = tvar
+                                    except:
+                                        pass
+                                if i == n_params - 1:
+                                    line = None
+
 
                 # identify linkstyles
                 if key == 'link':
@@ -1072,6 +1059,46 @@ class Deck(object):
         # assert missing types
         # todo: list types that could not be parsed
         return dck
+
+    @staticmethod
+    def unit_studio_markup(dck, dcklines, key, line, match, model,
+                           proforma_root):
+        for line in [next(dcklines) for x in range(4)]:
+            key, match = dck._parse_line(line)
+            if key == 'unitname':
+                unit_name = match.group(key)
+                model.name = unit_name
+            if key == 'layer':
+                layer = match.group(key)
+                model.change_component_layer(layer)
+            if key == 'position':
+                pos = match.group(key)
+                model.set_canvas_position(
+                    map(float, pos.strip().split()), True)
+            if key == 'model':
+                _mod = match.group('model')
+                xml = Path(_mod.replace("\\", "/"))
+                xml_basename = xml.basename()
+                try:
+                    inter_model = TrnsysModel.from_xml(xml)
+                except:
+                    # replace extension with ".xml" and retry
+                    xml_basename = xml_basename.stripext() + ".xml"
+                    proforma_root = Path(proforma_root)
+                    if proforma_root is None:
+                        proforma_root = Path.getcwd()
+                    xmls = proforma_root.glob('*.xml')
+                    xml = next((x for x in xmls if x.basename() ==
+                                xml_basename), None)
+                    if not xml:
+                        msg = 'The proforma {} could not be found ' \
+                              'at' \
+                              ' "{}"'.format(xml_basename,
+                                             proforma_root)
+                        lg.warning(msg)
+                        break
+                    inter_model = TrnsysModel.from_xml(xml)
+                model.update_meta(inter_model._meta)
 
     def _parse_line(self, line):
         """
@@ -1145,6 +1172,11 @@ class Deck(object):
                 r'?P<path>.*?$)'),
             'userconstants': re.compile(r'(?i)(?P<key>^\*\$user_constants)('
                                         r'?=(?:!|$))'),
+            'parameters': re.compile(
+                r'(?i)(?P<key>^parameters)(?P<parameters>.*?)(?=(?:!|$))'),
+            'inputs': re.compile(
+                r'(?i)(?P<key>^inputs)(?P<inputs>.*?)(?=(?:!|$))'),
+            'typevariable': re.compile(r'(?P<typevariable>.*?)(?=(?:!|$))'),
         }
         return rx_dict
 

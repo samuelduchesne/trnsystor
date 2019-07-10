@@ -1,0 +1,403 @@
+#ESI!
+4.0
+Single Speed Pump
+0
+
+Jeff Thornton
+Thermal Energy System Specialists
+1
+SINGLE-SPEED PUMP
+2
+34
+1/1/98
+MJD
+May 2011
+1
+
+noowner
+__
+__
+__
+2
+Type114 models a single (constant) speed pump that is able to maintain a constant fluid outlet mass flow rate. Pump starting and stopping characteristics are not modeled, nor are pressure drop effects. As with most pumps
+and fans in TRNSYS, Type114 takes mass flow rate as an input but ignores the value except in order to perform mass balance checks. Type114 sets the downstream flow rate based on its rated flow rate parameter and the current value of its control signal input.
+0
+0
+0
+0
+0
+0
+__
+__
+__
+1
+SINGLE-SPEED PUMP
+0
+__
+__
+__
+__
+0
+0
+__
+.\SourceCode\Types\Type114.f90
+__
+__
+__
+14
+Rated flow rate
+SN
+1
+The flow rate of fluid through the pump when operating.
+simple
+real
+3
++
+0.0
++Inf
+[ ; ]
+1000.0
+100.0
+kg/hr
+Flow Rate
+Fluid specific heat
+SN
+1
+The specific heat of the fluid flowing through the device.
+simple
+real
+3
++
+0.
++Inf
+[ ; ]
+4.19
+0
+kJ/kg.K
+Specific Heat
+Rated power
+SN
+1
+The pump power consumption during operation.
+simple
+real
+3
++
+0.0
++Inf
+[ ; ]
+2684.0
+1000.0
+kJ/hr
+Power
+Inlet fluid temperature
+SN
+1
+The temperature of the fluid entering the device
+simple
+real
+1
++
+-Inf
++Inf
+[ ; ]
+20.0
+20.0
+C
+Temperature
+Inlet fluid flow rate
+SN
+1
+The flow rate of fluid entering the device.  This input is not used by this component except for convergence checking.
+simple
+real
+1
++
+0.0
++Inf
+[ ; ]
+1000
+100.0
+kg/hr
+Flow Rate
+Control signal
+SN
+1
+The input control signal to the pump:  <0.5 - the pump is OFF, >= 0.5 - the pump is ON
+simple
+real
+1
++
+0.0
+1.0
+[ ; ]
+1.0
+1.0
+-
+Dimensionless
+Outlet fluid temperature
+SN
+1
+The temperature of the fluid exiting the device.
+simple
+real
+2
++
+-Inf
++Inf
+[ ; ]
+0
+0
+C
+Temperature
+Outlet flow rate
+SN
+1
+The flow rate of fluid exiting the device.
+simple
+real
+2
++
+0.0
++Inf
+[ ; ]
+0
+0
+kg/hr
+Flow Rate
+Power consumption
+SN
+1
+The power consumed by the pump.
+simple
+real
+2
++
+-Inf
++Inf
+[ ; ]
+0
+0
+kJ/hr
+Power
+Fluid heat transfer
+SN
+1
+The rate at which heat is transferred to the fluid by the pump operation.
+simple
+real
+2
++
+-Inf
++Inf
+[ ; ]
+0
+0
+kJ/hr
+Power
+Motor heat loss fraction
+SN
+1
+The fraction of the motor heat loss transferred to the fluid stream.  The motor heat loss is calculated by subtracting the efficiency of the motor from 1 and multiplying the resultant quantity by the power consumption.  Typical values for this parameter are 0 for motors mounted outside the fluid stream and 1 for motors mounted within the fluid stream.
+simple
+real
+3
++
+0.
+1.0
+[ ; ]
+0.0
+0
+-
+Dimensionless
+Overall pump efficiency
+SN
+1
+The overall efficiency of the pump.  The overall pump efficiency includes the inefficiencies due to the motor and shaft friction.  The overall pump efficiency must be less than the motor efficiency.  The lower the efficiency the greater the amount of power consumed and the greater the heat transfer to the fluid and/or ambient.
+simple
+real
+1
++
+0.
+1.
+[ ; ]
+0.6
+0
+-
+Dimensionless
+Motor efficiency
+SN
+1
+The efficiency of the pump motor.  The motor efficiency must be greater than the overall pump efficiency.  The lower the motor efficiency the greater the amount of power consumed and the greater the heat transfer to the fluid and/or ambient.
+simple
+real
+1
++
+0.
+1.
+[ ; ]
+0.9
+0
+-
+Dimensionless
+Environment heat transfer
+SN
+1
+The rate at which heat is transferred from the pump to the environment.  This value is simply the pump power minus the heat transfer directly to the fluid.
+simple
+real
+2
++
+-Inf
++Inf
+[ ; ]
+0
+0
+kJ/hr
+Power
+0
+0
+0
+0
+0
+
+*** trnModel specific properties ***
+9999
+114
+df /c
+9
+
+
+
+0
+
+
+
+0
+
+
+
+0
+
+
+
+0
+
+
+
+0
+
+
+
+0
+
+
+
+0
+
+
+
+0
+
+
+
+0
+9
+
+
+
+0
+
+
+0
+
+
+
+0
+
+
+0
+
+
+
+0
+
+
+0
+
+
+
+0
+
+
+0
+
+
+
+0
+
+
+0
+
+
+
+4
+Rated flow rate
+Fluid specific heat
+Rated power
+Motor heat loss fraction
+
+
+0
+
+
+
+0
+
+
+0
+
+
+
+0
+
+
+0
+
+
+
+0
+
+
+0
+2
+Pump
+Single-Speed
+0
+4
+0
+
+
+1
+50
+0
+4
+0
+
+
+1
+50
+0
+3
+0
+
+
+1
+50
+-1
+-1
+0
+
+
+1
+50
