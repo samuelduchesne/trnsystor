@@ -143,7 +143,6 @@ class MetaData(object):
                 return meta
 
 
-
 class ExternalFile(object):
     logic_unit = itertools.count(start=30)
 
@@ -314,6 +313,7 @@ class ComponentCollection(collections.UserDict):
 
 class Component(metaclass=ABCMeta):
     new_id = itertools.count(start=0)  # starts at 0; the first instance will
+
     # have unit_number == 1, which is the correct behavior.
 
     def __init__(self, name, meta):
@@ -660,6 +660,9 @@ class TrnsysModel(Component):
         """
         self._resolve_cycles('input', Input)
         input_dict = self._get_ordered_filtered_types(Input, 'variables')
+        # filter out cyclebases
+        input_dict = {k: v for k, v in input_dict.items() if
+                      v._iscyclebase == False}
         return InputCollection.from_dict(input_dict)
 
     def _get_outputs(self):
@@ -669,6 +672,9 @@ class TrnsysModel(Component):
         # output_dict = self._get_ordered_filtered_types(Output)
         self._resolve_cycles('output', Output)
         output_dict = self._get_ordered_filtered_types(Output, 'variables')
+        # filter out cyclebases
+        output_dict = {k: v for k, v in output_dict.items() if
+                       v._iscyclebase == False}
         return OutputCollection.from_dict(output_dict)
 
     def _get_parameters(self):
@@ -677,11 +683,17 @@ class TrnsysModel(Component):
         """
         self._resolve_cycles('parameter', Parameter)
         param_dict = self._get_ordered_filtered_types(Parameter, 'variables')
+        # filter out cyclebases
+        param_dict = {k: v for k, v in param_dict.items() if
+                      v._iscyclebase == False}
         return ParameterCollection.from_dict(param_dict)
 
     def _get_derivatives(self):
         self._resolve_cycles('derivative', Derivative)
         deriv_dict = self._get_ordered_filtered_types(Derivative, 'variables')
+        # filter out cyclebases
+        deriv_dict = {k: v for k, v in deriv_dict.items() if
+                      v._iscyclebase == False}
         return VariableCollection.from_dict(deriv_dict)
 
     def _get_external_files(self):
@@ -777,7 +789,11 @@ class TrnsysModel(Component):
                        self._meta.variables.items())
             )
              ]
-            for item, n_time in zip(items, n_times):
+            # make sure to cycle through all possible items
+            for item, n_time in zip(items, itertools.cycle(n_times)) if len(
+                    items) > len(n_times) else zip(itertools.cycle(items),
+                                                   n_times):
+                item._iscyclebase = True
                 basename = item.name
                 item_base = self._meta.variables.get(id(item))
                 for n, _ in enumerate(range(int(n_time)), start=1):
@@ -785,6 +801,7 @@ class TrnsysModel(Component):
                                      value.name == basename + "-{}".format(
                                          n)), None)
                     item = mydict.get(existing, item_base.copy())
+                    item._iscyclebase = False  # return it back to False
                     if item._iscycle:
                         self._meta.variables.update({id(item): item})
                     else:
@@ -864,6 +881,7 @@ class TypeVariable(object):
         """
         super().__init__()
         self._iscycle = False
+        self._iscyclebase = False
         self.order = order
         self.name = name
         self.role = role
@@ -1020,7 +1038,9 @@ class TypeCycle(object):
     @property
     def idxs(self):
         """0-based index of the TypeVariable(s) concerned with this cycle"""
-        return [int(cycle.firstRow) - 1 for cycle in self.cycles]
+        return list(itertools.chain(
+            *(range(int(cycle.firstRow) - 1, int(cycle.lastRow)) for cycle in
+              self.cycles)))
 
     @property
     def is_question(self):

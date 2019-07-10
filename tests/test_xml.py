@@ -75,6 +75,16 @@ class TestTrnsysModel():
         assert n_nodes == expected_1
         assert n_nodes == expected_2
 
+    def test_cycles_issue14(self):
+        from pyTrnsysType.trnsymodel import TrnsysModel
+        valve = TrnsysModel.from_xml("tests/input_files/Type647.xml")
+        assert valve.parameters["Number_of_Outlet_Ports"].value == 2
+        assert valve.outputs["Outlet_Flowrate_1"]
+        assert valve.outputs["Outlet_Flowrate_2"]
+        with pytest.raises(KeyError):
+            # Make sure the cyclebase is not returned
+            assert valve.outputs["Outlet_Flowrate"]
+
     def test_cancel_missing_tag(self, tank_type):
         from pyTrnsysType.trnsymodel import TrnsysModel
         with pytest.raises(NotImplementedError):
