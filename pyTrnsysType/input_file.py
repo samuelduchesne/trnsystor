@@ -868,197 +868,190 @@ class Deck(object):
             line = dcklines.readline()
             while line:
                 # at each line check for a match with a regex
-                key, match = dck._parse_line(line)
-
-                if key == 'version':
-                    version = match.group('version')
-                    v_ = Version.from_string(version.strip())
-                    cc.set_statement(v_)
-
-                # identify a ConstantCollection
-                if key == 'constants':
-                    n_cnts = match.group(key)
-                    cb = ConstantCollection()
-                    for n in range(int(n_cnts)):
-                        line = next(dcklines)
-                        cb.update(Constant.from_expression(line))
-                    cc.set_statement(cb)
-
-                if key == 'simulation':
-                    sss = match.group(key)
-                    s_ = Simulation(*map(Constant, sss.split()))
-                    repr(s_.start)
-                    cc.set_statement(s_)
-
-                if key == 'tolerances':
-                    sss = match.group(key)
-                    t_ = Tolerances(*(map(float, map(str.strip, sss.split()))))
-                    cc.set_statement(t_)
-
-                if key == 'limits':
-                    sss = match.group(key)
-                    l_ = Limits(*(map(int, map(str.strip, sss.split()))))
-                    cc.set_statement(l_)
-
-                if key == 'dfq':
-                    k = match.group(key)
-                    cc.set_statement(DFQ(k.strip()))
-
-                if key == 'width':
-                    w = match.group(key)
-                    # todo: Implement Width
-
-                if key == 'list':
-                    k = match.group(key)
-                    cc.set_statement(List(*k.strip().split()))
-
-                if key == 'solver':
-                    k = match.group(key)
-                    cc.set_statement(Solver(*k.strip().split()))
-
-                if key == 'nancheck':
-                    k = match.group(key)
-                    cc.set_statement(NaNCheck(*k.strip().split()))
-
-                if key == 'overwritecheck':
-                    k = match.group(key)
-                    cc.set_statement(OverwriteCheck(*k.strip().split()))
-
-                if key == 'timereport':
-                    k = match.group(key)
-                    cc.set_statement(TimeReport(*k.strip().split()))
-
-                if key == 'eqsolver':
-                    k = match.group(key)
-                    cc.set_statement(EqSolver(*k.strip().split()))
-
-                if key == 'userconstants':
-                    line = dcklines.readline()
-                    key, match = dck._parse_line(line)
-
-                # identify an equation block (EquationCollection)
-                if key == 'equations':
-                    # extract number of line, number of equations
-                    n_equations = match.group('equations')
-                    line = dcklines.readline()
-                    # read each line of the table until a blank line
-                    ec = EquationCollection()
-                    for n in range(int(n_equations)):
-                        # extract number and value
-                        value = line.strip()
-                        # create equation
-                        eq = Equation.from_expression(value)
-                        cc.equations.append(ec)
-                        ec.update(eq)
-
-                        line = dcklines.readline()  # go to next line
-                        # append the dictionary to the data list
-                    dck.append_model(ec)
-
-                # read studio markup
-                if key == 'unitnumber':
-                    unit_number = match.group(key)
-                    ec._unit = int(unit_number)
-                if key == 'unitname':
-                    unit_name = match.group(key)
-                    ec.name = unit_name
-                if key == 'layer':
-                    layer = match.group(key)
-                    ec.change_component_layer(layer)
-                if key == 'position':
-                    pos = match.group(key)
-                    ec.set_canvas_position(map(float, pos.strip().split()))
-
-                # identify a unit (TrnsysModel)
-                if key == 'unit':
-                    models = []
-                    # extract unit_number, type_number and name
-                    u = match.group('unitnumber').strip()
-                    t = match.group('typenumber').strip()
-                    n = match.group('name').strip()
-
-                    _meta = MetaData(type=t)
-                    model = TrnsysModel(_meta, name=n)
-                    model._unit = int(u)
-
-                    # read studio markup
-                    cls.unit_studio_markup(dck, dcklines, key,
-                                           line, match, model,
-                                           proforma_root)
-
-                    dck.append_model(model)
-
-                if key == 'parameters' or key == 'inputs':
-                    if model._meta.variables:
-                        n_params = int(match.group(key).strip())
-                        i = -1
-                        while line:
-                            i += 1
-                            line = dcklines.readline()
-                            if not line.strip():
-                                line = "\n"
-                                i -= 1
-                            else:
-                                varkey, match = dck._parse_line(line)
-                                if varkey == 'typevariable':
-                                    tvar = match.group('typevariable').strip()
-                                    try:
-                                        getattr(model, key)[i] = tvar
-                                    except:
-                                        pass
-                                if i == n_params - 1:
-                                    line = None
-
-
-                # identify linkstyles
-                if key == 'link':
-                    # identify u,v unit numbers
-                    u, v = match.group(key).strip().split(':')
-
-                    line = dcklines.readline()
-                    key, match = dck._parse_line(line)
-
-                    # identify linkstyle attributes
-                    if key == "linkstyle":
-                        _lns = match.groupdict()
-                        path = _lns["path"].strip().split(":")
-
-                        mapping = AnchorPoint(
-                            dck.models[int(u)]).studio_anchor_reverse_mapping
-
-                        def find_closest(mappinglist, coordinate):
-                            def distance(a, b):
-                                a_ = Point(a)
-                                b_ = Point(b)
-                                return a_.distance(b_)
-
-                            return min(mappinglist, key=lambda x: distance(x,
-                                                                           coordinate))
-
-                        u_coords = (int(_lns['u1']), int(_lns['u2']))
-                        v_coords = (int(_lns['v1']), int(_lns['v2']))
-                        loc = mapping[find_closest(mapping.keys(), u_coords)], \
-                              mapping[find_closest(mapping.keys(), v_coords)]
-                        color = get_rgb_from_int(int(_lns['color']))
-                        linestyle = _studio_to_linestyle(int(_lns['linestyle']))
-                        linewidth = int(_lns['linewidth'])
-
-                        path = LineString(
-                            [list(map(int, p.split(","))) for p in path])
-
-                        try:
-                            dck.models[int(u)].set_link_style(
-                                dck.models[int(v)],
-                                loc, color, linestyle,
-                                linewidth, path)
-                        except:
-                            pass
-
-                line = dcklines.readline()
+                line = cls._parse_logic(cc, dck, dcklines, line, proforma_root)
 
         # assert missing types
         # todo: list types that could not be parsed
         return dck
+
+    @classmethod
+    def _parse_logic(cls, cc, dck, dcklines, line, proforma_root):
+        while line:
+            key, match = dck._parse_line(line)
+            if key == 'version':
+                version = match.group('version')
+                v_ = Version.from_string(version.strip())
+                cc.set_statement(v_)
+            # identify a ConstantCollection
+            if key == 'constants':
+                n_cnts = match.group(key)
+                cb = ConstantCollection()
+                for n in range(int(n_cnts)):
+                    line = next(dcklines)
+                    cb.update(Constant.from_expression(line))
+                cc.set_statement(cb)
+            if key == 'simulation':
+                sss = match.group(key)
+                s_ = Simulation(*map(Constant, sss.split()))
+                repr(s_.start)
+                cc.set_statement(s_)
+            if key == 'tolerances':
+                sss = match.group(key)
+                t_ = Tolerances(*(map(float, map(str.strip, sss.split()))))
+                cc.set_statement(t_)
+            if key == 'limits':
+                sss = match.group(key)
+                l_ = Limits(*(map(int, map(str.strip, sss.split()))))
+                cc.set_statement(l_)
+            if key == 'dfq':
+                k = match.group(key)
+                cc.set_statement(DFQ(k.strip()))
+            if key == 'width':
+                w = match.group(key)
+                # todo: Implement Width
+            if key == 'list':
+                k = match.group(key)
+                cc.set_statement(List(*k.strip().split()))
+            if key == 'solver':
+                k = match.group(key)
+                cc.set_statement(Solver(*k.strip().split()))
+            if key == 'nancheck':
+                k = match.group(key)
+                cc.set_statement(NaNCheck(*k.strip().split()))
+            if key == 'overwritecheck':
+                k = match.group(key)
+                cc.set_statement(OverwriteCheck(*k.strip().split()))
+            if key == 'timereport':
+                k = match.group(key)
+                cc.set_statement(TimeReport(*k.strip().split()))
+            if key == 'eqsolver':
+                k = match.group(key)
+                cc.set_statement(EqSolver(*k.strip().split()))
+            if key == 'userconstants':
+                line = dcklines.readline()
+                key, match = dck._parse_line(line)
+            # identify an equation block (EquationCollection)
+            if key == 'equations':
+                # extract number of line, number of equations
+                n_equations = match.group('equations')
+                line = dcklines.readline()
+                # read each line of the table until a blank line
+                ec = EquationCollection()
+                for n in range(int(n_equations)):
+                    # extract number and value
+                    value = line.strip()
+                    # create equation
+                    eq = Equation.from_expression(value)
+                    cc.equations.append(ec)
+                    ec.update(eq)
+
+                    line = dcklines.readline()  # go to next line
+                    # append the dictionary to the data list
+                dck.append_model(ec)
+            # read studio markup
+            if key == 'unitnumber':
+                unit_number = match.group(key)
+                ec._unit = int(unit_number)
+            if key == 'unitname':
+                unit_name = match.group(key)
+                ec.name = unit_name
+            if key == 'layer':
+                layer = match.group(key)
+                ec.change_component_layer(layer)
+            if key == 'position':
+                pos = match.group(key)
+                ec.set_canvas_position(map(float, pos.strip().split()))
+            # identify a unit (TrnsysModel)
+            if key == 'unit':
+                # extract unit_number, type_number and name
+                u = match.group('unitnumber').strip()
+                t = match.group('typenumber').strip()
+                n = match.group('name').strip()
+
+                _meta = MetaData(type=t)
+                model = TrnsysModel(_meta, name=n)
+                model._unit = int(u)
+
+                # read studio markup
+                cls.unit_studio_markup(dck, dcklines, key,
+                                       line, match, model,
+                                       proforma_root)
+
+                dck.append_model(model)
+            if key == 'parameters' or key == 'inputs':
+                if model._meta.variables:
+                    n_params = int(match.group(key).strip())
+                    i = -1
+                    while line:
+                        i += 1
+                        line = dcklines.readline()
+                        if not line.strip():
+                            line = "\n"
+                            i -= 1
+                        else:
+                            varkey, match = dck._parse_line(line)
+                            if varkey == 'typevariable':
+                                tvar = match.group('typevariable').strip()
+                                try:
+                                    if key == 'parameters':
+                                        getattr(model, key)[i] = tvar
+                                    else:
+                                        if not tvar == '0,0':
+                                            unit_number, output_number = \
+                                                map(int, tvar.split(','))
+                                            other = dck.models[unit_number]
+                                            other.connect_to(model, mapping={
+                                                output_number - 1: i})
+                                except:
+                                    line = cls._parse_logic(cc, dck, dcklines,
+                                                         line, proforma_root)
+                            if i == n_params - 1:
+                                line = None
+            # identify linkstyles
+            if key == 'link':
+                # identify u,v unit numbers
+                u, v = match.group(key).strip().split(':')
+
+                line = dcklines.readline()
+                key, match = dck._parse_line(line)
+
+                # identify linkstyle attributes
+                if key == "linkstyle":
+                    _lns = match.groupdict()
+                    path = _lns["path"].strip().split(":")
+
+                    mapping = AnchorPoint(
+                        dck.models[int(u)]).studio_anchor_reverse_mapping
+
+                    def find_closest(mappinglist, coordinate):
+                        def distance(a, b):
+                            a_ = Point(a)
+                            b_ = Point(b)
+                            return a_.distance(b_)
+
+                        return min(mappinglist, key=lambda x: distance(x,
+                                                                       coordinate))
+
+                    u_coords = (int(_lns['u1']), int(_lns['u2']))
+                    v_coords = (int(_lns['v1']), int(_lns['v2']))
+                    loc = mapping[find_closest(mapping.keys(), u_coords)], \
+                          mapping[find_closest(mapping.keys(), v_coords)]
+                    color = get_rgb_from_int(int(_lns['color']))
+                    linestyle = _studio_to_linestyle(int(_lns['linestyle']))
+                    linewidth = int(_lns['linewidth'])
+
+                    path = LineString(
+                        [list(map(int, p.split(","))) for p in path])
+
+                    try:
+                        dck.models[int(u)].set_link_style(
+                            dck.models[int(v)],
+                            loc, color, linestyle,
+                            linewidth, path)
+                    except:
+                        pass
+            line = dcklines.readline()
+        return line
 
     @staticmethod
     def unit_studio_markup(dck, dcklines, key, line, match, model,
