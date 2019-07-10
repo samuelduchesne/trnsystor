@@ -859,7 +859,7 @@ class Deck(object):
         self.name = name
 
     @classmethod
-    def _from_deckfile(cls, file, proforma_root=None):
+    def from_file(cls, file, proforma_root=None):
         file = Path(file)
         with open(file) as dcklines:
             dck = cls(name=file.basename, control_card=None)
@@ -873,6 +873,9 @@ class Deck(object):
         # assert missing types
         # todo: list types that could not be parsed
         return dck
+
+    def append_model(self, model):
+        self.models.update(model)
 
     @classmethod
     def _parse_logic(cls, cc, dck, dcklines, line, proforma_root):
@@ -1172,6 +1175,3 @@ class Deck(object):
             'typevariable': re.compile(r'(?P<typevariable>.*?)(?=(?:!|$))'),
         }
         return rx_dict
-
-    def append_model(self, model):
-        self.models.update(model)

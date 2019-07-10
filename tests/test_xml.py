@@ -564,7 +564,7 @@ class TestDeck():
         from pyTrnsysType import Deck
         file = "tests/input_files/test_deck.dck"
         with patch('builtins.input', return_value='y'):
-            dck = Deck._from_deckfile(file, proforma_root="tests/input_files")
+            dck = Deck.from_file(file, proforma_root="tests/input_files")
             yield dck
 
     def test_deck_graph(self, test_deck):
