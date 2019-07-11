@@ -180,6 +180,8 @@ def parse_unit(unit):
     elif unit.lower() == 'fraction':
         ureg.define('fraction = 1*count = -')
         return Q_, ureg.fraction
+    elif unit.lower() == 'any':
+        return Q_, ureg.parse_expression('dimensionless')
     else:
         return Q_, ureg.parse_units(unit)
 
