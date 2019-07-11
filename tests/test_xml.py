@@ -304,6 +304,11 @@ class TestTrnsysModel():
         with pytest.raises(TypeError):
             weather_type.external_files[0] = 1
 
+    def test_datareader(self):
+        from pyTrnsysType.trnsymodel import TrnsysModel
+        dr = TrnsysModel.from_xml("tests/input_files/Type9c.xml")
+        assert dr._meta.compileCommand == r"df /c"
+
     def test_set_position(self, fan_type):
         fan_type.set_canvas_position((500, 400))
         assert fan_type.studio.position == Point(500, 400)

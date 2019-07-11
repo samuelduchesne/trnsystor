@@ -1,0 +1,1603 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrnsysModel>
+    <object>Data Reader For Generic Data Files - Skip lines to start (Free format)</object>
+    <author>Contributors are listed in the main TRNSYS manual</author>
+    <organization>Solar Energy Laboratory, University of Wisconsin-Madison</organization>
+    <editor>MKu</editor>
+    <creationDate>TRNSYS v7.5</creationDate>
+    <modifictionDate>May 2011</modifictionDate>
+    <mode>4</mode>
+    <validation>32</validation>
+    <icon>C:\Users\saleta\Dropbox\Polytechnique\Doc\software\pyTrnsysType\tests\input_files\Type9c.bmp</icon>
+    <type>9</type>
+    <maxInstance>9999</maxInstance>
+    <keywords/>
+    <details>This component serves the purpose of reading data at regular time intervals from a data file, converting it
+        to a desired system of units, and making it available to other TRNSYS components as time-varying forcing
+        functions. This component is very general in nature and can read many different types of files. The data from
+        line to line must be at constant time intervals.
+    </details>
+    <variables>
+        <variable><!--output-1-->
+            <order>1</order>
+            <name>Output 1</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>nth value read from data file (if at least n values are read).
+            </definition>
+        </variable>
+        <variable><!--output-2-->
+            <order>2</order>
+            <name>Output 2</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>nth value read from data file (if at least n values are read).
+            </definition>
+        </variable>
+        <variable><!--output-3-->
+            <order>3</order>
+            <name>Output 3</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>nth value read from data file (if at least n values are read).
+            </definition>
+        </variable>
+        <variable><!--output-4-->
+            <order>4</order>
+            <name>Output 4</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>nth value read from data file (if at least n values are read).
+            </definition>
+        </variable>
+        <variable><!--output-5-->
+            <order>5</order>
+            <name>Output 5</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>nth value read from data file (if at least n values are read).
+            </definition>
+        </variable>
+        <variable><!--output-6-->
+            <order>6</order>
+            <name>Output 6</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>nth value read from data file (if at least n values are read).
+            </definition>
+        </variable>
+        <variable><!--output-7-->
+            <order>7</order>
+            <name>Output 7</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>nth value read from data file (if at least n values are read).
+            </definition>
+        </variable>
+        <variable><!--output-8-->
+            <order>8</order>
+            <name>Output 8</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>nth value read from data file (if at least n values are read).
+            </definition>
+        </variable>
+        <variable><!--output-9-->
+            <order>9</order>
+            <name>Output 9</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>nth value read from data file (if at least n values are read).
+            </definition>
+        </variable>
+        <variable><!--output-10-->
+            <order>10</order>
+            <name>Output 10</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>nth value read from data file (if at least n values are read).
+            </definition>
+        </variable>
+        <variable><!--output-11-->
+            <order>11</order>
+            <name>Output 11</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-12-->
+            <order>12</order>
+            <name>Output 12</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-13-->
+            <order>13</order>
+            <name>Output 13</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-14-->
+            <order>14</order>
+            <name>Output 14</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-15-->
+            <order>15</order>
+            <name>Output 15</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-16-->
+            <order>16</order>
+            <name>Output 16</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-17-->
+            <order>17</order>
+            <name>Output 17</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-18-->
+            <order>18</order>
+            <name>Output 18</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-19-->
+            <order>19</order>
+            <name>Output 19</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-20-->
+            <order>20</order>
+            <name>Output 20</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-21-->
+            <order>21</order>
+            <name>Output 21</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-22-->
+            <order>22</order>
+            <name>Output 22</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-23-->
+            <order>23</order>
+            <name>Output 23</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-24-->
+            <order>24</order>
+            <name>Output 24</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-25-->
+            <order>25</order>
+            <name>Output 25</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-26-->
+            <order>26</order>
+            <name>Output 26</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-27-->
+            <order>27</order>
+            <name>Output 27</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-28-->
+            <order>28</order>
+            <name>Output 28</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-29-->
+            <order>29</order>
+            <name>Output 29</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-30-->
+            <order>30</order>
+            <name>Output 30</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-31-->
+            <order>31</order>
+            <name>Output 31</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-32-->
+            <order>32</order>
+            <name>Output 32</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-33-->
+            <order>33</order>
+            <name>Output 33</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-34-->
+            <order>34</order>
+            <name>Output 34</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-35-->
+            <order>35</order>
+            <name>Output 35</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-36-->
+            <order>36</order>
+            <name>Output 36</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-37-->
+            <order>37</order>
+            <name>Output 37</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-38-->
+            <order>38</order>
+            <name>Output 38</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-39-->
+            <order>39</order>
+            <name>Output 39</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-40-->
+            <order>40</order>
+            <name>Output 40</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-41-->
+            <order>41</order>
+            <name>Output 41</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-42-->
+            <order>42</order>
+            <name>Output 42</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-43-->
+            <order>43</order>
+            <name>Output 43</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-44-->
+            <order>44</order>
+            <name>Output 44</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-45-->
+            <order>45</order>
+            <name>Output 45</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-46-->
+            <order>46</order>
+            <name>Output 46</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-47-->
+            <order>47</order>
+            <name>Output 47</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-48-->
+            <order>48</order>
+            <name>Output 48</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-49-->
+            <order>49</order>
+            <name>Output 49</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-50-->
+            <order>50</order>
+            <name>Output 50</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-51-->
+            <order>51</order>
+            <name>Output 51</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-52-->
+            <order>52</order>
+            <name>Output 52</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-53-->
+            <order>53</order>
+            <name>Output 53</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-54-->
+            <order>54</order>
+            <name>Output 54</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-55-->
+            <order>55</order>
+            <name>Output 55</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-56-->
+            <order>56</order>
+            <name>Output 56</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-57-->
+            <order>57</order>
+            <name>Output 57</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-58-->
+            <order>58</order>
+            <name>Output 58</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-59-->
+            <order>59</order>
+            <name>Output 59</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-60-->
+            <order>60</order>
+            <name>Output 60</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-61-->
+            <order>61</order>
+            <name>Output 61</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-62-->
+            <order>62</order>
+            <name>Output 62</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-63-->
+            <order>63</order>
+            <name>Output 63</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-64-->
+            <order>64</order>
+            <name>Output 64</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-65-->
+            <order>65</order>
+            <name>Output 65</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-66-->
+            <order>66</order>
+            <name>Output 66</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-67-->
+            <order>67</order>
+            <name>Output 67</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-68-->
+            <order>68</order>
+            <name>Output 68</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-69-->
+            <order>69</order>
+            <name>Output 69</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-70-->
+            <order>70</order>
+            <name>Output 70</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-71-->
+            <order>71</order>
+            <name>Output 71</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-72-->
+            <order>72</order>
+            <name>Output 72</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-73-->
+            <order>73</order>
+            <name>Output 73</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-74-->
+            <order>74</order>
+            <name>Output 74</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-75-->
+            <order>75</order>
+            <name>Output 75</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-76-->
+            <order>76</order>
+            <name>Output 76</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-77-->
+            <order>77</order>
+            <name>Output 77</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-78-->
+            <order>78</order>
+            <name>Output 78</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-79-->
+            <order>79</order>
+            <name>Output 79</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-80-->
+            <order>80</order>
+            <name>Output 80</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-81-->
+            <order>81</order>
+            <name>Output 81</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-82-->
+            <order>82</order>
+            <name>Output 82</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-83-->
+            <order>83</order>
+            <name>Output 83</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-84-->
+            <order>84</order>
+            <name>Output 84</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-85-->
+            <order>85</order>
+            <name>Output 85</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-86-->
+            <order>86</order>
+            <name>Output 86</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-87-->
+            <order>87</order>
+            <name>Output 87</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-88-->
+            <order>88</order>
+            <name>Output 88</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-89-->
+            <order>89</order>
+            <name>Output 89</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-90-->
+            <order>90</order>
+            <name>Output 90</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-91-->
+            <order>91</order>
+            <name>Output 91</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-92-->
+            <order>92</order>
+            <name>Output 92</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-93-->
+            <order>93</order>
+            <name>Output 93</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-94-->
+            <order>94</order>
+            <name>Output 94</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-95-->
+            <order>95</order>
+            <name>Output 95</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-96-->
+            <order>96</order>
+            <name>Output 96</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-97-->
+            <order>97</order>
+            <name>Output 97</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-98-->
+            <order>98</order>
+            <name>Output 98</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-99-->
+            <order>99</order>
+            <name>Time of last read</name>
+            <role>output</role>
+            <dimension>Time</dimension>
+            <unit>hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The time at which the values were last read from the data file. This output is intended to be
+                hooked up to the radiation processor (Type 16).
+            </definition>
+        </variable>
+        <variable><!--output-100-->
+            <order>100</order>
+            <name>Time of next read</name>
+            <role>output</role>
+            <dimension>Time</dimension>
+            <unit>hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The time at which the next values will be read from the data file. This output is intended to be
+                hooked up to the radiation processor (Type16).
+            </definition>
+        </variable>
+        <variable><!--output-101-->
+            <order>101</order>
+            <name>Value at next timestep of Output</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The value at the next timestep of the listed output.
+            </definition>
+        </variable>
+        <variable><!--parameter-1-->
+            <order>102</order>
+            <name>Mode</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>6</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>5</default>
+            <symbol>SN</symbol>
+            <definition>This parameter sets the mode of the data reader. The different values (Modes 1 to 6) are
+                explained hereunder:
+                1: The first line in the data file is the simulation start time. Initial conditions are provided as
+                instantaneous values for ALL variables (including the ones that are given as average values over the
+                time step in the rest of the data file)
+                2: The first line in the data file is the simulation start time. Initial conditions are provided as
+                instantaneous or averaged values over one timestep according to the options set for each variables
+                3. The first line in the data file corresponds to the first time step of the simulation. No initial
+                values are provided in the file.
+                4: The first line in the data file corresponds to time = 0. If the simulation start is not 0, lines are
+                skipped accordingly in the data file. Initial conditions are provided as instantaneous values for ALL
+                variables (including the ones that are given as average values over the time step in the rest of the
+                data file)
+                5: The first line in the data file corresponds to time = 0. If the simulation start is not 0, lines are
+                skipped accordingly in the data file. Initial conditions are provided as instantaneous or averaged
+                values over one timestep according to the options set for each variables
+                6. The first line in the data file corresponds to the first timestep in a year. If the simulation does
+                not start at the beginning of the year, lines are skipped in the data file. No initial values are
+                provided in the file
+            </definition>
+        </variable>
+        <variable><!--parameter-2-->
+            <order>103</order>
+            <name>Header Lines to Skip</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>Number of header lines to skip in the data file (e.g. Variable names, units, or additional
+                information not used by TRNSYS)
+            </definition>
+        </variable>
+        <variable><!--parameter-3-->
+            <order>104</order>
+            <name>No. of values to read</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>98</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1</default>
+            <symbol>SN</symbol>
+            <definition>This parameter specifies how many values are to be read from each line of the data file. Note
+                that even if some values are used, the component must read all values up to the last one which is used.
+                E.g. if only the 1st, 2nd and 6th values are desired, this parameter should be equal to 6.
+            </definition>
+        </variable>
+        <variable><!--parameter-4-->
+            <order>105</order>
+            <name>Time interval of data</name>
+            <role>parameter</role>
+            <dimension>Time</dimension>
+            <unit>hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1.0</default>
+            <symbol>SN</symbol>
+            <definition>Time interval used to record the data in the file (e.g. hourly = 1.0, daily = 24.0).
+
+                The data time interval must be an integer multiplier of the simulation timestep. E.g. if the simulation
+                timestep is 15 minutes, the data time interval could be 15 min, 30 min, 1h, etc.
+            </definition>
+        </variable>
+        <variable><!--parameter-5-->
+            <order>106</order>
+            <name>Interpolate or not</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>-1</min>
+            <max>1</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1</default>
+            <symbol>SN</symbol>
+            <definition>This parameter indicates whether the values for the nth variable in the data file are to be
+                interpolated (1) or not (-1). Parameter 5 is for the first column, Parameter 9 is for the second column,
+                etc.
+                Radiation values should NOT be interpolated - this is the function of
+                the radiation processor.
+            </definition>
+        </variable>
+        <variable><!--parameter-6-->
+            <order>107</order>
+            <name>Multiplication factor</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1.0</default>
+            <symbol>SN</symbol>
+            <definition>Multiplication factor for the nth variable (column). Parameter 6 is for the first column,
+                Parameter 10 is for the second column, etc.
+                Output(n) = Value(n) * multiplication factor + addition factor
+            </definition>
+        </variable>
+        <variable><!--parameter-7-->
+            <order>108</order>
+            <name>Addition factor</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>Addition factor for the nth variable (column). Parameter 7 is for the first column, Parameter 11
+                is for the second column, etc.
+                Output(n) = Value(n) * multiplication factor + addition factor
+            </definition>
+        </variable>
+        <variable><!--parameter-8-->
+            <order>109</order>
+            <name>Average or instantaneous value</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>0</min>
+            <max>1</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1</default>
+            <symbol>SN</symbol>
+            <definition>This parameter indicates whether the nth variable (column) is an average value over the data
+                time interval (0) or an instantaneous value (1). Note that printed results from previous TRNSYS
+                simulations are average values over the time step.
+                Parameter 8 is for the first column, Parameter 12 is for the second column, etc.
+            </definition>
+        </variable>
+        <variable><!--parameter-9-->
+            <order>110</order>
+            <name>Logical unit for input file</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>30</min>
+            <max>999</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>30</default>
+            <symbol>SN</symbol>
+            <definition>This parameter sets the Fortran Logical Unit (File reference number) of the output file. It is
+                used internally by TRNSYS to refer to the file. This parameter will automatically be assigned to a
+                unique value by the TRNSYS Studio.
+            </definition>
+        </variable>
+        <variable><!--parameter-10-->
+            <order>111</order>
+            <name>Free format mode</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>-1</min>
+            <max>-1</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>-1</default>
+            <symbol>SN</symbol>
+            <definition>The value -1 for this parameter indicates that the data reader should read data in free format
+                mode. The values should be separated by blanks (spaces, tabs) or commas (","). Do not change ths
+                parameter, use another proforma if you want to read a file according to a specified format statement.
+            </definition>
+        </variable>
+    </variables>
+    <cycles>
+        <cycle>
+            <role>output</role>
+            <firstRow>1</firstRow>
+            <lastRow>101</lastRow>
+            <cycles>
+                <cycle>
+                    <role>output</role>
+                    <firstRow>101</firstRow>
+                    <lastRow>101</lastRow>
+                    <paramName>No. of values to read</paramName>
+                    <cycles/>
+                    <minSize>1</minSize>
+                    <maxSize>98</maxSize>
+                </cycle>
+            </cycles>
+            <minSize>1</minSize>
+            <maxSize>50</maxSize>
+        </cycle>
+        <cycle>
+            <role>parameter</role>
+            <firstRow>1</firstRow>
+            <lastRow>10</lastRow>
+            <cycles>
+                <cycle>
+                    <role>parameter</role>
+                    <firstRow>5</firstRow>
+                    <lastRow>8</lastRow>
+                    <paramName>No. of values to read</paramName>
+                    <cycles/>
+                    <minSize>1</minSize>
+                    <maxSize>98</maxSize>
+                </cycle>
+            </cycles>
+            <minSize>1</minSize>
+            <maxSize>50</maxSize>
+        </cycle>
+    </cycles>
+    <externalFiles>
+        <externalFile>
+            <question>Input file name</question>
+            <answer>"Please select the input file for Type 9"</answer>
+            <answers>
+                <answer>"Please select the input file for Type 9"</answer>
+            </answers>
+            <parameter>Logical unit for input file</parameter>
+            <designate>no</designate>
+        </externalFile>
+    </externalFiles>
+    <compileCommand>df /c</compileCommand>
+    <source>.\SourceCode\Types\Type9.f90</source>
+</TrnsysModel>
