@@ -22,7 +22,7 @@ class MetaData(object):
                  validation=None, icon=None, type=None, maxInstance=None,
                  keywords=None, details=None, comment=None, variables=None,
                  plugin=None, variablesComment=None, cycles=None, source=None,
-                 externalFiles=None,
+                 externalFiles=None, compileCommand=None,
                  model=None,
                  **kwargs):
         """General information that is associated with a :class:`TrnsysModel`.
@@ -66,9 +66,11 @@ class MetaData(object):
             source (Path): Path of the source code.
             externalFiles (ExternalFileCollection): A class handling
                 ExternalFiles for this object.
+            compileCommand (str): Command used to recompile this type.
             model (Path): Path of the xml or tmf file.
             **kwargs:
         """
+        self.compileCommand = compileCommand
         self.object = object
         self.author = author
         self.organization = organization
