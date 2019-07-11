@@ -258,57 +258,9 @@ class ComponentCollection(collections.UserDict):
                                  'the unit number is by TRNSYS design > 0. '
                                  'This is a rare case where 0-based indexing '
                                  'is not observed.')
-            value = next((x for x in self.data.values() if x.unit_number ==
-                          key), None)
+            return super(ComponentCollection, self).__getitem__(key)
         elif isinstance(key, str):
-            value = next((x for x in self.data.values() if x.name == key), None)
-        else:
-            value = next((x for x in self.data.values() if x.unit_number ==
-                          key.unit_number), None)
-        return value
-
-    def __setitem__(self, key, value):
-        # optional processing here
-        """
-        Args:
-            key:
-            value:
-        """
-        super().__setitem__(key, value)
-
-    def update(self, E=None, **F):
-        """D.update([E, ]**F) -> None. Update D from dict/iterable E and F. If E
-        is present and has a .keys() method, then does: for k in E: D[ k] = E[k]
-        If E is present and lacks a .keys() method, then does: for k, v in E:
-        D[k] = v In either case, this is followed by: for k in F: D[k] = F[k]
-
-        Args:
-            E (dict or Equation): The equation to add or update in D (self).
-            F (dict or Equation): Other Equations to update are passed.
-        """
-        if isinstance(E, Component):
-            _e = {E: E}
-        else:
-            for v in E.values():
-                if not isinstance(v, Component):
-                    raise TypeError(
-                        'Can only update an ComponentCollection with'
-                        'Component, not a {}'.format(type(v)))
-            _e = {v: v for v in E.values()}
-            k: Component
-            _f = {v: v for k, v in F.values()}
-            _e.update(_f)
-        super(ComponentCollection, self).update(_e)
-
-    def setdefault(self, key, value=None):
-        """
-        Args:
-            key:
-            value:
-        """
-        if key not in self:
-            self[key] = value
-        return self[key]
+            return next((x for x in self.data.values() if x.name == key), None)
 
 
 class Component(metaclass=ABCMeta):
@@ -397,6 +349,11 @@ class Component(metaclass=ABCMeta):
     def outputs(self):
         """OutputCollection: returns the model's outputs."""
         return self._get_outputs()
+
+    @property
+    def centroid(self):
+        """Point: Returns the model's center Point()."""
+        return self.studio.position
 
     @abstractmethod
     def _get_inputs(self):
@@ -610,11 +567,6 @@ class TrnsysModel(Component):
     @property
     def reverse_anchor_points(self):
         return AnchorPoint(self).reverse_anchor_points
-
-    @property
-    def centroid(self):
-        """Point: Returns the model's center Point()."""
-        return self.studio.position
 
     @classmethod
     def _from_tag(cls, tag, **kwargs):

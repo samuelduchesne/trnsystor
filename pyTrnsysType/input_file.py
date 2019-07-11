@@ -867,9 +867,16 @@ class Deck(object):
             cc = ControlCards()
             dck._control_card = cc
             line = dcklines.readline()
+            iteration = 0
+            maxiter = 26
             while line:
+                iteration += 1
                 # at each line check for a match with a regex
                 line = cls._parse_logic(cc, dck, dcklines, line, proforma_root)
+
+                if iteration < maxiter:
+                    dcklines.seek(0)
+                    line = '\n'
 
         # assert missing types
         # todo: list types that could not be parsed
@@ -879,22 +886,29 @@ class Deck(object):
     def graph(self):
         import networkx as nx
         G = nx.MultiDiGraph()
-        for component in self.models:
+        for unit in self.models:
+            component = self.models[unit]
+            G.add_node(component.unit_number, model=component, pos=component.centroid)
             try:
                 for output, typevar in component.inputs.items():
                     if typevar.is_connected:
                         u = component
                         v = typevar.connected_to.model
-                        G.add_node(u.unit_number, model=u, pos=u.centroid)
-                        G.add_node(v.unit_number, model=v, pos=v.centroid)
                         G.add_edge(u.unit_number, v.unit_number, key=output,
                                    from_model=u, to_model=v)
             except:
                 pass
         return G
 
-    def append_model(self, model):
-        self.models.update(model)
+    def update_with_model(self, model):
+        # iterate over models in dict
+        for key, item in self.models.items():
+            if item.name == model.name:
+                # if item already in dict, pop it
+                self.models.pop(key)
+                break
+        # in any case, add new one
+        self.models[model.unit_number] = model
 
     @classmethod
     def _parse_logic(cls, cc, dck, dcklines, line, proforma_root):
@@ -956,24 +970,23 @@ class Deck(object):
             if key == 'equations':
                 # extract number of line, number of equations
                 n_equations = match.group('equations')
-                line = dcklines.readline()
                 # read each line of the table until a blank line
                 ec = EquationCollection()
-                for n in range(int(n_equations)):
+                ec._unit = 1
+                for line in [next(dcklines) for x in range(int(n_equations))]:
                     # extract number and value
                     value = line.strip()
                     # create equation
                     eq = Equation.from_expression(value)
                     cc.equations.append(ec)
                     ec.update(eq)
-
-                    line = dcklines.readline()  # go to next line
                     # append the dictionary to the data list
-                dck.append_model(ec)
+                dck.update_with_model(ec)
             # read studio markup
             if key == 'unitnumber':
                 unit_number = match.group(key)
                 ec._unit = int(unit_number)
+                dck.update_with_model(ec)
             if key == 'unitname':
                 unit_name = match.group(key)
                 ec.name = unit_name
@@ -982,7 +995,7 @@ class Deck(object):
                 ec.change_component_layer(layer)
             if key == 'position':
                 pos = match.group(key)
-                ec.set_canvas_position(map(float, pos.strip().split()))
+                ec.set_canvas_position(map(float, pos.strip().split()), False)
             # identify a unit (TrnsysModel)
             if key == 'unit':
                 # extract unit_number, type_number and name
@@ -999,10 +1012,11 @@ class Deck(object):
                                        line, match, model,
                                        proforma_root)
 
-                dck.append_model(model)
+                dck.update_with_model(model)
+
             if key == 'parameters' or key == 'inputs':
                 if model._meta.variables:
-                    n_params = int(match.group(key).strip())
+                    n_vars = int(match.group(key).strip())
                     i = -1
                     while line:
                         i += 1
@@ -1017,7 +1031,7 @@ class Deck(object):
                                 try:
                                     if key == 'parameters':
                                         getattr(model, key)[i] = tvar
-                                    else:
+                                    elif key == 'inputs':
                                         if not tvar == '0,0':
                                             unit_number, output_number = \
                                                 map(int, tvar.split(','))
@@ -1026,9 +1040,10 @@ class Deck(object):
                                                 output_number - 1: i})
                                 except:
                                     line = cls._parse_logic(cc, dck, dcklines,
-                                                         line, proforma_root)
-                            if i == n_params - 1:
+                                                            line, proforma_root)
+                            if i == n_vars - 1:
                                 line = None
+
             # identify linkstyles
             if key == 'link':
                 # identify u,v unit numbers
@@ -1039,39 +1054,40 @@ class Deck(object):
 
                 # identify linkstyle attributes
                 if key == "linkstyle":
-                    _lns = match.groupdict()
-                    path = _lns["path"].strip().split(":")
-
-                    mapping = AnchorPoint(
-                        dck.models[int(u)]).studio_anchor_reverse_mapping
-
-                    def find_closest(mappinglist, coordinate):
-                        def distance(a, b):
-                            a_ = Point(a)
-                            b_ = Point(b)
-                            return a_.distance(b_)
-
-                        return min(mappinglist, key=lambda x: distance(x,
-                                                                       coordinate))
-
-                    u_coords = (int(_lns['u1']), int(_lns['u2']))
-                    v_coords = (int(_lns['v1']), int(_lns['v2']))
-                    loc = mapping[find_closest(mapping.keys(), u_coords)], \
-                          mapping[find_closest(mapping.keys(), v_coords)]
-                    color = get_rgb_from_int(int(_lns['color']))
-                    linestyle = _studio_to_linestyle(int(_lns['linestyle']))
-                    linewidth = int(_lns['linewidth'])
-
-                    path = LineString(
-                        [list(map(int, p.split(","))) for p in path])
-
                     try:
+                        _lns = match.groupdict()
+                        path = _lns["path"].strip().split(":")
+
+                        mapping = AnchorPoint(
+                            dck.models[int(u)]).studio_anchor_reverse_mapping
+
+                        def find_closest(mappinglist, coordinate):
+                            def distance(a, b):
+                                a_ = Point(a)
+                                b_ = Point(b)
+                                return a_.distance(b_)
+
+                            return min(mappinglist, key=lambda x: distance(x,
+                                                                           coordinate))
+
+                        u_coords = (int(_lns['u1']), int(_lns['u2']))
+                        v_coords = (int(_lns['v1']), int(_lns['v2']))
+                        loc = mapping[find_closest(mapping.keys(), u_coords)], \
+                              mapping[find_closest(mapping.keys(), v_coords)]
+                        color = get_rgb_from_int(int(_lns['color']))
+                        linestyle = _studio_to_linestyle(int(_lns['linestyle']))
+                        linewidth = int(_lns['linewidth'])
+
+                        path = LineString(
+                            [list(map(int, p.split(","))) for p in path])
+
                         dck.models[int(u)].set_link_style(
                             dck.models[int(v)],
                             loc, color, linestyle,
                             linewidth, path)
                     except:
                         pass
+
             line = dcklines.readline()
         return line
 
@@ -1089,7 +1105,7 @@ class Deck(object):
             if key == 'position':
                 pos = match.group(key)
                 model.set_canvas_position(
-                    map(float, pos.strip().split()), True)
+                    map(float, pos.strip().split()), False)
             if key == 'model':
                 _mod = match.group('model')
                 xml = Path(_mod.replace("\\", "/"))

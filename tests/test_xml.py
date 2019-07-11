@@ -560,17 +560,17 @@ class TestConstantsAndEquations():
 class TestDeck():
 
     @pytest.fixture()
-    def test_deck(self):
+    def pvt_deck(self):
         from pyTrnsysType import Deck
         file = "tests/input_files/test_deck.dck"
         with patch('builtins.input', return_value='y'):
             dck = Deck.from_file(file, proforma_root="tests/input_files")
             yield dck
 
-    def test_deck_graph(self, test_deck):
+    def test_deck_graph(self, pvt_deck):
         import networkx as nx
         import matplotlib.pyplot as plt
-        G = test_deck.graph
+        G = pvt_deck.graph
         assert not nx.is_empty(G)
         pos = {unit: tuple((pos.x, pos.y)) for unit, pos in G.nodes(data='pos')}
         nx.draw_networkx(G, pos=pos)
