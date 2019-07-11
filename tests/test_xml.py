@@ -1,3 +1,5 @@
+from tempfile import NamedTemporaryFile
+
 import pytest
 from mock import patch
 from path import Path
@@ -87,9 +89,17 @@ class TestTrnsysModel():
 
     def test_cancel_missing_tag(self, tank_type):
         from pyTrnsysType.trnsymodel import TrnsysModel
+        from bs4 import BeautifulSoup
         with pytest.raises(NotImplementedError):
             with patch('builtins.input', return_value='N'):
-                tank = TrnsysModel.from_xml("tests/input_files/Type4a.xml")
+                with open("tests/input_files/Type4a.xml") as xml:
+                    soup = BeautifulSoup(xml, 'xml')
+                    new_tag = soup.new_tag('obscureTag')
+                    new_tag.string = "this is a test"
+                    soup.find('TrnsysModel').append(new_tag)
+                with NamedTemporaryFile('w') as tmp:
+                    tmp.write(str(soup))
+                    tank = TrnsysModel.from_xml(tmp.name)
 
     def test_out_of_bounds(self, pipe_type):
         """should trigger ValueError because out of bounds"""
