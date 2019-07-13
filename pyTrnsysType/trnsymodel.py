@@ -99,13 +99,15 @@ class MetaData(object):
 
     @classmethod
     def from_tag(cls, tag, **kwargs):
-        """Class mothod used to create a TrnsysModel from a xml Tag
+        """Class method used to create a TrnsysModel from a xml Tag
 
         Args:
             tag (Tag): The XML tag with its attributes and contents.
             **kwargs:
         """
-        meta_args = {child.name: child.text for child in tag.children
+        meta_args = {child.name: child.__copy__() for child in tag.children
+                     if isinstance(child, Tag)}
+        xml_args = {child.name: child.prettify() for child in tag.children
                      if isinstance(child, Tag)}
         meta_args.update(kwargs)
         return cls(**{attr: meta_args[attr] for attr in meta_args})
@@ -128,7 +130,7 @@ class MetaData(object):
                 raise NotImplementedError()
 
     def __getitem__(self, item):
-        """
+        """eg.: self[item]
         Args:
             item:
         """
@@ -328,7 +330,9 @@ class Component(metaclass=ABCMeta):
     @property
     def type_number(self):
         """int: Returns the model's type number, eg.: 104 for Type104"""
-        return int(self._meta.type)
+        return int(self._meta.type
+                   if not isinstance(self._meta.type, Tag) else
+                   self._meta.type.text)
 
     @property
     def unit_name(self):
@@ -338,7 +342,8 @@ class Component(metaclass=ABCMeta):
     @property
     def model(self):
         """str: The path of this model's proforma"""
-        return self._meta.model
+        return self._meta.model if not isinstance(self._meta.model, Tag) else \
+            self._meta.model.text
 
     @property
     def inputs(self):
@@ -610,12 +615,15 @@ class TrnsysModel(Component):
         """inputs getter. Sorts by order number and resolves cycles each time it
         is called
         """
-        self._resolve_cycles('input', Input)
-        input_dict = self._get_ordered_filtered_types(Input, 'variables')
-        # filter out cyclebases
-        input_dict = {k: v for k, v in input_dict.items() if
-                      v._iscyclebase == False}
-        return InputCollection.from_dict(input_dict)
+        try:
+            self._resolve_cycles('input', Input)
+            input_dict = self._get_ordered_filtered_types(Input, 'variables')
+            # filter out cyclebases
+            input_dict = {k: v for k, v in input_dict.items() if
+                          v._iscyclebase == False}
+            return InputCollection.from_dict(input_dict)
+        except:
+            return InputCollection()
 
     def _get_outputs(self):
         """outputs getter. Sorts by order number and resolves cycles each time
@@ -781,6 +789,21 @@ class TrnsysModel(Component):
         for attr in self._meta.__dict__:
             if hasattr(new_meta, attr):
                 setattr(self._meta, attr, getattr(new_meta, attr))
+        tag = new_meta.variables
+        type_vars = [TypeVariable.from_tag(tag, model=self)
+                     for tag in tag if isinstance(tag, Tag)]
+        tag = new_meta.cycles
+        type_cycles = CycleCollection(TypeCycle.from_tag(tag)
+                                      for tag in tag if isinstance(tag, Tag))
+        self._meta.variables = {id(var): var for var in type_vars}
+        self._meta.cycles = type_cycles
+
+        #self._get_inputs()
+        #self._get_outputs()
+        #self._get_parameters()
+        # self._get_external_files()
+
+        #_meta = MetaData.from_tag([s for s in new_meta.author.parents][-1])
 
 
 class TypeVariable(object):
@@ -870,7 +893,10 @@ class TypeVariable(object):
         try:
             val = float(val)
         except:
-            pass
+            if val == 'STEP':
+                val = 1
+                # Todo: figure out better logic when default value
+                #  is 'STEP
         _type = parse_type(tag.find('type').text)
         attr = {attr.name: attr.text for attr in tag if isinstance(attr, Tag)}
         attr.update({'model': model})

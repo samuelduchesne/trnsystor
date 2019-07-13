@@ -879,15 +879,12 @@ class Deck(object):
         for component in self.models:
             G.add_node(component.unit_number, model=component,
                        pos=component.centroid)
-            try:
-                for output, typevar in component.inputs.items():
-                    if typevar.is_connected:
-                        u = component
-                        v = typevar.connected_to.model
-                        G.add_edge(u.unit_number, v.unit_number, key=output,
-                                   from_model=u, to_model=v)
-            except:
-                pass
+            for output, typevar in component.inputs.items():
+                if typevar.is_connected:
+                    v = component
+                    u = typevar.connected_to.model
+                    G.add_edge(u.unit_number, v.unit_number, key=output,
+                               from_model=u, to_model=v)
         return G
 
     def update_with_model(self, model):
@@ -971,6 +968,8 @@ class Deck(object):
                 ec._unit = 1
                 #dck.update_with_model(ec)
                 # append the dictionary to the data list
+            if key == 'userconstantend':
+                dck.update_with_model(ec)
             # read studio markup
             if key == 'unitnumber':
                 unit_number = match.group(key)
@@ -1118,7 +1117,7 @@ class Deck(object):
                 tmf = Path(_mod.replace("\\", "/"))
                 tmf_basename = tmf.basename()
                 try:
-                    inter_model = TrnsysModel.from_xml(tmf)
+                    meta = MetaData.from_xml(tmf)
                 except:
                     # replace extension with ".xml" and retry
                     xml_basename = tmf_basename.stripext() + ".xml"
@@ -1135,8 +1134,8 @@ class Deck(object):
                                              proforma_root)
                         lg.warning(msg)
                         continue
-                    inter_model = TrnsysModel.from_xml(xml)
-                model.update_meta(inter_model._meta)
+                    meta = MetaData.from_xml(xml)
+                model.update_meta(meta)
 
     def _parse_line(self, line):
         """
@@ -1188,6 +1187,9 @@ class Deck(object):
                 r'?:!|$))'),
             'equations': re.compile(
                 r'(?i)(?P<key>^equations)(?P<equations>.*?)(?=(?:!|$))'),
+            'userconstantend': re.compile(
+                r'(?i)(?P<key>^\*\$user_constants_end)(?P<userconstantend>.*?)('
+                r'?=(?:!|$))'),
             'unitnumber': re.compile(r'(?i)(?P<key>^\*\$unit_number)('
                                      r'?P<unitnumber>.*?)(?=(?:!|$))'),
             'unitname': re.compile(

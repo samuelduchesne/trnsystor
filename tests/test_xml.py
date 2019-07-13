@@ -317,7 +317,7 @@ class TestTrnsysModel():
     def test_datareader(self):
         from pyTrnsysType.trnsymodel import TrnsysModel
         dr = TrnsysModel.from_xml("tests/input_files/Type9c.xml")
-        assert dr._meta.compileCommand == r"df /c"
+        assert dr._meta.compileCommand.text == r'df /c'
 
     def test_set_position(self, fan_type):
         fan_type.set_canvas_position((500, 400))
@@ -581,7 +581,7 @@ class TestConstantsAndEquations():
 
 class TestDeck():
 
-    @pytest.fixture()
+    @pytest.fixture(scope='class')
     def pvt_deck(self):
         from pyTrnsysType import Deck
         file = "tests/input_files/test_deck.dck"
@@ -589,16 +589,31 @@ class TestDeck():
             dck = Deck.from_file(file, proforma_root="tests/input_files")
             yield dck
 
-    def test_deck_graph(self, pvt_deck):
+    @pytest.fixture(scope='class')
+    def G(self, pvt_deck):
+        yield pvt_deck.graph
+
+    def test_deck_graph(self, pvt_deck, G):
         import networkx as nx
         import matplotlib.pyplot as plt
-        G = pvt_deck.graph
         print(len(pvt_deck.models))
         assert not nx.is_empty(G)
-        pos = {unit: tuple((pos.x, pos.y)) for unit, pos in G.nodes(
-            data='pos')}
+        pos = {unit: tuple((pos.x, pos.y)) if pos else tuple((50, 50))
+               for unit, pos in G.nodes(data='pos')}
         nx.draw_networkx(G, pos=pos)
         plt.show()
+
+    def test_deck_graphviz(self, pvt_deck, G):
+        import networkx as nx
+        import matplotlib.pyplot as plt
+        pos = nx.nx_agraph.graphviz_layout(G, 'dot')
+        nx.draw_networkx(G, pos=pos)
+        plt.show()
+
+    def test_cycles(self, G):
+        import networkx as nx
+        cycles = nx.find_cycle(G)
+        print(cycles)
 
 
 class TestComponent():

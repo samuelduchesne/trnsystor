@@ -116,6 +116,9 @@ def _parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
     try:
         f = _type(value)
     except:
+        if value == 'STEP':
+            value = 1  # Todo: figure out better logic when default value
+                       #  is 'STEP'
         f = float(value)
     if isinstance(f, str):
         return f
