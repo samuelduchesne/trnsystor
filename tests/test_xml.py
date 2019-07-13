@@ -401,6 +401,13 @@ class TestStatements():
         dfq_statement = DFQ(3)
         assert dfq_statement._to_deck() == "DFQ 3"
 
+    def test_width_statement(self):
+        from pyTrnsysType.statements import Width
+        width_statement = Width(80)
+        assert width_statement._to_deck() == "WIDTH 80"
+        with pytest.raises(ValueError):
+            wrong_statement = Width(1000)
+
     def test_nocheck_statement(self, fan_type):
         from pyTrnsysType.statements import NoCheck
         fan_type.copy()

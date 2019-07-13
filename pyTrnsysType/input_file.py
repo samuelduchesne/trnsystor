@@ -8,9 +8,9 @@ from path import Path
 from pyTrnsysType import TypeVariable, TrnsysModel, Component, StudioHeader, \
     MetaData, AnchorPoint, ComponentCollection
 from pyTrnsysType.statements import Version, NaNCheck, OverwriteCheck, \
-    TimeReport, Constants, Equations, List, Simulation, Tolerances, Limits, \
+    TimeReport, List, Simulation, Tolerances, Limits, \
     DFQ, \
-    NoCheck, NoList, Map, EqSolver, End, Solver, Statement
+    NoCheck, NoList, Map, EqSolver, End, Solver, Statement, Width
 from pyTrnsysType.utils import print_my_latex, TypeVariableSymbol, \
     get_rgb_from_int
 from shapely.geometry import LineString, Point
@@ -718,14 +718,14 @@ class ControlCards(object):
 
     def __init__(self, version=None, simulation=None, tolerances=None,
                  limits=None, nancheck=None, overwritecheck=None,
-                 timereport=None, constants=None, equations=None, dfq=None,
-                 nocheck=None, eqsolver=None, solver=None, nolist=None,
-                 list=None, map=None):
+                 timereport=None, dfq=None, width=None, nocheck=None,
+                 eqsolver=None, solver=None, nolist=None, list=None, map=None):
         """Each simulation must have SIMULATION and END statements. The other
         simulation control statements are optional. Default values are assumed
         for TOLERANCES, LIMITS, SOLVER, EQSOLVER and DFQ if they are not present
 
         Args:
+            width:
             version (Version): The VERSION Statement. labels the deck with the
                 TRNSYS version number. See :class:`Version` for more details.
             simulation (Simulation): The SIMULATION Statement.determines the
@@ -752,10 +752,6 @@ class ControlCards(object):
             timereport (TimeReport, optional): The TIME_REPORT Statement. Turns
                 on or off the internal calculation of the time spent on each
                 unit. See :class:`TimeReport` for more details.
-            constants (Constants, optional): The CONSTANTS Statement. See
-                :class:`Constants` for more details.
-            equations (Equations, optional): The EQUATIONS Statement. See
-                :class:`Equations` for more details.
             dfq (DFQ, optional): Allows the user to select one of three
                 algorithms built into TRNSYS to numerically solve differential
                 equations. See :class:`DFQ` for more details.
@@ -803,11 +799,6 @@ class ControlCards(object):
         self.list = list
         self.map = map
 
-        self.equations = []
-        self.constants = []
-        if constants:
-            self.constants.append(constants)
-
         self.end = End()
 
     @classmethod
@@ -818,9 +809,8 @@ class ControlCards(object):
         as a debugging tool.
         """
         return cls(Version(), Simulation(), Tolerances(), Limits(), NaNCheck(),
-                   OverwriteCheck(), TimeReport(), Constants(), Equations(),
-                   DFQ(), NoCheck(), EqSolver(), Solver(), NoList(), List(),
-                   Map())
+                   OverwriteCheck(), TimeReport(), DFQ(), Width(), NoCheck(),
+                   EqSolver(), Solver(), NoList(), List(), Map())
 
     @classmethod
     def debug_template(cls):
@@ -978,7 +968,6 @@ class Deck(object):
                     value = line.strip()
                     # create equation
                     eq = Equation.from_expression(value)
-                    cc.equations.append(ec)
                     ec.update(eq)
                     # append the dictionary to the data list
                 dck.update_with_model(ec)
