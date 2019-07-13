@@ -1,6 +1,3 @@
-import re
-
-
 class Statement(object):
     """This is the base class for many of the TRNSYS Simulation Control and
     Listing Control Statements. It implements common methods such as the repr()
@@ -36,13 +33,14 @@ class Version(Statement):
 
     @classmethod
     def from_string(cls, string):
+        """
+        Args:
+            string:
+        """
         return cls(*map(int, string.split('.')))
 
     def _to_deck(self):
         return "VERSION {}".format(".".join(map(str, self.v)))
-
-    def _get_re(self):
-        return dict(version=re.compile(r'VERSION = (?P<version>.*)\n'))
 
 
 class Simulation(Statement):
@@ -219,63 +217,16 @@ class TimeReport(Statement):
         return "TIME_REPORT {n}".format(n=self.n)
 
 
-class Constants(Statement):
-    """The CONSTANTS statement is useful when simulating a number of systems
-    with identical component configurations but with different parameter values,
-    initial input values, or initial values of time dependent variables.
-    """
-
-    # Todo: Finish the Constants Statement
-
-    def __init__(self, constants=None):
-        """Initialize a Constants object.
-
-        Args:
-            constants (ConstantCollection or list of ConstantCollection):
-        """
-        super().__init__()
-        self.constants = constants
-        self.doc = "The CONSTANTS Statement"
-
-    def _to_deck(self):
-        return "CONSTANTS 0" if not self.constants else "todo"
-
-
-class Equations(Statement):
-    """The EQUATIONS statement allows variables to be defined as algebraic
-    functions of constants, previously defined variables, and outputs from
-    TRNSYS components. These variables can then be used in place of numbers in
-    the TRNSYS input file to represent inputs to components; numerical values of
-    parameters; and initial values of inputs and time-dependent variables.
-    """
-
-    # Todo: Finish the Equations Statement
-
-    def __init__(self, equations=None):
-        """Initialize an Equations object.
-
-        Args:
-            equations (EquationCollection or list of EquationCollection,
-                optional):
-        """
-        super().__init__()
-        self.equations = equations
-        self.doc = "The EQUATIONS Statement"
-
-    def _to_deck(self):
-        return "EQUATIONS 0" if not self.equations else "todo"
-
-
 class List(Statement):
-    """The LIST statement is used to turn on the TRNSYS processor listing
-    after it has been turned off by a NOLIST statement."""
+    """The LIST statement is used to turn on the TRNSYS processor listing after
+    it has been turned off by a NOLIST statement.
+    """
 
     def __init__(self, activate=False):
-        """
-        Hint:
-            The listing is assumed to be on at the beginning of a TRNSYS
-            input file. As many LIST cards as desired may appear in a TRNSYS
-            input file and may be located anywhere in the input file.
+        """Hint:
+            The listing is assumed to be on at the beginning of a TRNSYS input
+            file. As many LIST cards as desired may appear in a TRNSYS input
+            file and may be located anywhere in the input file.
 
         Args:
             activate (bool):
@@ -293,7 +244,7 @@ class DFQ(Statement):
     """
 
     def __init__(self, k=1):
-        """Initialize the The Differential Equation Solving Method Statement
+        """Initialize the Differential Equation Solving Method Statement
 
         Args:
             k (int, optional): an integer between 1 and 3. If a DFQ card is not
@@ -314,6 +265,40 @@ class DFQ(Statement):
 
     def _to_deck(self):
         return str("DFQ {}".format(self.k))
+
+
+class Width(Statement):
+    """The WIDTH statement is an optional control statement is used to set the
+    number of characters to be allowed on a line of TRNSYS output.
+
+    Note:
+        This statement is obsolete.
+    """
+
+    def __init__(self, n=120):
+        """Initialize the Width Statement.
+
+        Args:
+            n (int, optional): n is the number of characters per printed line; n
+                must be between 72 and 132.
+        """
+        super().__init__()
+        self.k = self._check_range(int(n))
+        self.doc = "The number of printed characters per line"
+
+    def _to_deck(self):
+        return str("WIDTH {}".format(self.k))
+
+    @staticmethod
+    def _check_range(n):
+        """
+        Args:
+            n:
+        """
+        if n >= 72 and n <= 132:
+            return n
+        else:
+            raise ValueError('The Width Statement mus be between 72 and 132.')
 
 
 class NoCheck(Statement):
