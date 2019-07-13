@@ -593,8 +593,10 @@ class TestDeck():
         import networkx as nx
         import matplotlib.pyplot as plt
         G = pvt_deck.graph
+        print(len(pvt_deck.models))
         assert not nx.is_empty(G)
-        pos = {unit: tuple((pos.x, pos.y)) for unit, pos in G.nodes(data='pos')}
+        pos = {unit: tuple((pos.x, pos.y)) for unit, pos in G.nodes(
+            data='pos')}
         nx.draw_networkx(G, pos=pos)
         plt.show()
 
@@ -609,9 +611,12 @@ class TestComponent():
 
 class TestComponentCollection():
 
-    def test_get_item(self, tank_type):
+    def test_get_item(self, tank_type, fan_type):
         from pyTrnsysType.trnsymodel import ComponentCollection
-        cc = ComponentCollection()
-        cc.update({tank_type: tank_type})
-        cc['Storage Tank; Fixed Inlets, Uniform Losses']._unit = 1
-        assert cc[1] == cc['Storage Tank; Fixed Inlets, Uniform Losses']
+        cc = ComponentCollection([tank_type])
+        assert cc.loc[tank_type] == cc.iloc[tank_type.unit_number]
+        tank_type._unit = 30
+        assert cc.loc[tank_type] == cc.iloc[tank_type.unit_number] == 30
+        print(cc.loc.keys())
+        print(cc.iloc.keys())
+        [print(item) for item in cc]

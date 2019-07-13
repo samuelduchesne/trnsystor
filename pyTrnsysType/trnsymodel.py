@@ -5,14 +5,15 @@ import re
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
-import pyTrnsysType
 from bs4 import BeautifulSoup, Tag
 from matplotlib.colors import colorConverter
 from path import Path
 from pint.quantity import _Quantity
+from shapely.geometry import Point, LineString, MultiLineString, MultiPoint
+
+import pyTrnsysType
 from pyTrnsysType.utils import get_int_from_rgb, _parse_value, parse_type, \
     standerdized_name, redistribute_vertices
-from shapely.geometry import Point, LineString, MultiLineString, MultiPoint
 
 
 class MetaData(object):
@@ -231,7 +232,7 @@ class ExternalFileCollection(collections.UserDict):
         return item
 
 
-class ComponentCollection(collections.UserDict):
+class ComponentCollection(collections.UserList):
     """A class that handles collections of components, eg.; TrnsysModels,
     EquationCollections and ConstantCollections
 
@@ -249,26 +250,17 @@ class ComponentCollection(collections.UserDict):
         Type146: Single Speed Fan/Blower
     """
 
-    def __getitem__(self, key):
-        """
-        Args:
-            key:
-        """
-        if isinstance(key, int):
-            if key == 0:
-                raise ValueError('In the case of ComponentCollections, '
-                                 'the unit number is by TRNSYS design > 0. '
-                                 'This is a rare case where 0-based indexing '
-                                 'is not observed.')
-            return super(ComponentCollection, self).__getitem__(key)
-        elif isinstance(key, str):
-            return next((x for x in self.data.values() if x.name == key), None)
+    @property
+    def iloc(self):
+        return dict({item.unit_number: item for item in self.data})
+
+    @property
+    def loc(self):
+        return dict({item: item for item in self.data})
 
 
 class Component(metaclass=ABCMeta):
-    new_id = itertools.count(start=0)  # starts at 0; the first instance will
-
-    # have unit_number == 1, which is the correct behavior.
+    new_id = itertools.count(start=1)
 
     def __init__(self, name, meta):
         """
@@ -282,7 +274,13 @@ class Component(metaclass=ABCMeta):
         self.studio = StudioHeader.from_trnsysmodel(self)
 
     def __hash__(self):
-        return self.unit_number
+        return hash(str(self))
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.unit_number == other.unit_number
+        else:
+            return self.unit_number == other
 
     def set_canvas_position(self, pt, trnsys_coords=False):
         """Set position of self in the canvas. Use cartesian coordinates: origin
@@ -624,12 +622,15 @@ class TrnsysModel(Component):
         it is called
         """
         # output_dict = self._get_ordered_filtered_types(Output)
-        self._resolve_cycles('output', Output)
-        output_dict = self._get_ordered_filtered_types(Output, 'variables')
-        # filter out cyclebases
-        output_dict = {k: v for k, v in output_dict.items() if
-                       v._iscyclebase == False}
-        return OutputCollection.from_dict(output_dict)
+        try:
+            self._resolve_cycles('output', Output)
+            output_dict = self._get_ordered_filtered_types(Output, 'variables')
+            # filter out cyclebases
+            output_dict = {k: v for k, v in output_dict.items() if
+                           v._iscyclebase == False}
+            return OutputCollection.from_dict(output_dict)
+        except TypeError:
+            return OutputCollection()
 
     def _get_parameters(self):
         """parameters getter. Sorts by order number and resolves cycles each
@@ -870,13 +871,13 @@ class TypeVariable(object):
         attr = {attr.name: attr.text for attr in tag if isinstance(attr, Tag)}
         attr.update({'model': model})
         if role == 'parameter':
-            return Parameter(_type(float(val)), **attr)
+            return Parameter(_type(val), **attr)
         elif role == 'input':
-            return Input(_type(float(val)), **attr)
+            return Input(_type(val), **attr)
         elif role == 'output':
-            return Output(_type(float(val)), **attr)
+            return Output(_type(val), **attr)
         elif role == 'derivative':
-            return Derivative(_type(float(val)), **attr)
+            return Derivative(_type(val), **attr)
         else:
             raise NotImplementedError('The role "{}" is not yet '
                                       'supported.'.format(role))
@@ -1108,6 +1109,7 @@ class VariableCollection(collections.UserDict):
             key:
             value:
         """
+        from pyTrnsysType.input_file import Equation, Constant
         if isinstance(value, TypeVariable):
             """if a TypeVariable is given, simply set it"""
             super().__setitem__(key, value)
@@ -1118,6 +1120,8 @@ class VariableCollection(collections.UserDict):
             self[key].__setattr__('value', value)
         elif isinstance(value, _Quantity):
             self[key].__setattr__('value', value.to(self[key].value.units))
+        elif isinstance(value, (Equation, Constant)):
+            self[key].__setattr__('value', value)
         else:
             raise TypeError('Cannot set a value of type {} in this '
                             'VariableCollection'.format(type(value)))

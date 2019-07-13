@@ -5,6 +5,9 @@ import re
 
 import tabulate
 from path import Path
+from shapely.geometry import LineString, Point
+from sympy import Expr, Symbol
+
 from pyTrnsysType import TypeVariable, TrnsysModel, Component, StudioHeader, \
     MetaData, AnchorPoint, ComponentCollection
 from pyTrnsysType.statements import Version, NaNCheck, OverwriteCheck, \
@@ -13,9 +16,6 @@ from pyTrnsysType.statements import Version, NaNCheck, OverwriteCheck, \
     NoCheck, NoList, Map, EqSolver, End, Solver, Statement, Width
 from pyTrnsysType.utils import print_my_latex, TypeVariableSymbol, \
     get_rgb_from_int
-from shapely.geometry import LineString, Point
-from sympy import Expr, Symbol
-
 from .trnsymodel import ParameterCollection, InputCollection, \
     ExternalFileCollection, _studio_to_linestyle
 
@@ -596,8 +596,8 @@ class EquationCollection(collections.UserDict, Component):
             value = super().__getitem__(key)
         return value
 
-    def __hash__(self):
-        return self.unit_number
+    # def __hash__(self):
+    #     return self.unit_number
 
     def __repr__(self):
         return self._to_deck()
@@ -876,9 +876,9 @@ class Deck(object):
     def graph(self):
         import networkx as nx
         G = nx.MultiDiGraph()
-        for unit in self.models:
-            component = self.models[unit]
-            G.add_node(component.unit_number, model=component, pos=component.centroid)
+        for component in self.models:
+            G.add_node(component.unit_number, model=component,
+                       pos=component.centroid)
             try:
                 for output, typevar in component.inputs.items():
                     if typevar.is_connected:
@@ -891,14 +891,14 @@ class Deck(object):
         return G
 
     def update_with_model(self, model):
-        # iterate over models in dict
-        for key, item in self.models.items():
-            if item.name == model.name:
-                # if item already in dict, pop it
-                self.models.pop(key)
-                break
+        # iterate over models
+        if model.unit_number in [mod.unit_number for mod in self.models]:
+            for i, item in enumerate(self.models):
+                if item.unit_number == model.unit_number:
+                    self.models.pop(i)
+                    break
         # in any case, add new one
-        self.models[model.unit_number] = model
+        self.models.append(model)
 
     @classmethod
     def _parse_logic(cls, cc, dck, dcklines, line, proforma_root):
@@ -961,16 +961,16 @@ class Deck(object):
                 # extract number of line, number of equations
                 n_equations = match.group('equations')
                 # read each line of the table until a blank line
-                ec = EquationCollection()
-                ec._unit = 1
+                list_eq = []
                 for line in [next(dcklines) for x in range(int(n_equations))]:
                     # extract number and value
                     value = line.strip()
                     # create equation
-                    eq = Equation.from_expression(value)
-                    ec.update(eq)
-                    # append the dictionary to the data list
-                dck.update_with_model(ec)
+                    list_eq.append(Equation.from_expression(value))
+                ec = EquationCollection(list_eq)
+                ec._unit = 1
+                #dck.update_with_model(ec)
+                # append the dictionary to the data list
             # read studio markup
             if key == 'unitnumber':
                 unit_number = match.group(key)
@@ -995,13 +995,11 @@ class Deck(object):
                 _meta = MetaData(type=t)
                 model = TrnsysModel(_meta, name=n)
                 model._unit = int(u)
-
+                dck.update_with_model(model)
                 # read studio markup
                 cls.unit_studio_markup(dck, dcklines, key,
                                        line, match, model,
                                        proforma_root)
-
-                dck.update_with_model(model)
 
             if key == 'parameters' or key == 'inputs':
                 if model._meta.variables:
@@ -1018,21 +1016,14 @@ class Deck(object):
                             if varkey == 'typevariable':
                                 tvar = match.group('typevariable').strip()
                                 try:
-                                    if key == 'parameters':
-                                        getattr(model, key)[i] = tvar
-                                    elif key == 'inputs':
-                                        if not tvar == '0,0':
-                                            unit_number, output_number = \
-                                                map(int, tvar.split(','))
-                                            other = dck.models[unit_number]
-                                            other.connect_to(model, mapping={
-                                                output_number - 1: i})
-                                except:
+                                    other = cls.get_typevariable(dck, i,
+                                                                 model,
+                                                                 tvar, key)
+                                except Exception as e:
                                     line = cls._parse_logic(cc, dck, dcklines,
                                                             line, proforma_root)
                             if i == n_vars - 1:
                                 line = None
-
             # identify linkstyles
             if key == 'link':
                 # identify u,v unit numbers
@@ -1048,7 +1039,8 @@ class Deck(object):
                         path = _lns["path"].strip().split(":")
 
                         mapping = AnchorPoint(
-                            dck.models[int(u)]).studio_anchor_reverse_mapping
+                            dck.models.iloc[
+                                int(u)]).studio_anchor_reverse_mapping
 
                         def find_closest(mappinglist, coordinate):
                             def distance(a, b):
@@ -1070,8 +1062,8 @@ class Deck(object):
                         path = LineString(
                             [list(map(int, p.split(","))) for p in path])
 
-                        dck.models[int(u)].set_link_style(
-                            dck.models[int(v)],
+                        dck.models.iloc[int(u)].set_link_style(
+                            dck.models.iloc[int(v)],
                             loc, color, linestyle,
                             linewidth, path)
                     except:
@@ -1080,14 +1072,40 @@ class Deck(object):
             line = dcklines.readline()
         return line
 
+    @classmethod
+    def get_typevariable(cls, dck, i, model, tvar, key):
+        try:
+            tvar = float(tvar)
+        except:
+            # deal with a string, either a Constant or a "[u, n]"
+            if "," in tvar:
+                unit_number, output_number = \
+                    map(int, tvar.split(','))
+                other = dck.models.iloc[unit_number]
+                other.connect_to(model, mapping={
+                    output_number - 1: i})
+                return other
+            else:
+                if any((tvar in n.outputs) for n in dck.models):
+                    # one Equation or Constant has this tvar
+                    other = next((n for n in dck.models
+                                  if (tvar in n.outputs)), None)
+                    getattr(model, key)[i] = other[tvar]
+                return None
+        else:
+            getattr(model, key)[i] = tvar
+            return tvar
+
     @staticmethod
     def unit_studio_markup(dck, dcklines, key, line, match, model,
                            proforma_root):
         for line in [next(dcklines) for x in range(4)]:
             key, match = dck._parse_line(line)
             if key == 'unitname':
-                unit_name = match.group(key)
-                model.name = unit_name
+                pass
+                # actual don't use this unit name since it was parsed earlier
+                # unit_name = match.group(key)
+                # model.name = unit_name
             if key == 'layer':
                 layer = match.group(key)
                 model.change_component_layer(layer)
@@ -1097,13 +1115,13 @@ class Deck(object):
                     map(float, pos.strip().split()), False)
             if key == 'model':
                 _mod = match.group('model')
-                xml = Path(_mod.replace("\\", "/"))
-                xml_basename = xml.basename()
+                tmf = Path(_mod.replace("\\", "/"))
+                tmf_basename = tmf.basename()
                 try:
-                    inter_model = TrnsysModel.from_xml(xml)
+                    inter_model = TrnsysModel.from_xml(tmf)
                 except:
                     # replace extension with ".xml" and retry
-                    xml_basename = xml_basename.stripext() + ".xml"
+                    xml_basename = tmf_basename.stripext() + ".xml"
                     proforma_root = Path(proforma_root)
                     if proforma_root is None:
                         proforma_root = Path.getcwd()
@@ -1116,7 +1134,7 @@ class Deck(object):
                               ' "{}"'.format(xml_basename,
                                              proforma_root)
                         lg.warning(msg)
-                        break
+                        continue
                     inter_model = TrnsysModel.from_xml(xml)
                 model.update_meta(inter_model._meta)
 

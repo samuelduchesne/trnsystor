@@ -117,6 +117,8 @@ def _parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
         f = _type(value)
     except:
         f = float(value)
+    if isinstance(f, str):
+        return f
     xmin, xmax = map(resolve_type, bounds)
     is_bound = xmin <= f <= xmax
     if is_bound:
@@ -141,6 +143,8 @@ def parse_type(_type):
         return int
     elif _type == 'real':
         return float
+    elif _type == 'string':
+        return str
     else:
         raise NotImplementedError()
 
