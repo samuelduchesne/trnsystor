@@ -274,7 +274,7 @@ class Component(metaclass=ABCMeta):
         self.studio = StudioHeader.from_trnsysmodel(self)
 
     def __hash__(self):
-        return hash(str(self))
+        return self.unit_number
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
@@ -867,6 +867,10 @@ class TypeVariable(object):
         """
         role = tag.find('role').text
         val = tag.find('default').text
+        try:
+            val = float(val)
+        except:
+            pass
         _type = parse_type(tag.find('type').text)
         attr = {attr.name: attr.text for attr in tag if isinstance(attr, Tag)}
         attr.update({'model': model})
