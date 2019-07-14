@@ -380,7 +380,7 @@ class Component(metaclass=ABCMeta):
         """Set outgoing link styles between self and other.
 
         Args:
-            other (TrnsysModel): The destination model.
+            other (Component): The destination model.
             loc (str or tuple): loc (str): The location of the anchor. The
                 strings 'top-left', 'top-right', 'bottom-left', 'bottom-right'
                 place the anchor point at the corresponding corner of the

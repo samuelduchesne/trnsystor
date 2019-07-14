@@ -407,8 +407,15 @@ class Equation(Statement):
         self.name = name
         self.equals_to = equals_to
         self.doc = doc
-        self.model = model
-        self.is_connected = False
+        self.model = model  # the TrnsysModel this Equation belongs to.
+
+        self._connected_to = None
+
+    def __repr__(self):
+        return " = ".join([self.name, self._to_deck()])
+
+    def __str__(self):
+        return self.__repr__()
 
     @classmethod
     def from_expression(cls, expression, doc=None):
@@ -530,11 +537,15 @@ class Equation(Statement):
     def unit_number(self):
         return self.model.unit_number
 
-    def __repr__(self):
-        return " = ".join([self.name, self._to_deck()])
+    @property
+    def is_connected(self):
+        """Whether or not this TypeVariable is connected to another type"""
+        return self.connected_to is not None
 
-    def __str__(self):
-        return self.__repr__()
+    @property
+    def connected_to(self):
+        """The TrnsysModel to which this component is connected"""
+        return self._connected_to
 
     def _to_deck(self):
         if isinstance(self.equals_to, TypeVariable):
@@ -604,6 +615,7 @@ class EquationCollection(collections.UserDict, Component):
 
     def __setitem__(self, key, value):
         # optional processing here
+        value.model = self
         super().__setitem__(key, value)
 
     def update(self, E=None, **F):
@@ -966,7 +978,7 @@ class Deck(object):
                     list_eq.append(Equation.from_expression(value))
                 ec = EquationCollection(list_eq)
                 ec._unit = 1
-                #dck.update_with_model(ec)
+                # dck.update_with_model(ec)
                 # append the dictionary to the data list
             if key == 'userconstantend':
                 dck.update_with_model(ec)
@@ -1090,6 +1102,8 @@ class Deck(object):
                     other = next((n for n in dck.models
                                   if (tvar in n.outputs)), None)
                     getattr(model, key)[i] = other[tvar]
+                    other.connect_to(model, mapping={
+                        0: i})
                 return None
         else:
             getattr(model, key)[i] = tvar
