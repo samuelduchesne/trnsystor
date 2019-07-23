@@ -37,7 +37,7 @@ class Version(Statement):
         Args:
             string:
         """
-        return cls(*map(int, string.split('.')))
+        return cls(tuple(map(int, string.split('.'))))
 
     def _to_deck(self):
         return "VERSION {}".format(".".join(map(str, self.v)))
