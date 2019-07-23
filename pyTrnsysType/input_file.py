@@ -943,7 +943,7 @@ class Deck(object):
                 cc.set_statement(DFQ(k.strip()))
             if key == 'width':
                 w = match.group(key)
-                # todo: Implement Width
+                cc.set_statement(Width(w.strip()))
             if key == 'list':
                 k = match.group(key)
                 cc.set_statement(List(*k.strip().split()))
