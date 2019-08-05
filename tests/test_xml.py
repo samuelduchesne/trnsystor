@@ -647,6 +647,19 @@ class TestDeck():
     def G(self, pvt_deck):
         yield pvt_deck.graph
 
+    def test_update_with_model(self, weather_type, tank_type, pipe_type):
+        from pyTrnsysType import Deck, ControlCards
+        cc = ControlCards.basic_template()
+        dck = Deck('test', cc)
+
+        # update with single component
+        dck.update_with_model(weather_type)
+        assert len(dck.models) == 1
+
+        # update with list of components
+        dck.update_with_model([tank_type, pipe_type])
+        assert len(dck.models) == 3
+
     def test_deck_graph(self, pvt_deck, G):
         import networkx as nx
         import matplotlib.pyplot as plt
