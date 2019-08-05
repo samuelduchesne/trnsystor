@@ -27,12 +27,10 @@ def affine_transform(geom, matrix=None):
     """
     import numpy as np
     from shapely.affinity import affine_transform
+
     if not matrix:
-        matrix = np.array([[1, 0, 0],
-                           [0, -1, 0],
-                           [0, 0, 0]])
-    matrix_l = matrix[0:2, 0:2].flatten().tolist() + \
-               matrix[0:2, 2].flatten().tolist()
+        matrix = np.array([[1, 0, 0], [0, -1, 0], [0, 0, 0]])
+    matrix_l = matrix[0:2, 0:2].flatten().tolist() + matrix[0:2, 2].flatten().tolist()
     return affine_transform(geom, matrix_l)
 
 
@@ -109,16 +107,16 @@ def _parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
         name:
     """
     if not name:
-        name = ''
+        name = ""
     _type = parse_type(_type)
     Q_, unit_ = parse_unit(unit)
 
     try:
         f = _type(value)
     except:
-        if value == 'STEP':
+        if value == "STEP":
             value = 1  # Todo: figure out better logic when default value
-                       #  is 'STEP'
+            #  is 'STEP'
         f = float(value)
     if isinstance(f, str):
         return f
@@ -129,9 +127,9 @@ def _parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
             return Q_(f, unit_)
     else:
         # out of bounds
-        msg = 'Value {} "{}" is out of bounds. ' \
-              '{xmin} <= value <= {xmax}'.format(name, f, xmin=Q_(xmin, unit_),
-                                                 xmax=Q_(xmax, unit_))
+        msg = 'Value {} "{}" is out of bounds. ' "{xmin} <= value <= {xmax}".format(
+            name, f, xmin=Q_(xmin, unit_), xmax=Q_(xmax, unit_)
+        )
         raise ValueError(msg)
 
 
@@ -142,11 +140,11 @@ def parse_type(_type):
     """
     if isinstance(_type, type):
         return _type
-    elif _type == 'integer':
+    elif _type == "integer":
         return int
-    elif _type == 'real':
+    elif _type == "real":
         return float
-    elif _type == 'string':
+    elif _type == "string":
         return str
     else:
         raise NotImplementedError()
@@ -157,7 +155,7 @@ def standerdized_name(name):
     Args:
         name:
     """
-    return re.sub('[^0-9a-zA-Z]+', '_', name)
+    return re.sub("[^0-9a-zA-Z]+", "_", name)
 
 
 def parse_unit(unit):
@@ -173,22 +171,22 @@ def parse_unit(unit):
             * ureg.Unit: The Unit class
     """
     Q_ = ureg.Quantity
-    if unit == '-' or unit is None:
-        return Q_, ureg.parse_expression('dimensionless')
-    elif unit == '% (base 100)':
-        ureg.define('percent = 0.01*count = %')
+    if unit == "-" or unit is None:
+        return Q_, ureg.parse_expression("dimensionless")
+    elif unit == "% (base 100)":
+        ureg.define("percent = 0.01*count = %")
         return Q_, ureg.percent
-    elif unit.lower() == 'c':
+    elif unit.lower() == "c":
         Q_ = ureg.Quantity
         return Q_, ureg.degC
-    elif unit.lower() == 'deltac':
+    elif unit.lower() == "deltac":
         Q_ = ureg.Quantity
         return Q_, ureg.delta_degC
-    elif unit.lower() == 'fraction':
-        ureg.define('fraction = 1*count = -')
+    elif unit.lower() == "fraction":
+        ureg.define("fraction = 1*count = -")
         return Q_, ureg.fraction
-    elif unit.lower() == 'any':
-        return Q_, ureg.parse_expression('dimensionless')
+    elif unit.lower() == "any":
+        return Q_, ureg.parse_expression("dimensionless")
     else:
         return Q_, ureg.parse_units(unit)
 
@@ -200,15 +198,18 @@ def redistribute_vertices(geom, distance):
         geom:
         distance:
     """
-    if geom.geom_type == 'LineString':
+    if geom.geom_type == "LineString":
         num_vert = int(round(geom.length / distance))
         if num_vert == 0:
             num_vert = 1
         return LineString(
-            [geom.interpolate(float(n) / num_vert, normalized=True)
-             for n in range(num_vert + 1)])
+            [
+                geom.interpolate(float(n) / num_vert, normalized=True)
+                for n in range(num_vert + 1)
+            ]
+        )
     else:
-        raise ValueError('unhandled geometry %s', (geom.geom_type,))
+        raise ValueError("unhandled geometry %s", (geom.geom_type,))
 
 
 ureg = UnitRegistry()
@@ -230,8 +231,8 @@ class DeckFilePrinter(StrPrinter):
         """
         try:
             return "[{}, {}]".format(
-                    expr.model.model.unit_number,
-                    expr.model.one_based_idx)
+                expr.model.model.unit_number, expr.model.one_based_idx
+            )
         except:
             return expr.name
 
@@ -268,8 +269,7 @@ class TypeVariableSymbol(Symbol):
             **assumptions: See :mod:`sympy.core.assumptions` for more details.
         """
         cls._sanitize(assumptions, cls)
-        return TypeVariableSymbol.__xnew_cached_(cls, type_variable,
-                                                 **assumptions)
+        return TypeVariableSymbol.__xnew_cached_(cls, type_variable, **assumptions)
 
     def __new_stage2__(cls, model, **assumptions):
         """
@@ -284,13 +284,11 @@ class TypeVariableSymbol(Symbol):
         tmp_asm_copy = assumptions.copy()
 
         # be strict about commutativity
-        is_commutative = fuzzy_bool(assumptions.get('commutative', True))
-        assumptions['commutative'] = is_commutative
+        is_commutative = fuzzy_bool(assumptions.get("commutative", True))
+        assumptions["commutative"] = is_commutative
         obj._assumptions = StdFactKB(assumptions)
         obj._assumptions._generator = tmp_asm_copy  # Issue #8873
         return obj
 
-    __xnew__ = staticmethod(
-        __new_stage2__)  # never cached (e.g. dummy)
-    __xnew_cached_ = staticmethod(
-        cacheit(__new_stage2__))  # symbols are always cached
+    __xnew__ = staticmethod(__new_stage2__)  # never cached (e.g. dummy)
+    __xnew_cached_ = staticmethod(cacheit(__new_stage2__))  # symbols are always cached
