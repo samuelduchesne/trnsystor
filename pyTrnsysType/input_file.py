@@ -311,19 +311,23 @@ class ConstantCollection(collections.UserDict, Component):
         return self.unit_number
 
     def update(self, E=None, **F):
-        """D.update([E, ]**F) -> None.  Update D from dict/iterable E and F.
+        """D.update([E, ]**F). Update D from a dict/list/iterable E and F.
         If E is present and has a .keys() method, then does:  for k in E: D[
         k] = E[k]
-        If E is present and lacks a .keys() method, then does:  for k,
-        v in E: D[k] = v
+        If E is present and lacks a .keys() method, then does:  for cts.name,
+        cts in E: D[cts.name] = cts
         In either case, this is followed by: for k in F:  D[k] = F[k]
 
         Args:
-            E (dict or Constant): The constant to add or update in D (self).
-            F (dict or Constant): Other constants to update are passed.
+            E (list, dict or Constant): The constant to add or update in D (
+                self).
+            F (list, dict or Constant): Other constants to update are passed.
         """
         if isinstance(E, Constant):
+            E.model = self
             _e = {E.name: E}
+        elif isinstance(E, list):
+            _e = {cts.name: cts for cts in E}
         else:
             for v in E.values():
                 if not isinstance(v, Constant):
@@ -331,10 +335,18 @@ class ConstantCollection(collections.UserDict, Component):
                         'Can only update an ConstantCollection with a'
                         'Constant, not a {}'.format(type(v)))
             _e = {v.name: v for v in E.values()}
-            k: Constant
-            _f = {v.name: v for k, v in F.values()}
+        k: Constant
+        for k in F:
+            if isinstance(F[k], dict):
+                _f = {v.name: v for k, v in F.items()}
+            elif isinstance(F[k], list):
+                _f = {cts.name: cts for cts in F[k]}
+            else:
+                raise TypeError(
+                    'Can only update an ConstantCollection with a'
+                    'Constant, not a {}'.format(type(F[k])))
             _e.update(_f)
-        super().update(_e)
+        super(ConstantCollection, self).update(_e)
 
     @property
     def size(self):
@@ -606,20 +618,26 @@ class EquationCollection(collections.UserDict, Component):
         super().__setitem__(key, value)
 
     def update(self, E=None, **F):
-        """D.update([E, ]**F) -> None.  Update D from dict/iterable E and F.
+        """D.update([E, ]**F). Update D from a dict/list/iterable E and F.
         If E is present and has a .keys() method, then does:  for k in E: D[
         k] = E[k]
-        If E is present and lacks a .keys() method, then does:  for k,
-        v in E: D[k] = v
+        If E is present and lacks a .keys() method, then does:  for eq.name,
+        eq in E: D[eq.name] = eq
         In either case, this is followed by: for k in F:  D[k] = F[k]
 
         Args:
-            E (dict or Equation): The equation to add or update in D (self).
-            F (dict or Equation): Other Equations to update are passed.
+            E (list, dict or Equation): The equation to add or update in D (
+                self).
+            F (list, dict or Equation): Other Equations to update are passed.
+
+        Returns:
+            None
         """
         if isinstance(E, Equation):
             E.model = self
             _e = {E.name: E}
+        elif isinstance(E, list):
+            _e = {eq.name: eq for eq in E}
         else:
             for v in E.values():
                 if not isinstance(v, Equation):
@@ -627,8 +645,16 @@ class EquationCollection(collections.UserDict, Component):
                         'Can only update an EquationCollection with an'
                         'Equation, not a {}'.format(type(v)))
             _e = {v.name: v for v in E.values()}
-            k: Equation
-            _f = {v.name: v for k, v in F.values()}
+        k: Equation
+        for k in F:
+            if isinstance(F[k], dict):
+                _f = {v.name: v for k, v in F.items()}
+            elif isinstance(F[k], list):
+                _f = {eq.name: eq for eq in F[k]}
+            else:
+                raise TypeError(
+                    'Can only update an EquationCollection with an'
+                    'Equation, not a {}'.format(type(F[k])))
             _e.update(_f)
         super(EquationCollection, self).update(_e)
 
@@ -1001,6 +1027,11 @@ class Deck(object):
                                             xml_basename), None)
                                 if not xml:
                                     msg = 'The proforma {} could not be found ' \
+                                          '' \
+                                          '' \
+                                          '' \
+                                          '' \
+                                          '' \
                                           '' \
                                           '' \
                                           'at' \
