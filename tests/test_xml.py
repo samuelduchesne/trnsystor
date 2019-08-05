@@ -1,3 +1,4 @@
+import os
 from tempfile import NamedTemporaryFile
 
 import pytest
@@ -670,7 +671,9 @@ class TestDeck():
         nx.draw_networkx(G, pos=pos)
         plt.show()
 
-    @pytest.skip('skip on Travis as graphviz is not a dependency')
+    @pytest.mark.xfail(
+        "TRAVIS" in os.environ and os.environ["TRAVIS"] == "true",
+        reason="Skipping this test on Travis CI.")
     def test_deck_graphviz(self, pvt_deck, G):
         import networkx as nx
         import matplotlib.pyplot as plt
