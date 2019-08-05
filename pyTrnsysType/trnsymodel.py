@@ -1400,6 +1400,11 @@ class StudioHeader(object):
         layer = ["Main"]
         return cls(model.unit_name, model.model, position, layer)
 
+    @classmethod
+    def from_component(cls, component):
+        position = Point(50, 50)
+        layer = ["Main"]
+        return cls(component.name, None, position, layer)
 
 
 def _linestyle_to_studio(ls):

@@ -136,9 +136,15 @@ class Parameters(object):
         """Returns the string representation for the Input File (.dck)"""
         head = "PARAMETERS {}\n".format(self.n)
         # loop through parameters and print the (value, name) tuples.
-        v_ = ((self.v[param].value.m, "! {}".format(self.v.data[param].name))
-              for param in self.v)
-        params_str = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
+        v_ = []
+        for param in self.v:
+            if isinstance(self.v[param].value, Equation):
+                v_.append((self.v[param].name, "! {}".format(self.v.data[param].name)))
+            else:
+                v_.append(
+                    (self.v[param].value.m, "! {}".format(self.v.data[param].name))
+                )
+        params_str = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
         return head + params_str + "\n"
 
 
@@ -326,6 +332,7 @@ class ConstantCollection(collections.UserDict, Component):
             _dict = mutable
         super().__init__(_dict)
         self.name = Name(name)
+        self.studio = StudioHeader.from_component(self)
         self._unit = next(TrnsysModel.new_id)
 
     def __getitem__(self, key):
@@ -340,7 +347,10 @@ class ConstantCollection(collections.UserDict, Component):
         return self._to_deck()
 
     def __hash__(self):
-        return self.unit_number
+        return hash(str(self))
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
 
     def update(self, E=None, **F):
         """D.update([E, ]**F). Update D from a dict/list/iterable E and F.
@@ -666,6 +676,9 @@ class EquationCollection(collections.UserDict, Component):
         value.model = self
         super().__setitem__(key, value)
 
+    def __hash__(self):
+        return self._unit
+
     def update(self, E=None, **F):
         """D.update([E, ]**F). Update D from a dict/list/iterable E and F.
         If E is present and has a .keys() method, then does:  for k in E: D[
@@ -934,14 +947,19 @@ class ControlCards(object):
         return cls(Version(), Simulation())
 
     def _to_deck(self):
-        """Creates a string representation. If the :attr:`doc` where specified,
+        """Creates a string representation. If the :attr:`doc` is specified,
         a small description is printed in comments
         """
         head = "*** Control Cards\n"
-        v_ = ((str(param), "! {}".format(
-            param.doc))
-              for param in self.__dict__.values() if hasattr(param, 'doc'))
-        statements = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
+        v_ = []
+        for param in self.__dict__.values():
+            if isinstance(param, Component):
+                v_.append((str(param), None))
+            if hasattr(param, "doc"):
+                v_.append((str(param), "! {}".format(param.doc)))
+            else:
+                pass
+        statements = tabulate.tabulate(tuple(v_), tablefmt="plain", numalign="left")
         return str(head) + str(statements)
 
     def set_statement(self, statement):
@@ -952,18 +970,41 @@ __statements__ = [""]
 
 
 class Deck(object):
-    """"""
+    def __init__(self, name, control_cards=None, models=None):
+        """
 
-    def __init__(self, name, control_card):
-        self.models = ComponentCollection()
-        self.control_card = control_card
+        Args:
+            models (list or ComponentCollection): A list of Components (
+            :class:`TrnsysModel`, :class:`EquationCollection`, etc.). If a
+            list is passed, it is converted to a :class:`ComponentCollection`.
+            name (str): A name for this deck. Could be the name of the project.
+            control_cards (ControlCards, optional): The ControlCards. See
+                :class:`ControlCards` for more details.
+        """
+        if not models:
+            self.models = ComponentCollection()
+        else:
+            if isinstance(models, ComponentCollection):
+                self.models = models
+            elif isinstance(models, list):
+                self.models = ComponentCollection(models)
+            else:
+                raise TypeError(
+                    "Cant't create a Deck object with models of "
+                    "type '{}'".format(type(models))
+                )
+            self.models = ComponentCollection(models)
+        if control_cards:
+            self.control_cards = control_cards
+        else:
+            self.control_cards = ControlCards.basic_template()
         self.name = name
 
     @classmethod
     def from_file(cls, file, proforma_root=None):
         file = Path(file)
         with open(file) as dcklines:
-            dck = cls(name=file.basename, control_card=None)
+            dck = cls(name=file.basename(), control_cards=None)
             cc = ControlCards()
             dck._control_card = cc
             line = dcklines.readline()
@@ -1005,7 +1046,7 @@ class Deck(object):
                     )
         return G
 
-    def update_with_model(self, model):
+    def update_models(self, model):
         """Update the Deck.models attribute with a :class:`TrnsysModel`
         or a list of :class:`TrnsysModel`.
 
@@ -1027,12 +1068,36 @@ class Deck(object):
             # in any case, add new one
             self.models.append(model)
 
+    def save(self, filename):
+        """Saves the Deck object to file"""
+        file = Path(filename)
+        dir = file.dirname()
+        if dir != "" and not dir.exists():
+            file.dirname().makedirs_p()
+        with open(file, "w+") as _file:
+            deck_str = str(self)
+            _file.write(deck_str)
+
+    def _to_string(self):
+        """"""
+        end = self.control_cards.__dict__.pop("end", End())
+        cc = self.control_cards._to_deck()
+
+        models = "\n\n".join([model._to_deck() for model in self.models])
+
+        styles = ""
+
+        end = end._to_deck()
+
+        return "\n\n".join([cc, models, styles, end])
+
     @classmethod
     def _parse_logic(cls, cc, dck, dcklines, line, proforma_root):
         while line:
             key, match = dck._parse_line(line)
             if key == "end":
-                end = match.group("end")
+                end_ = End()
+                cc.set_statement(end_)
             if key == "version":
                 version = match.group("version")
                 v_ = Version.from_string(version.strip())
