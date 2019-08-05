@@ -550,6 +550,33 @@ class TestConstantsAndEquations():
         with pytest.raises(ValueError):
             equa1 = Equation.from_expression("TdbAmb : [011,001]")
 
+    def test_update_equation_collection(self, equation_block):
+        """test different .update() recipes"""
+        from pyTrnsysType.input_file import Equation, EquationCollection
+        list_equations = [equa for equa in equation_block.values()]
+
+        ec = EquationCollection(name='my equation block')
+
+        # from a list
+        ec.update(list_equations)
+        assert len(ec) == 4
+
+        # from a dict
+        ec.update({eq.name: eq for eq in list_equations})
+        assert len(ec) == 4
+
+        # from a single Equation
+        eq_x = Equation.from_expression("A=2")
+        ec.update(eq_x)
+        assert len(ec) == 5
+
+        # raises error if dict value is other than :class:`Equation`
+        with pytest.raises(TypeError):
+            ec.update({"test": float})
+
+        # update with more than one dicts.
+        ec.update(list_equations, F=list_equations)
+
     def test_equation_with_typevariable(self, fan_type):
         from pyTrnsysType.input_file import Equation, EquationCollection
         fan_type._unit = 1
@@ -577,6 +604,33 @@ class TestConstantsAndEquations():
         assert str(constant_block)
         assert str(c_block_2)
         print(constant_block)
+
+    def test_update_constant_collection(self, constant_block):
+        """test different .update() recipes"""
+        from pyTrnsysType.input_file import Constant, ConstantCollection
+        list_constants = [cts for cts in constant_block.values()]
+
+        cc = ConstantCollection(name='my constant block')
+
+        # from a list
+        cc.update(list_constants)
+        assert len(cc) == 3
+
+        # from a dict
+        cc.update({cts.name: cts for cts in list_constants})
+        assert len(cc) == 3
+
+        # from a single Equation
+        cts_x = Constant.from_expression("D=2")
+        cc.update(cts_x)
+        assert len(cc) == 4
+
+        # raises error if dict value is other than :class:`Equation`
+        with pytest.raises(TypeError):
+            cc.update({"test": float})
+
+        # update with more than one dicts.
+        cc.update(list_constants, F=list_constants)
 
 
 class TestDeck():
