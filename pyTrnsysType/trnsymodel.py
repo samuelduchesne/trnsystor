@@ -5,6 +5,7 @@ import re
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
+import tabulate
 from bs4 import BeautifulSoup, Tag
 from matplotlib.colors import colorConverter
 from path import Path
@@ -272,6 +273,20 @@ class ExternalFileCollection(collections.UserDict):
             item.__setitem__(named_key, dictionary[key])
         return item
 
+    def _to_deck(self):
+        """Returns the string representation for the external files (.dck)"""
+        if self:
+            head = "*** External files\n"
+            v_ = (
+                ("ASSIGN", ext_file.value.normcase(), ext_file.logical_unit)
+                for ext_file in self.values()
+            )
+            core = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
+
+            return str(head) + str(core)
+        else:
+            return ""
+
 
 class ComponentCollection(collections.UserList):
     """A class that handles collections of components, eg.; TrnsysModels,
@@ -312,7 +327,7 @@ class Component(metaclass=ABCMeta):
         self._unit = next(TrnsysModel.new_id)
         self.name = name
         self._meta = meta
-        self.studio = StudioHeader.from_trnsysmodel(self)
+        self.studio = StudioHeader.from_component(self)
 
     def __hash__(self):
         return self.unit_number
@@ -383,11 +398,12 @@ class Component(metaclass=ABCMeta):
     @property
     def model(self):
         """str: The path of this model's proforma"""
-        return (
-            self._meta.model
-            if not isinstance(self._meta.model, Tag)
-            else self._meta.model.text
-        )
+        try:
+            model = self._meta.model
+        except AttributeError:
+            return None
+        else:
+            return model if not isinstance(model, Tag) else model.text
 
     @property
     def inputs(self):
@@ -568,7 +584,7 @@ class TrnsysModel(Component):
             for trnsystype in my_objects:
                 t = cls._from_tag(trnsystype, **kwargs)
                 t._meta.model = xml_file
-                t.studio = StudioHeader.from_trnsysmodel(t)
+                t.studio = StudioHeader.from_component(t)
                 all_types.append(t)
             return all_types[0]
 
@@ -863,14 +879,21 @@ class TrnsysModel(Component):
 
     def _to_deck(self):
         """print the Input File (.dck) representation of this TrnsysModel"""
-        unit_type = pyTrnsysType.UnitType(self.unit_number, self.type_number, self.name)
+        unit_type = "UNIT {n} TYPE {m} {name}\n".format(
+            n=self.unit_number, m=self.type_number, name=self.name
+        )
         studio = self.studio
-        params = pyTrnsysType.Parameters(self.parameters, n=self.parameters.size)
-        inputs = pyTrnsysType.Inputs(self.inputs, n=self.inputs.size)
+        params = self.parameters
+        inputs = self.inputs
+        externals = self.external_files._to_deck() if self.external_files else ""
 
-        externals = pyTrnsysType.ExternalFiles(self.external_files)
-
-        return str(unit_type) + str(studio) + str(params) + str(inputs) + str(externals)
+        return (
+            str(unit_type)
+            + str(studio)
+            + params._to_deck()
+            + inputs._to_deck()
+            + str(externals)
+        )
 
     def update_meta(self, new_meta):
         """
@@ -1347,9 +1370,62 @@ class InputCollection(VariableCollection):
         )
         return num_inputs + inputs
 
+    def _to_deck(self):
+        """Returns the string representation for the Input File (.dck)"""
+        from pyTrnsysType.input_file import Equation, TypeVariable, Constant
+
+        head = "INPUTS {}\n".format(self.size)
+        # "{u_i}, {o_i}": is an integer number referencing the number of the
+        # UNIT to which the ith INPUT is connected. is an integer number
+        # indicating to which OUTPUT (i.e., the 1st, 2nd, etc.) of UNIT
+        # number ui the ith INPUT is connected.
+        _ins = []
+        for input in self.values():
+            if input.is_connected:
+                if isinstance(input.connected_to, TypeVariable):
+                    _ins.append(
+                        (
+                            "{},{}".format(
+                                input.connected_to.model.unit_number,
+                                input.connected_to.one_based_idx,
+                            ),
+                            "{out_model_name}:{output_name} -> {in_model_name}:{input_name}".format(
+                                out_model_name=input.connected_to.model.name,
+                                output_name=input.connected_to.name,
+                                in_model_name=input.model.name,
+                                input_name=input.name,
+                            ),
+                        )
+                    )
+                elif isinstance(input.connected_to, (Equation, Constant)):
+                    _ins.append(
+                        (
+                            input.connected_to.name,
+                            "{out_model_name}:{output_name} -> {in_model_name}:{input_name}".format(
+                                out_model_name=input.connected_to.model.name,
+                                output_name=input.connected_to.name,
+                                in_model_name=input.model.name,
+                                input_name=input.name,
+                            ),
+                        )
+                    )
+                else:
+                    raise NotImplementedError(
+                        "With unit {}, printing input '{}' connected with output of type '{}' from unit '{}' is not supported".format(
+                            input.model.name,
+                            input.name,
+                            type(input.connected_to),
+                            input.connected_to.model.name,
+                        )
+                    )
+            else:
+                _ins.append(("0,0",))
+        core = tabulate.tabulate(_ins, tablefmt="plain", numalign="left")
+        return str(head) + core + "\n"
+
 
 class OutputCollection(VariableCollection):
-    """Subclass of :class:`VariableCollection` specific to Ouputs"""
+    """Subclass of :class:`VariableCollection` specific to Outputs"""
 
     def __init__(self):
         super().__init__()
@@ -1376,6 +1452,33 @@ class ParameterCollection(VariableCollection):
             ['"{}": {:~P}'.format(key, value.value) for key, value in self.data.items()]
         )
         return num_inputs + inputs
+
+    def _to_deck(self):
+        """Returns the string representation for the Input File (.dck)"""
+        from pyTrnsysType.input_file import Equation, TypeVariable
+
+        head = "PARAMETERS {}\n".format(self.size)
+        # loop through parameters and print the (value, name) tuples.
+        v_ = []
+        for param in self.values():
+            if isinstance(param.value, Equation):
+                v_.append(
+                    (
+                        param.value.name,
+                        "! {} {}".format(param.one_based_idx, param.name),
+                    )
+                )
+            elif isinstance(param.value, _Quantity):
+                v_.append(
+                    (param.value.m, "! {} {}".format(param.one_based_idx, param.name))
+                )
+            else:
+                raise NotImplementedError(
+                    "Printing parameter '{}' of type '{}' from unit '{}' is not "
+                    "supported".format(param.name, type(param.value), param.model.name)
+                )
+        params_str = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
+        return head + params_str + "\n"
 
 
 class StudioHeader(object):
@@ -1405,24 +1508,14 @@ class StudioHeader(object):
         return self._to_deck()
 
     @classmethod
-    def from_trnsysmodel(cls, model):
+    def from_component(cls, model):
         """
         Args:
             model (Component):
         """
         position = Point(50, 50)
         layer = ["Main"]
-        return cls(model.unit_name, model.model, position, layer)
-
-    @classmethod
-    def from_component(cls, component):
-        """
-        Args:
-            component:
-        """
-        position = Point(50, 50)
-        layer = ["Main"]
-        return cls(component.name, None, position, layer)
+        return cls(model.name, model.model, position, layer)
 
     def _to_deck(self):
         """
