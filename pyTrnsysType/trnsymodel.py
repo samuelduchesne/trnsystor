@@ -161,7 +161,8 @@ class MetaData(object):
                 raise NotImplementedError()
 
     def __getitem__(self, item):
-        """eg.: self[item]
+        """eg.: self[item] :param item:
+
         Args:
             item:
         """
@@ -169,6 +170,11 @@ class MetaData(object):
 
     @classmethod
     def from_xml(cls, xml, **kwargs):
+        """
+        Args:
+            xml:
+            **kwargs:
+        """
         xml_file = Path(xml)
         with open(xml_file) as xml:
             soup = BeautifulSoup(xml, "xml")
@@ -857,15 +863,20 @@ class TrnsysModel(Component):
 
     def _to_deck(self):
         """print the Input File (.dck) representation of this TrnsysModel"""
-        input = pyTrnsysType.UnitType(self.unit_number, self.type_number, self.name)
+        unit_type = pyTrnsysType.UnitType(self.unit_number, self.type_number, self.name)
+        studio = self.studio
         params = pyTrnsysType.Parameters(self.parameters, n=self.parameters.size)
         inputs = pyTrnsysType.Inputs(self.inputs, n=self.inputs.size)
 
         externals = pyTrnsysType.ExternalFiles(self.external_files)
 
-        return str(input) + str(params) + str(inputs) + str(externals)
+        return str(unit_type) + str(studio) + str(params) + str(inputs) + str(externals)
 
     def update_meta(self, new_meta):
+        """
+        Args:
+            new_meta:
+        """
         for attr in self._meta.__dict__:
             if hasattr(new_meta, attr):
                 setattr(self._meta, attr, getattr(new_meta, attr))
@@ -935,7 +946,7 @@ class TypeVariable(object):
         """Initialize a TypeVariable with the following attributes:
 
         Args:
-            val (int, float, _Quantity): The actual value holded by this object.
+            val (int, float, _Quantity): The actual value hold by this object.
             order (str):
             name (str): This name will be seen by the user in the connections
                 window and all other variable information windows.
@@ -1390,6 +1401,9 @@ class StudioHeader(object):
         self.model = model
         self.unit_name = unit_name
 
+    def __str__(self):
+        return self._to_deck()
+
     @classmethod
     def from_trnsysmodel(cls, model):
         """
@@ -1402,9 +1416,32 @@ class StudioHeader(object):
 
     @classmethod
     def from_component(cls, component):
+        """
+        Args:
+            component:
+        """
         position = Point(50, 50)
         layer = ["Main"]
         return cls(component.name, None, position, layer)
+
+    def _to_deck(self):
+        """
+        Examples:
+            >>>
+            *$UNIT_NAME Boulder, CO
+            *$MODEL .\Weather Data Reading and Processing\Standard
+            Format\TMY2\Type15-2.tmf
+            *$POSITION 69 182
+            *$LAYER Main #
+
+        Returns:
+            (str): The string representation of the StudioHeader.
+        """
+        unit_name = "*$UNIT_NAME {}".format(self.unit_name)
+        model = "*$MODEL {}".format(self.model)
+        position = "*$POSITION {} {}".format(self.position.x, self.position.y)
+        layer = "*$LAYER {}".format(" ".join(self.layer))
+        return "\n".join([unit_name, model, position, layer]) + "\n"
 
 
 def _linestyle_to_studio(ls):
