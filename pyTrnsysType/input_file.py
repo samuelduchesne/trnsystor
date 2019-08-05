@@ -926,14 +926,26 @@ class Deck(object):
         return G
 
     def update_with_model(self, model):
-        # iterate over models
-        if model.unit_number in [mod.unit_number for mod in self.models]:
-            for i, item in enumerate(self.models):
-                if item.unit_number == model.unit_number:
-                    self.models.pop(i)
-                    break
-        # in any case, add new one
-        self.models.append(model)
+        """Update the Deck.models attribute with a :class:`TrnsysModel`
+        or a list of :class:`TrnsysModel`.
+
+        Args:
+            model (Component or list of Component):
+
+        Returns:
+            None.
+        """
+        if isinstance(model, Component):
+            model = [model]
+        for model in model:
+            # iterate over models and try to pop the existing one
+            if model.unit_number in [mod.unit_number for mod in self.models]:
+                for i, item in enumerate(self.models):
+                    if item.unit_number == model.unit_number:
+                        self.models.pop(i)
+                        break
+            # in any case, add new one
+            self.models.append(model)
 
     @classmethod
     def _parse_logic(cls, cc, dck, dcklines, line, proforma_root):
