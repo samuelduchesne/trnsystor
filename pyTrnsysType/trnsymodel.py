@@ -108,7 +108,7 @@ class MetaData(object):
         meta_args = {child.name: child.__copy__() for child in tag.children
                      if isinstance(child, Tag)}
         xml_args = {child.name: child.prettify() for child in tag.children
-                     if isinstance(child, Tag)}
+                    if isinstance(child, Tag)}
         meta_args.update(kwargs)
         return cls(**{attr: meta_args[attr] for attr in meta_args})
 
@@ -273,7 +273,7 @@ class Component(metaclass=ABCMeta):
         self._unit = next(TrnsysModel.new_id)
         self.name = name
         self._meta = meta
-        self.studio = StudioHeader.from_trnsysmodel(self)
+        self.studio = StudioHeader.from_component(self)
 
     def __hash__(self):
         return self.unit_number
@@ -518,7 +518,7 @@ class TrnsysModel(Component):
             for trnsystype in my_objects:
                 t = cls._from_tag(trnsystype, **kwargs)
                 t._meta.model = xml_file
-                t.studio = StudioHeader.from_trnsysmodel(t)
+                t.studio = StudioHeader.from_component(t)
                 all_types.append(t)
             return all_types[0]
 
@@ -1240,7 +1240,7 @@ class StudioHeader(object):
         self.unit_name = unit_name
 
     @classmethod
-    def from_trnsysmodel(cls, model):
+    def from_component(cls, model):
         """
         Args:
             model (Component):
@@ -1298,7 +1298,7 @@ class LinkStyle(object):
                 :class:`TrnsysModel` and the destination :class:`TrnsysModel`.
             color (color): The color of the line.
             linestyle (str): Possible values: '-' or 'solid', '--' or 'dashed',
-                '-.' or 'dashdot', ':' or 'dotted', '-.' or 'dashdotdot'.
+                '-.' or 'dashdot', ':' or 'dotted', '-..' or 'dashdotdot'.
             linewidth (float): The link line width in points.
             path (LineString or MultiLineString):
         """
@@ -1343,7 +1343,7 @@ class LinkStyle(object):
 
         Args:
             ls (str): Possible values: '-' or 'solid', '--' or 'dashed', '-.' or
-                'dashdot', ':' or 'dotted', '-.' or 'dashdotdot'.
+                'dashdot', ':' or 'dotted', '-..' or 'dashdotdot'.
         """
         if isinstance(ls, str):
             self._linestyle = ls

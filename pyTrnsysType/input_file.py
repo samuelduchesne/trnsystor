@@ -294,6 +294,7 @@ class ConstantCollection(collections.UserDict, Component):
             _dict = mutable
         super().__init__(_dict)
         self.name = Name(name)
+        self.studio = StudioHeader.from_component(self)
         self._unit = next(TrnsysModel.new_id)
 
     def __getitem__(self, key):
@@ -606,7 +607,7 @@ class EquationCollection(collections.UserDict, Component):
         super().__init__(_dict)
         self.name = Name(name)
         self._unit = next(TrnsysModel.new_id)
-        self.studio = StudioHeader.from_trnsysmodel(self)
+        self.studio = StudioHeader.from_component(self)
 
     def __getitem__(self, key):
         """
@@ -925,20 +926,16 @@ class Deck(object):
                                from_model=u, to_model=v)
         return G
 
-    def update_with_model(self, model):
-        """Update the Deck.models attribute with a :class:`TrnsysModel`
-        or a list of :class:`TrnsysModel`.
+    def update_models(self, models):
+        """Update a Deck with a list of :class:`Component` objects
 
         Args:
-            model (Component or list of Component):
-
-        Returns:
-            None.
+            models (Component or list-like): One Component or a list-like of
+                Components to update the deck file object with.
         """
-        if isinstance(model, Component):
-            model = [model]
-        for model in model:
-            # iterate over models and try to pop the existing one
+        if isinstance(models, Component):
+            models = [models]
+        for model in models:
             if model.unit_number in [mod.unit_number for mod in self.models]:
                 for i, item in enumerate(self.models):
                     if item.unit_number == model.unit_number:
@@ -962,7 +959,8 @@ class Deck(object):
                 for n in range(int(n_cnts)):
                     line = next(dcklines)
                     cb.update(Constant.from_expression(line))
-                cc.set_statement(cb)
+                if cb not in dck.models:
+                    dck.update_models(cb)
             if key == 'simulation':
                 sss = match.group(key)
                 s_ = Simulation(*map(Constant, sss.split()))
@@ -1016,15 +1014,15 @@ class Deck(object):
                     list_eq.append(Equation.from_expression(value))
                 ec = EquationCollection(list_eq)
                 ec._unit = 1
-                # dck.update_with_model(ec)
+                # dck.update_models(ec)
                 # append the dictionary to the data list
             if key == 'userconstantend':
-                dck.update_with_model(ec)
+                dck.update_models(ec)
             # read studio markup
             if key == 'unitnumber':
                 unit_number = match.group(key)
                 ec._unit = int(unit_number)
-                dck.update_with_model(ec)
+                dck.update_models(ec)
             if key == 'unitname':
                 unit_name = match.group(key)
                 ec.name = unit_name
@@ -1044,7 +1042,7 @@ class Deck(object):
                 _meta = MetaData(type=t)
                 model = TrnsysModel(_meta, name=n)
                 model._unit = int(u)
-                dck.update_with_model(model)
+                dck.update_models(model)
                 # read studio markup
                 cls.unit_studio_markup(dck, dcklines, key,
                                        line, match, model,
