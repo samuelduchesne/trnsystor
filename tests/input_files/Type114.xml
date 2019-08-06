@@ -1,3 +1,244 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<TrnsysModel><object>Single Speed Pump</object><author>Jeff Thornton</author><organization>Thermal Energy System Specialists</organization><editor>MJD</editor><creationDate>1/1/98</creationDate><modifictionDate>May 2011</modifictionDate><mode>2</mode><validation>34</validation><icon>C:\Users\saleta\Dropbox\Polytechnique\Doc\software\pyTrnsysType\tests\input_files\Type114.bmp</icon><type>114</type><maxInstance>9999</maxInstance><keywords><keyword>Pump</keyword><keyword>Single-Speed</keyword></keywords><details>Type114 models a single (constant) speed pump that is able to maintain a constant fluid outlet mass flow rate. Pump starting and stopping characteristics are not modeled, nor are pressure drop effects. As with most pumps
-and fans in TRNSYS, Type114 takes mass flow rate as an input but ignores the value except in order to perform mass balance checks. Type114 sets the downstream flow rate based on its rated flow rate parameter and the current value of its control signal input.</details><comment>SINGLE-SPEED PUMP</comment><variablesComment>SINGLE-SPEED PUMP</variablesComment><variables><variable><!--parameter-1--><order>1</order><name>Rated flow rate</name><role>parameter</role><dimension>Flow Rate</dimension><unit>kg/hr</unit><type>real</type><min>0.0</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>1000.0</default><symbol>SN</symbol><definition>The flow rate of fluid through the pump when operating.</definition></variable><variable><!--parameter-2--><order>2</order><name>Fluid specific heat</name><role>parameter</role><dimension>Specific Heat</dimension><unit>kJ/kg.K</unit><type>real</type><min>0.</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>4.19</default><symbol>SN</symbol><definition>The specific heat of the fluid flowing through the device.</definition></variable><variable><!--parameter-3--><order>3</order><name>Rated power</name><role>parameter</role><dimension>Power</dimension><unit>kJ/hr</unit><type>real</type><min>0.0</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>2684.0</default><symbol>SN</symbol><definition>The pump power consumption during operation.</definition></variable><variable><!--input-1--><order>4</order><name>Inlet fluid temperature</name><role>input</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>20.0</default><symbol>SN</symbol><definition>The temperature of the fluid entering the device</definition></variable><variable><!--input-2--><order>5</order><name>Inlet fluid flow rate</name><role>input</role><dimension>Flow Rate</dimension><unit>kg/hr</unit><type>real</type><min>0.0</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>1000</default><symbol>SN</symbol><definition>The flow rate of fluid entering the device.  This input is not used by this component except for convergence checking.</definition></variable><variable><!--input-3--><order>6</order><name>Control signal</name><role>input</role><dimension>Dimensionless</dimension><unit>-</unit><type>real</type><min>0.0</min><max>1.0</max><boundaries>[ ; ]</boundaries><default>1.0</default><symbol>SN</symbol><definition>The input control signal to the pump:  &lt;0.5 - the pump is OFF, &gt;= 0.5 - the pump is ON</definition></variable><variable><!--output-1--><order>7</order><name>Outlet fluid temperature</name><role>output</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The temperature of the fluid exiting the device.</definition></variable><variable><!--output-2--><order>8</order><name>Outlet flow rate</name><role>output</role><dimension>Flow Rate</dimension><unit>kg/hr</unit><type>real</type><min>0.0</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The flow rate of fluid exiting the device.</definition></variable><variable><!--output-3--><order>9</order><name>Power consumption</name><role>output</role><dimension>Power</dimension><unit>kJ/hr</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The power consumed by the pump.</definition></variable><variable><!--output-4--><order>10</order><name>Fluid heat transfer</name><role>output</role><dimension>Power</dimension><unit>kJ/hr</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The rate at which heat is transferred to the fluid by the pump operation.</definition></variable><variable><!--parameter-4--><order>11</order><name>Motor heat loss fraction</name><role>parameter</role><dimension>Dimensionless</dimension><unit>-</unit><type>real</type><min>0.</min><max>1.0</max><boundaries>[ ; ]</boundaries><default>0.0</default><symbol>SN</symbol><definition>The fraction of the motor heat loss transferred to the fluid stream.  The motor heat loss is calculated by subtracting the efficiency of the motor from 1 and multiplying the resultant quantity by the power consumption.  Typical values for this parameter are 0 for motors mounted outside the fluid stream and 1 for motors mounted within the fluid stream.</definition></variable><variable><!--input-4--><order>12</order><name>Overall pump efficiency</name><role>input</role><dimension>Dimensionless</dimension><unit>-</unit><type>real</type><min>0.</min><max>1.</max><boundaries>[ ; ]</boundaries><default>0.6</default><symbol>SN</symbol><definition>The overall efficiency of the pump.  The overall pump efficiency includes the inefficiencies due to the motor and shaft friction.  The overall pump efficiency must be less than the motor efficiency.  The lower the efficiency the greater the amount of power consumed and the greater the heat transfer to the fluid and/or ambient.</definition></variable><variable><!--input-5--><order>13</order><name>Motor efficiency</name><role>input</role><dimension>Dimensionless</dimension><unit>-</unit><type>real</type><min>0.</min><max>1.</max><boundaries>[ ; ]</boundaries><default>0.9</default><symbol>SN</symbol><definition>The efficiency of the pump motor.  The motor efficiency must be greater than the overall pump efficiency.  The lower the motor efficiency the greater the amount of power consumed and the greater the heat transfer to the fluid and/or ambient.</definition></variable><variable><!--output-5--><order>14</order><name>Environment heat transfer</name><role>output</role><dimension>Power</dimension><unit>kJ/hr</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The rate at which heat is transferred from the pump to the environment.  This value is simply the pump power minus the heat transfer directly to the fluid.</definition></variable></variables><cycles/><compileCommand>df /c</compileCommand><source>.\SourceCode\Types\Type114.f90</source></TrnsysModel>
+<TrnsysModel>
+    <object>Single Speed Pump</object>
+    <author>Jeff Thornton</author>
+    <organization>Thermal Energy System Specialists</organization>
+    <editor>MJD</editor>
+    <creationDate>1/1/98</creationDate>
+    <modifictionDate>May 2011</modifictionDate>
+    <mode>2</mode>
+    <validation>34</validation>
+    <icon>C:\Users\saleta\Dropbox\Polytechnique\Doc\software\pyTrnsysType\tests\input_files\Type114.bmp</icon>
+    <type>114</type>
+    <maxInstance>9999</maxInstance>
+    <keywords>
+        <keyword>Pump</keyword>
+        <keyword>Single-Speed</keyword>
+    </keywords>
+    <details>Type114 models a single (constant) speed pump that is able to maintain a constant fluid outlet mass flow
+        rate. Pump starting and stopping characteristics are not modeled, nor are pressure drop effects. As with most
+        pumps
+        and fans in TRNSYS, Type114 takes mass flow rate as an input but ignores the value except in order to perform
+        mass balance checks. Type114 sets the downstream flow rate based on its rated flow rate parameter and the
+        current value of its control signal input.
+    </details>
+    <comment>SINGLE-SPEED PUMP</comment>
+    <variablesComment>SINGLE-SPEED PUMP</variablesComment>
+    <variables>
+        <variable><!--parameter-1-->
+            <order>1</order>
+            <name>Rated flow rate</name>
+            <role>parameter</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1000.0</default>
+            <symbol>SN</symbol>
+            <definition>The flow rate of fluid through the pump when operating.</definition>
+        </variable>
+        <variable><!--parameter-2-->
+            <order>2</order>
+            <name>Fluid specific heat</name>
+            <role>parameter</role>
+            <dimension>Specific Heat</dimension>
+            <unit>kJ/kg.K</unit>
+            <type>real</type>
+            <min>0.</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>4.19</default>
+            <symbol>SN</symbol>
+            <definition>The specific heat of the fluid flowing through the device.</definition>
+        </variable>
+        <variable><!--parameter-3-->
+            <order>3</order>
+            <name>Rated power</name>
+            <role>parameter</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>2684.0</default>
+            <symbol>SN</symbol>
+            <definition>The pump power consumption during operation.</definition>
+        </variable>
+        <variable><!--input-1-->
+            <order>4</order>
+            <name>Inlet fluid temperature</name>
+            <role>input</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>20.0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the fluid entering the device</definition>
+        </variable>
+        <variable><!--input-2-->
+            <order>5</order>
+            <name>Inlet fluid flow rate</name>
+            <role>input</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1000</default>
+            <symbol>SN</symbol>
+            <definition>The flow rate of fluid entering the device. This input is not used by this component except for
+                convergence checking.
+            </definition>
+        </variable>
+        <variable><!--input-3-->
+            <order>6</order>
+            <name>Control signal</name>
+            <role>input</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>1.0</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1.0</default>
+            <symbol>SN</symbol>
+            <definition>The input control signal to the pump: &lt;0.5 - the pump is OFF, &gt;= 0.5 - the pump is ON
+            </definition>
+        </variable>
+        <variable><!--output-1-->
+            <order>7</order>
+            <name>Outlet fluid temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the fluid exiting the device.</definition>
+        </variable>
+        <variable><!--output-2-->
+            <order>8</order>
+            <name>Outlet flow rate</name>
+            <role>output</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The flow rate of fluid exiting the device.</definition>
+        </variable>
+        <variable><!--output-3-->
+            <order>9</order>
+            <name>Power consumption</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The power consumed by the pump.</definition>
+        </variable>
+        <variable><!--output-4-->
+            <order>10</order>
+            <name>Fluid heat transfer</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which heat is transferred to the fluid by the pump operation.</definition>
+        </variable>
+        <variable><!--parameter-4-->
+            <order>11</order>
+            <name>Motor heat loss fraction</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.</min>
+            <max>1.0</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.0</default>
+            <symbol>SN</symbol>
+            <definition>The fraction of the motor heat loss transferred to the fluid stream. The motor heat loss is
+                calculated by subtracting the efficiency of the motor from 1 and multiplying the resultant quantity by
+                the power consumption. Typical values for this parameter are 0 for motors mounted outside the fluid
+                stream and 1 for motors mounted within the fluid stream.
+            </definition>
+        </variable>
+        <variable><!--input-4-->
+            <order>12</order>
+            <name>Overall pump efficiency</name>
+            <role>input</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.</min>
+            <max>1.</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.6</default>
+            <symbol>SN</symbol>
+            <definition>The overall efficiency of the pump. The overall pump efficiency includes the inefficiencies due
+                to the motor and shaft friction. The overall pump efficiency must be less than the motor efficiency. The
+                lower the efficiency the greater the amount of power consumed and the greater the heat transfer to the
+                fluid and/or ambient.
+            </definition>
+        </variable>
+        <variable><!--input-5-->
+            <order>13</order>
+            <name>Motor efficiency</name>
+            <role>input</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.</min>
+            <max>1.</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.9</default>
+            <symbol>SN</symbol>
+            <definition>The efficiency of the pump motor. The motor efficiency must be greater than the overall pump
+                efficiency. The lower the motor efficiency the greater the amount of power consumed and the greater the
+                heat transfer to the fluid and/or ambient.
+            </definition>
+        </variable>
+        <variable><!--output-5-->
+            <order>14</order>
+            <name>Environment heat transfer</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which heat is transferred from the pump to the environment. This value is simply the
+                pump power minus the heat transfer directly to the fluid.
+            </definition>
+        </variable>
+    </variables>
+    <cycles/>
+    <compileCommand>df /c</compileCommand>
+    <source>.\SourceCode\Types\Type114.f90</source>
+</TrnsysModel>

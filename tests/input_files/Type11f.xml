@@ -1,10 +1,154 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<TrnsysModel><object>Controlled flow diverter</object><author>Contributors are listed in manuals</author><organization>Solar Energy Laboratory, University of Wisconsin - Madison</organization><editor>CMR</editor><creationDate>TRNSYS v7.5</creationDate><modifictionDate>May 2011</modifictionDate><mode>4</mode><validation>32</validation><icon>C:\Users\saleta\Dropbox\Polytechnique\Doc\software\pyTrnsysType\tests\input_files\Type11f.bmp</icon><type>11</type><maxInstance>9999</maxInstance><keywords/><details>This instance of the Type11 model uses mode 2 to model a flow diverter in which a single inlet liquid stream is split according to a user specified valve setting into two liquid outlet streams.</details><variables><variable><!--parameter-1--><order>1</order><name>Flow diverter mode</name><role>parameter</role><dimension>Dimensionless</dimension><unit>-</unit><type>integer</type><min>2</min><max>2</max><boundaries>[ ; ]</boundaries><default>2</default><symbol>SN</symbol><definition>This parameter indicated to the general model that a flow diverter is to be modeled.
-        Do not change this parameter.</definition></variable><variable><!--input-1--><order>2</order><name>Inlet temperature</name><role>input</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>20.0</default><symbol>SN</symbol><definition>The temperature of the fluid entering the inlet of the flow diverter.</definition></variable><variable><!--input-2--><order>3</order><name>Inlet flow rate</name><role>input</role><dimension>Flow Rate</dimension><unit>kg/hr</unit><type>real</type><min>0.0</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>100.0</default><symbol>SN</symbol><definition>The flow rate of fluid entering the inlet of the flow diverter.</definition></variable><variable><!--input-3--><order>4</order><name>Control signal</name><role>input</role><dimension>Dimensionless</dimension><unit>-</unit><type>real</type><min>0.0</min><max>1.0</max><boundaries>[ ; ]</boundaries><default>0.5</default><symbol>SN</symbol><definition>The input control signal.  The control signal sets the position of a damper controlling the proportion of fluid to each exit.
-mdot,1 = mdot,in * (1-Y)
-mdot,2 = mdot,in * Y
-(See manual for further information on equation)</definition></variable><variable><!--output-1--><order>5</order><name>Temperature at outlet 1</name><role>output</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The temperature of the fluid exiting through the first outlet of the flow diverter.  The first outlet temperature is set to the inlet temperature for all cases.</definition></variable><variable><!--output-2--><order>6</order><name>Flow rate at outlet 1</name><role>output</role><dimension>Flow Rate</dimension><unit>kg/hr</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The flow rate of fluid leaving the first outlet of the controlled flow diverter.  The first outlet flow rate is:
-   mdot,1 = mdot,in * (1-Y)
-(See manual for further information on equation)</definition></variable><variable><!--output-3--><order>7</order><name>Temperature at outlet 2</name><role>output</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The temperature of the fluid exiting through the second outlet of the flow diverter.  The temperature at the second outlet is set to the inlet temperature for all cases.</definition></variable><variable><!--output-4--><order>8</order><name>Flow rate at outlet 2</name><role>output</role><dimension>Flow Rate</dimension><unit>kg/hr</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The flow rate of fluid exiting the flow diverter through the second outlet.  The flow rate through the second outlet is:
-      mdot,2 = mdot,in * Y
-(See manual for further information on equation)</definition></variable></variables><cycles/><compileCommand>df /c</compileCommand><source>.\SourceCode\Types\Type11.f90</source></TrnsysModel>
+<TrnsysModel>
+    <object>Controlled flow diverter</object>
+    <author>Contributors are listed in manuals</author>
+    <organization>Solar Energy Laboratory, University of Wisconsin - Madison</organization>
+    <editor>CMR</editor>
+    <creationDate>TRNSYS v7.5</creationDate>
+    <modifictionDate>May 2011</modifictionDate>
+    <mode>4</mode>
+    <validation>32</validation>
+    <icon>C:\Users\saleta\Dropbox\Polytechnique\Doc\software\pyTrnsysType\tests\input_files\Type11f.bmp</icon>
+    <type>11</type>
+    <maxInstance>9999</maxInstance>
+    <keywords/>
+    <details>This instance of the Type11 model uses mode 2 to model a flow diverter in which a single inlet liquid
+        stream is split according to a user specified valve setting into two liquid outlet streams.
+    </details>
+    <variables>
+        <variable><!--parameter-1-->
+            <order>1</order>
+            <name>Flow diverter mode</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>2</min>
+            <max>2</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>2</default>
+            <symbol>SN</symbol>
+            <definition>This parameter indicated to the general model that a flow diverter is to be modeled.
+                Do not change this parameter.
+            </definition>
+        </variable>
+        <variable><!--input-1-->
+            <order>2</order>
+            <name>Inlet temperature</name>
+            <role>input</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>20.0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the fluid entering the inlet of the flow diverter.</definition>
+        </variable>
+        <variable><!--input-2-->
+            <order>3</order>
+            <name>Inlet flow rate</name>
+            <role>input</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>100.0</default>
+            <symbol>SN</symbol>
+            <definition>The flow rate of fluid entering the inlet of the flow diverter.</definition>
+        </variable>
+        <variable><!--input-3-->
+            <order>4</order>
+            <name>Control signal</name>
+            <role>input</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>1.0</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.5</default>
+            <symbol>SN</symbol>
+            <definition>The input control signal. The control signal sets the position of a damper controlling the
+                proportion of fluid to each exit.
+                mdot,1 = mdot,in * (1-Y)
+                mdot,2 = mdot,in * Y
+                (See manual for further information on equation)
+            </definition>
+        </variable>
+        <variable><!--output-1-->
+            <order>5</order>
+            <name>Temperature at outlet 1</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the fluid exiting through the first outlet of the flow diverter. The first
+                outlet temperature is set to the inlet temperature for all cases.
+            </definition>
+        </variable>
+        <variable><!--output-2-->
+            <order>6</order>
+            <name>Flow rate at outlet 1</name>
+            <role>output</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The flow rate of fluid leaving the first outlet of the controlled flow diverter. The first
+                outlet flow rate is:
+                mdot,1 = mdot,in * (1-Y)
+                (See manual for further information on equation)
+            </definition>
+        </variable>
+        <variable><!--output-3-->
+            <order>7</order>
+            <name>Temperature at outlet 2</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the fluid exiting through the second outlet of the flow diverter. The
+                temperature at the second outlet is set to the inlet temperature for all cases.
+            </definition>
+        </variable>
+        <variable><!--output-4-->
+            <order>8</order>
+            <name>Flow rate at outlet 2</name>
+            <role>output</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The flow rate of fluid exiting the flow diverter through the second outlet. The flow rate
+                through the second outlet is:
+                mdot,2 = mdot,in * Y
+                (See manual for further information on equation)
+            </definition>
+        </variable>
+    </variables>
+    <cycles/>
+    <compileCommand>df /c</compileCommand>
+    <source>.\SourceCode\Types\Type11.f90</source>
+</TrnsysModel>

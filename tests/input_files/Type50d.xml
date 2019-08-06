@@ -1,6 +1,458 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<TrnsysModel><object>PV-Thermal Collector</object><author>Contributors are listed in manuals</author><organization>Solar Energy Laboratory, University of Wisconsin - Madison</organization><editor>TESS</editor><creationDate>27/10/1999</creationDate><modifictionDate>September 2013</modifictionDate><mode>2</mode><validation>2</validation><icon>.\Studio\Icon\Type50d.bmp</icon><type>50</type><maxInstance>9999</maxInstance><keywords/><details>This Type a supplement to the TRNSYS Type1 (Solar collector), adding a PV module to the standard flat-plate collector.  It simulates a combined collector and incorporates both the analysis and work of Florschuetz for flat plate collectors operated at peak power, and an analysis given in a report of the Arizona State University, for concentrating combined collectors. The latter analysis makes use of the I-V curves of the cells (or array) in solving for peak power or for current output at some imposed voltage.
-Modes 1 to 4 are used to model flat-plate collectors and provide an increasing level of complexity in the losses calculation.
-Modes 5 to 8 are used to model concentrating collectors.
-This proforma corresponds to Mode 4.</details><variables><variable><!--parameter-1--><order>1</order><name>Mode</name><role>parameter</role><dimension>dimensionless</dimension><unit>-</unit><type>integer</type><min>4</min><max>4</max><boundaries>[ ; ]</boundaries><default>4</default><symbol>SN</symbol></variable><variable><!--parameter-2--><order>2</order><name>Collector Area</name><role>parameter</role><dimension>Area</dimension><unit>m^2</unit><type>real</type><min>0</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>6.5</default><symbol>SN</symbol></variable><variable><!--parameter-3--><order>3</order><name>Collector Efficiency Factor</name><role>parameter</role><dimension>Dimensionless</dimension><unit>-</unit><type>real</type><min>0</min><max>1</max><boundaries>[ ; ]</boundaries><default>0.7</default><symbol>SN</symbol><definition>F', Collector fin efficiency factor. At a particular location, F' is the ratio of the actual useful energy gain to the useful energy gain that would result if the collector absorbing surface had been at the local fluid temperature.</definition></variable><variable><!--parameter-4--><order>4</order><name>Fluid Thermal Capacitance</name><role>parameter</role><dimension>Specific Heat</dimension><unit>kJ/kg.K</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>4.19</default><symbol>SN</symbol><definition>The specific heat of the collector's working fluid.</definition></variable><variable><!--parameter-5--><order>5</order><name>Collector plate absorptance</name><role>parameter</role><dimension>Dimensionless</dimension><unit>-</unit><type>real</type><min>0</min><max>1.0</max><boundaries>[ ; ]</boundaries><default>0.9</default><symbol>SN</symbol><definition>The solar energy spectrum absorptance of the collector's absorber plate.</definition></variable><variable><!--parameter-6--><order>6</order><name>Number of glass covers</name><role>parameter</role><dimension>Dimensionless</dimension><unit>-</unit><type>integer</type><min>1</min><max>10</max><boundaries>[ ; ]</boundaries><default>1</default><symbol>SN</symbol><definition>The number of idential glass covers on the collector.</definition></variable><variable><!--parameter-7--><order>7</order><name>Collector plate emittance</name><role>parameter</role><dimension>dimensionless</dimension><unit>-</unit><type>real</type><min>0</min><max>1.0</max><boundaries>[ ; ]</boundaries><default>0.9</default><symbol>SN</symbol></variable><variable><!--parameter-8--><order>8</order><name>Loss coefficient for bottom and edge losses</name><role>parameter</role><dimension>Heat Transfer Coeff.</dimension><unit>kJ/hr.m^2.K</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>20</default><symbol>SN</symbol><definition>The overall heat transfer coefficient for thermal losses from the back and sides of the collector.</definition></variable><variable><!--parameter-9--><order>9</order><name>Collector slope</name><role>parameter</role><dimension>Direction (Angle)</dimension><unit>degrees</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>45</default><symbol>SN</symbol><definition>The slope of the collector surface measured from the horizontal.</definition></variable><variable><!--input-1--><order>10</order><name>Inlet fluid temperature</name><role>input</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The temperature at which fluid enters the thermal section of the collector.</definition></variable><variable><!--input-2--><order>11</order><name>Fluid mass flow rate</name><role>input</role><dimension>Flow Rate</dimension><unit>kg/hr</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The mass flow rate at which fluid enters the collector.</definition></variable><variable><!--input-3--><order>12</order><name>Ambient temperature</name><role>input</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The dry bulb temperature of the collector's environment.</definition></variable><variable><!--input-4--><order>13</order><name>Incident beam radiation</name><role>input</role><dimension>Flux</dimension><unit>kJ/hr.m^2</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The quantity of beam radiation incident on the collector's surface.</definition></variable><variable><!--output-1--><order>14</order><name>Outlet fluid temperature</name><role>output</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>the temperature at which liquid exits the thermal section of the collector.</definition></variable><variable><!--output-2--><order>15</order><name>Fluid flowrate</name><role>output</role><dimension>Flow Rate</dimension><unit>kg/hr</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The mass flow rate at which liquid exits the thermal section of the collector</definition></variable><variable><!--output-3--><order>16</order><name>Rate of useful energy gain</name><role>output</role><dimension>Power</dimension><unit>kJ/hr</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The rate at which energy is added to the liquid stream.</definition></variable><variable><!--output-4--><order>17</order><name>Collector loss coefficient</name><role>output</role><dimension>Heat Transfer Coeff.</dimension><unit>kJ/hr.m^2.K</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The total thermal energy loss coefficient for the collector. Note that this does not account for the electrical energy that is generated by the panel and that does not go into the fluid stream.</definition></variable><variable><!--output-5--><order>18</order><name>Transmittance-absorptance product</name><role>output</role><dimension>Dimensionless</dimension><unit>-</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>the product of the collector cover's transmittance and absorptance.</definition></variable><variable><!--output-6--><order>19</order><name>Electrical power output</name><role>output</role><dimension>Power</dimension><unit>kJ/hr</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The rate at which electrical energy is generated by the PV section of the collector.</definition></variable><variable><!--output-7--><order>20</order><name>Average cell temperature</name><role>output</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The cell temperature at which the PV is currently operating.</definition></variable><variable><!--output-8--><order>21</order><name>Apparent thermal loss coefficient</name><role>output</role><dimension>Heat Transfer Coeff.</dimension><unit>kJ/hr.m^2.K</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The total thermal loss coefficient plus a term added to account for the fact that the electrical energy generated by the PV section of the collector does not go into the liquid stream.</definition></variable><variable><!--parameter-10--><order>22</order><name>Extinction coefficient thickness product</name><role>parameter</role><dimension>Dimensionless</dimension><unit>-</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0.03</default><symbol>SN</symbol><definition>The extinction coefficient is a measure of how much solar spectrum radiation is absorbed as it passes through a transparent material. It has the units of 1/m. Typical values are between 4 to 32 [1/m] This value is then multiplied by the thickness of the material in order to obtain the extinction coefficient-thickness product of the cover. The resulting value is dimensionless.</definition></variable><variable><!--parameter-11--><order>23</order><name>Temperature coefficient of PV cell efficiency</name><role>parameter</role><dimension>Inverse Temperature Difference</dimension><unit>1/K</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>-0.0003</default><symbol>SN</symbol><definition>C, Temperature coefficient of solar cell efficiency.
-Eff (T) =  Eff(TRef) * (1-C*(T-TRef)).</definition></variable><variable><!--parameter-12--><order>24</order><name>Temperature for cell reference efficiency</name><role>parameter</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>20</default><symbol>SN</symbol><definition>The ambient reference temperature at which the PV cell efficiency (provided as an input to this model) is known.</definition></variable><variable><!--parameter-13--><order>25</order><name>Packing factor</name><role>parameter</role><dimension>Dimensionless</dimension><unit>-</unit><type>real</type><min>0</min><max>1.0</max><boundaries>[ ; ]</boundaries><default>0.5</default><symbol>SN</symbol><definition>Packing factor: ratio of PV cell area to absorber area.</definition></variable><variable><!--input-5--><order>26</order><name>Incident diffuse radiation</name><role>input</role><dimension>Flux</dimension><unit>kJ/hr.m^2</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The quantity of diffuse (sky + ground reflected) radiation incident on the collector surface.</definition></variable><variable><!--input-6--><order>27</order><name>Incidence angle of beam radiation</name><role>input</role><dimension>Direction (Angle)</dimension><unit>degrees</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The angle formed between a line normal to the collector's surface and the line of the beam radiation incident on the collector.</definition></variable><variable><!--input-7--><order>28</order><name>Windspeed</name><role>input</role><dimension>Velocity</dimension><unit>m/s</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The speed of wind in the vicinity of the collector. NOTE: since wind direction is not taken into account, this speed is the wind speed on the collector's surface and is used on computing convective losses from the collector suface.</definition></variable><variable><!--input-8--><order>29</order><name>Cell Efficiency at reference conditions</name><role>input</role><dimension>Dimensionless</dimension><unit>-</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The rate at which the PV section of the collector converts solar radiation to electrical energy at a known cell temperature.</definition></variable></variables><cycles/><source>.\SourceCode\Types\Type50.f90</source></TrnsysModel>
+<TrnsysModel>
+    <object>PV-Thermal Collector</object>
+    <author>Contributors are listed in manuals</author>
+    <organization>Solar Energy Laboratory, University of Wisconsin - Madison</organization>
+    <editor>TESS</editor>
+    <creationDate>27/10/1999</creationDate>
+    <modifictionDate>September 2013</modifictionDate>
+    <mode>2</mode>
+    <validation>2</validation>
+    <icon>.\Studio\Icon\Type50d.bmp</icon>
+    <type>50</type>
+    <maxInstance>9999</maxInstance>
+    <keywords/>
+    <details>This Type a supplement to the TRNSYS Type1 (Solar collector), adding a PV module to the standard flat-plate
+        collector. It simulates a combined collector and incorporates both the analysis and work of Florschuetz for flat
+        plate collectors operated at peak power, and an analysis given in a report of the Arizona State University, for
+        concentrating combined collectors. The latter analysis makes use of the I-V curves of the cells (or array) in
+        solving for peak power or for current output at some imposed voltage.
+        Modes 1 to 4 are used to model flat-plate collectors and provide an increasing level of complexity in the losses
+        calculation.
+        Modes 5 to 8 are used to model concentrating collectors.
+        This proforma corresponds to Mode 4.
+    </details>
+    <variables>
+        <variable><!--parameter-1-->
+            <order>1</order>
+            <name>Mode</name>
+            <role>parameter</role>
+            <dimension>dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>4</min>
+            <max>4</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>4</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--parameter-2-->
+            <order>2</order>
+            <name>Collector Area</name>
+            <role>parameter</role>
+            <dimension>Area</dimension>
+            <unit>m^2</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>6.5</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--parameter-3-->
+            <order>3</order>
+            <name>Collector Efficiency Factor</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>1</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.7</default>
+            <symbol>SN</symbol>
+            <definition>F', Collector fin efficiency factor. At a particular location, F' is the ratio of the actual
+                useful energy gain to the useful energy gain that would result if the collector absorbing surface had
+                been at the local fluid temperature.
+            </definition>
+        </variable>
+        <variable><!--parameter-4-->
+            <order>4</order>
+            <name>Fluid Thermal Capacitance</name>
+            <role>parameter</role>
+            <dimension>Specific Heat</dimension>
+            <unit>kJ/kg.K</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>4.19</default>
+            <symbol>SN</symbol>
+            <definition>The specific heat of the collector's working fluid.</definition>
+        </variable>
+        <variable><!--parameter-5-->
+            <order>5</order>
+            <name>Collector plate absorptance</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>1.0</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.9</default>
+            <symbol>SN</symbol>
+            <definition>The solar energy spectrum absorptance of the collector's absorber plate.</definition>
+        </variable>
+        <variable><!--parameter-6-->
+            <order>6</order>
+            <name>Number of glass covers</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>10</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1</default>
+            <symbol>SN</symbol>
+            <definition>The number of idential glass covers on the collector.</definition>
+        </variable>
+        <variable><!--parameter-7-->
+            <order>7</order>
+            <name>Collector plate emittance</name>
+            <role>parameter</role>
+            <dimension>dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>1.0</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.9</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--parameter-8-->
+            <order>8</order>
+            <name>Loss coefficient for bottom and edge losses</name>
+            <role>parameter</role>
+            <dimension>Heat Transfer Coeff.</dimension>
+            <unit>kJ/hr.m^2.K</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>20</default>
+            <symbol>SN</symbol>
+            <definition>The overall heat transfer coefficient for thermal losses from the back and sides of the
+                collector.
+            </definition>
+        </variable>
+        <variable><!--parameter-9-->
+            <order>9</order>
+            <name>Collector slope</name>
+            <role>parameter</role>
+            <dimension>Direction (Angle)</dimension>
+            <unit>degrees</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>45</default>
+            <symbol>SN</symbol>
+            <definition>The slope of the collector surface measured from the horizontal.</definition>
+        </variable>
+        <variable><!--input-1-->
+            <order>10</order>
+            <name>Inlet fluid temperature</name>
+            <role>input</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature at which fluid enters the thermal section of the collector.</definition>
+        </variable>
+        <variable><!--input-2-->
+            <order>11</order>
+            <name>Fluid mass flow rate</name>
+            <role>input</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The mass flow rate at which fluid enters the collector.</definition>
+        </variable>
+        <variable><!--input-3-->
+            <order>12</order>
+            <name>Ambient temperature</name>
+            <role>input</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The dry bulb temperature of the collector's environment.</definition>
+        </variable>
+        <variable><!--input-4-->
+            <order>13</order>
+            <name>Incident beam radiation</name>
+            <role>input</role>
+            <dimension>Flux</dimension>
+            <unit>kJ/hr.m^2</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The quantity of beam radiation incident on the collector's surface.</definition>
+        </variable>
+        <variable><!--output-1-->
+            <order>14</order>
+            <name>Outlet fluid temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>the temperature at which liquid exits the thermal section of the collector.</definition>
+        </variable>
+        <variable><!--output-2-->
+            <order>15</order>
+            <name>Fluid flowrate</name>
+            <role>output</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The mass flow rate at which liquid exits the thermal section of the collector</definition>
+        </variable>
+        <variable><!--output-3-->
+            <order>16</order>
+            <name>Rate of useful energy gain</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which energy is added to the liquid stream.</definition>
+        </variable>
+        <variable><!--output-4-->
+            <order>17</order>
+            <name>Collector loss coefficient</name>
+            <role>output</role>
+            <dimension>Heat Transfer Coeff.</dimension>
+            <unit>kJ/hr.m^2.K</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The total thermal energy loss coefficient for the collector. Note that this does not account for
+                the electrical energy that is generated by the panel and that does not go into the fluid stream.
+            </definition>
+        </variable>
+        <variable><!--output-5-->
+            <order>18</order>
+            <name>Transmittance-absorptance product</name>
+            <role>output</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>the product of the collector cover's transmittance and absorptance.</definition>
+        </variable>
+        <variable><!--output-6-->
+            <order>19</order>
+            <name>Electrical power output</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which electrical energy is generated by the PV section of the collector.
+            </definition>
+        </variable>
+        <variable><!--output-7-->
+            <order>20</order>
+            <name>Average cell temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The cell temperature at which the PV is currently operating.</definition>
+        </variable>
+        <variable><!--output-8-->
+            <order>21</order>
+            <name>Apparent thermal loss coefficient</name>
+            <role>output</role>
+            <dimension>Heat Transfer Coeff.</dimension>
+            <unit>kJ/hr.m^2.K</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The total thermal loss coefficient plus a term added to account for the fact that the electrical
+                energy generated by the PV section of the collector does not go into the liquid stream.
+            </definition>
+        </variable>
+        <variable><!--parameter-10-->
+            <order>22</order>
+            <name>Extinction coefficient thickness product</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.03</default>
+            <symbol>SN</symbol>
+            <definition>The extinction coefficient is a measure of how much solar spectrum radiation is absorbed as it
+                passes through a transparent material. It has the units of 1/m. Typical values are between 4 to 32 [1/m]
+                This value is then multiplied by the thickness of the material in order to obtain the extinction
+                coefficient-thickness product of the cover. The resulting value is dimensionless.
+            </definition>
+        </variable>
+        <variable><!--parameter-11-->
+            <order>23</order>
+            <name>Temperature coefficient of PV cell efficiency</name>
+            <role>parameter</role>
+            <dimension>Inverse Temperature Difference</dimension>
+            <unit>1/K</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>-0.0003</default>
+            <symbol>SN</symbol>
+            <definition>C, Temperature coefficient of solar cell efficiency.
+                Eff (T) = Eff(TRef) * (1-C*(T-TRef)).
+            </definition>
+        </variable>
+        <variable><!--parameter-12-->
+            <order>24</order>
+            <name>Temperature for cell reference efficiency</name>
+            <role>parameter</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>20</default>
+            <symbol>SN</symbol>
+            <definition>The ambient reference temperature at which the PV cell efficiency (provided as an input to this
+                model) is known.
+            </definition>
+        </variable>
+        <variable><!--parameter-13-->
+            <order>25</order>
+            <name>Packing factor</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>1.0</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.5</default>
+            <symbol>SN</symbol>
+            <definition>Packing factor: ratio of PV cell area to absorber area.</definition>
+        </variable>
+        <variable><!--input-5-->
+            <order>26</order>
+            <name>Incident diffuse radiation</name>
+            <role>input</role>
+            <dimension>Flux</dimension>
+            <unit>kJ/hr.m^2</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The quantity of diffuse (sky + ground reflected) radiation incident on the collector surface.
+            </definition>
+        </variable>
+        <variable><!--input-6-->
+            <order>27</order>
+            <name>Incidence angle of beam radiation</name>
+            <role>input</role>
+            <dimension>Direction (Angle)</dimension>
+            <unit>degrees</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The angle formed between a line normal to the collector's surface and the line of the beam
+                radiation incident on the collector.
+            </definition>
+        </variable>
+        <variable><!--input-7-->
+            <order>28</order>
+            <name>Windspeed</name>
+            <role>input</role>
+            <dimension>Velocity</dimension>
+            <unit>m/s</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The speed of wind in the vicinity of the collector. NOTE: since wind direction is not taken into
+                account, this speed is the wind speed on the collector's surface and is used on computing convective
+                losses from the collector suface.
+            </definition>
+        </variable>
+        <variable><!--input-8-->
+            <order>29</order>
+            <name>Cell Efficiency at reference conditions</name>
+            <role>input</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which the PV section of the collector converts solar radiation to electrical energy
+                at a known cell temperature.
+            </definition>
+        </variable>
+    </variables>
+    <cycles/>
+    <source>.\SourceCode\Types\Type50.f90</source>
+</TrnsysModel>
