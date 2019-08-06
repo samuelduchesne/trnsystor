@@ -1126,7 +1126,7 @@ class Deck(object):
                         dck.models.iloc[int(u)].set_link_style(
                             dck.models.iloc[int(v)],
                             loc,
-                            color,
+                            tuple(c / 256 for c in color),
                             linestyle,
                             linewidth,
                             path,
