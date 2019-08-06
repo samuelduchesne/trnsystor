@@ -1419,7 +1419,14 @@ class InputCollection(VariableCollection):
                         )
                     )
             else:
-                _ins.append(("0,0",))
+                _ins.append(
+                    (
+                        "0,0",
+                        "[unconnected] {in_model_name}:{input_name}".format(
+                            in_model_name=input.model.name, input_name=input.name
+                        ),
+                    )
+                )
         core = tabulate.tabulate(_ins, tablefmt="plain", numalign="left")
         return str(head) + core + "\n"
 
