@@ -801,7 +801,7 @@ class TrnsysModel(Component):
                     )
                     if not existing:
                         name = cycle.question
-                        question_var = class_(
+                        question_var: TypeVariable = class_(
                             val=cycle.default,
                             name=name,
                             role=cycle.role,
@@ -814,6 +814,7 @@ class TrnsysModel(Component):
                             default=cycle.default,
                             model=self,
                         )
+                        question_var._is_question = True
                         self._meta.variables.update({id(question_var): question_var})
                         output_dict.update({id(question_var): question_var})
                         n_times.append(question_var.value.m)
@@ -1003,6 +1004,7 @@ class TypeVariable(object):
             model:
         """
         super().__init__()
+        self._is_question = False
         self._iscycle = False
         self._iscyclebase = False
         self.order = order
@@ -1470,23 +1472,30 @@ class ParameterCollection(VariableCollection):
         head = "PARAMETERS {}\n".format(self.size)
         # loop through parameters and print the (value, name) tuples.
         v_ = []
+        param: TypeVariable
         for param in self.values():
-            if isinstance(param.value, Equation):
-                v_.append(
-                    (
-                        param.value.name,
-                        "! {} {}".format(param.one_based_idx, param.name),
+            if not param._is_question:
+                if isinstance(param.value, Equation):
+                    v_.append(
+                        (
+                            param.value.name,
+                            "! {} {}".format(param.one_based_idx, param.name),
+                        )
                     )
-                )
-            elif isinstance(param.value, _Quantity):
-                v_.append(
-                    (param.value.m, "! {} {}".format(param.one_based_idx, param.name))
-                )
-            else:
-                raise NotImplementedError(
-                    "Printing parameter '{}' of type '{}' from unit '{}' is not "
-                    "supported".format(param.name, type(param.value), param.model.name)
-                )
+                elif isinstance(param.value, _Quantity):
+                    v_.append(
+                        (
+                            param.value.m,
+                            "! {} {}".format(param.one_based_idx, param.name),
+                        )
+                    )
+                else:
+                    raise NotImplementedError(
+                        "Printing parameter '{}' of type '{}' from unit '{}' is not "
+                        "supported".format(
+                            param.name, type(param.value), param.model.name
+                        )
+                    )
         params_str = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
         return head + params_str + "\n"
 
