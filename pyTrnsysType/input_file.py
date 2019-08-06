@@ -955,6 +955,7 @@ class Deck(object):
 
     @classmethod
     def _parse_logic(cls, cc, dck, dcklines, line, proforma_root):
+        global model, ec
         while line:
             key, match = dck._parse_line(line)
             if key == "end":

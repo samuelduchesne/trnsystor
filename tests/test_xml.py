@@ -64,6 +64,8 @@ class TestTrnsysModel:
         sub = "Radial_Distance_of_Node_"
         actual = len([s for s in mylist if sub.lower() in s.lower()])
 
+        assert pipe_type.parameters["Radial_Distance_of_Node_1"].idx == 27
+        assert pipe_type.parameters["Radial_Distance_of_Node_1"].one_based_idx == 28
         assert actual == n_nodes
 
     def test_cycles_2(self, pipe_type):

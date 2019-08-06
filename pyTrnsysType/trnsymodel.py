@@ -1108,21 +1108,24 @@ class TypeVariable(object):
         ordered_dict = collections.OrderedDict(
             (
                 standerdized_name(self.model._meta.variables[attr].name),
-                (self.model._meta.variables[attr], i),
+                [self.model._meta.variables[attr], 0],
             )
-            for i, attr in enumerate(
-                sorted(
-                    filter(
-                        lambda kv: isinstance(
-                            self.model._meta.variables[kv], self.__class__
-                        ),
-                        self.model._meta.variables,
+            for attr in sorted(
+                filter(
+                    lambda kv: isinstance(
+                        self.model._meta.variables[kv], self.__class__
                     ),
-                    key=lambda key: self.model._meta.variables[key].order,
+                    self.model._meta.variables,
                 ),
-                start=0,
+                key=lambda key: self.model._meta.variables[key].order,
             )
+            if not self.model._meta.variables[attr]._iscyclebase
         )
+        i = 0
+        for key, value in ordered_dict.items():
+            value[1] = i
+            i += 1
+
         return ordered_dict[standerdized_name(self.name)][1]
 
     @property
