@@ -1075,9 +1075,7 @@ class Deck(object):
                             if varkey == "typevariable":
                                 tvar = match.group("typevariable").strip()
                                 try:
-                                    other = cls.get_typevariable(
-                                        dck, i, model, tvar, key
-                                    )
+                                    cls.set_typevariable(dck, i, model, tvar, key)
                                 except Exception as e:
                                     line = cls._parse_logic(
                                         cc, dck, dcklines, line, proforma_root
@@ -1138,8 +1136,18 @@ class Deck(object):
             line = dcklines.readline()
         return line
 
-    @classmethod
-    def get_typevariable(cls, dck, i, model, tvar, key):
+    @staticmethod
+    def set_typevariable(dck, i, model, tvar, key):
+        """Set the value to the :class:`TypeVariable`.
+
+        Args:
+            dck (Deck): the Deck object.
+            i (int): the idx of the TypeVariable.
+            model (Component): the component to modify.
+            tvar (str or float): the new value to set.
+            key (str): the specific type of TypeVariable, eg.: 'inputs',
+                'parameters', 'outputs'.
+        """
         try:
             tvar = float(tvar)
         except:
@@ -1148,17 +1156,14 @@ class Deck(object):
                 unit_number, output_number = map(int, tvar.split(","))
                 other = dck.models.iloc[unit_number]
                 other.connect_to(model, mapping={output_number - 1: i})
-                return other
             else:
                 if any((tvar in n.outputs) for n in dck.models):
                     # one Equation or Constant has this tvar
                     other = next((n for n in dck.models if (tvar in n.outputs)), None)
                     getattr(model, key)[i] = other[tvar]
                     other.connect_to(model, mapping={0: i})
-                return None
         else:
             getattr(model, key)[i] = tvar
-            return tvar
 
     @staticmethod
     def unit_studio_markup(dck, dcklines, key, line, match, model, proforma_root):
@@ -1201,10 +1206,13 @@ class Deck(object):
                 model.update_meta(meta)
 
     def _parse_line(self, line):
-        """
-        Do a regex search against all defined regexes and
-        return the key and match result of the first matching regex
+        """Do a regex search against all defined regexes and return the key and match result of the first matching regex
 
+        Args:
+            line (str): the line string to parse.
+
+        Returns:
+            2-tuple: the key and the match.
         """
 
         for key, rx in self._setup_re().items():
@@ -1215,8 +1223,10 @@ class Deck(object):
         return None, None
 
     def _setup_re(self):
-        # set up regular expressions
-        # use https://regexper.com to visualise these if required
+        """set up regular expressions. use https://regexper.com to visualise these if
+        required
+        """
+
         rx_dict = {
             "version": re.compile(
                 r"(?i)(?P<key>^version)(?P<version>.*?)(?=(?:!|\\n|$))"
