@@ -460,11 +460,6 @@ class Component(metaclass=ABCMeta):
             path (LineString or MultiLineString, optional): The path of the
                 link.
         """
-        if self == other and path is None:
-            # trying to connect to itself.
-            raise NotImplementedError(
-                "This version does not support " "connecting a TrnsysModel to itself"
-            )
         if other is None:
             raise ValueError("Other is None")
 
@@ -1724,7 +1719,10 @@ class LinkStyle(object):
         )
         linestyle = str(_linestyle_to_studio(self.get_linestyle())) + ":"
         linewidth = str(self.get_linewidth()) + ":"
-        return anchors + "1:" + color + linestyle + linewidth + "1:" + path
+        connection_set = anchors + "1:" + color + linestyle + linewidth + "1:" + path
+        head = "*!LINK {}:{}\n".format(self.u.unit_number, self.v.unit_number)
+        tail = "*!CONNECTION_SET {}\n".format(connection_set)
+        return head + tail
 
 
 class AnchorPoint(object):

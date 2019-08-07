@@ -977,11 +977,21 @@ class Deck(object):
 
         models = "\n\n".join([model._to_deck() for model in self.models])
 
-        styles = ""
+        model: Component
+        styles = "*!LINK_STYLE\n" + "".join(
+            map(
+                str,
+                list(
+                    itertools.chain.from_iterable(
+                        [model.studio.link_styles.values() for model in self.models]
+                    )
+                ),
+            )
+        )
 
         end = end._to_deck()
 
-        return "\n\n".join([cc, models, styles, end])
+        return "\n\n".join([cc, models, end, styles])
 
     @classmethod
     def _parse_logic(cls, cc, dck, dcklines, line, proforma_root):
