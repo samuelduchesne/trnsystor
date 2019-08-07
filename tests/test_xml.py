@@ -688,8 +688,19 @@ class TestDeck:
             yield dck
 
     @pytest.fixture(scope="class")
+    def irregular_deck(self):
+        from pyTrnsysType import Deck
+        file = "tests/input_files/Case600h10.dck"
+        with patch("builtins.input", return_value="y"):
+            dck = Deck.from_file(file)
+            yield dck
+
+    @pytest.fixture(scope="class")
     def G(self, pvt_deck):
         yield pvt_deck.graph
+
+    def test_irragular_dekc(self, irregular_deck):
+        assert irregular_deck
 
     def test_update_with_model(self, weather_type, tank_type, pipe_type):
         from pyTrnsysType import Deck, ControlCards
