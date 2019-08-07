@@ -2,6 +2,7 @@ import collections
 import itertools
 import logging as lg
 import re
+import tempfile
 
 import tabulate
 from path import Path
@@ -80,6 +81,9 @@ class Name(object):
         return the_name
 
     def __repr__(self):
+        return str(self)
+
+    def __str__(self):
         return str(self.name)
 
 
@@ -451,6 +455,17 @@ class Equation(Statement):
     def eq_number(self):
         """The equation number. Unique"""
         return self._n
+
+    @property
+    def idx(self):
+        """The 0-based index of the Equation"""
+        ns = {e: i for i, e in enumerate(self.model)}
+        return ns[self.name]
+
+    @property
+    def one_based_idx(self):
+        """The 1-based index of the Equation"""
+        return self.idx + 1
 
     @property
     def unit_number(self):
@@ -869,17 +884,21 @@ class Deck(object):
             dck = cls(name=file.basename(), control_cards=None)
             cc = ControlCards()
             dck._control_card = cc
-            line = dcklines.readline()
-            iteration = 0
-            maxiter = 26
-            while line:
-                iteration += 1
-                # at each line check for a match with a regex
-                line = cls._parse_logic(cc, dck, dcklines, line, proforma_root)
+            no_whitelines = list(filter(None, (line.rstrip() for line in dcklines)))
+            with tempfile.TemporaryFile("r+") as dcklines:
+                dcklines.writelines("\n".join(no_whitelines))
+                dcklines.seek(0)
+                line = dcklines.readline()
+                iteration = 0
+                maxiter = 26
+                while line:
+                    iteration += 1
+                    # at each line check for a match with a regex
+                    line = cls._parse_logic(cc, dck, dcklines, line, proforma_root)
 
-                if iteration < maxiter:
-                    dcklines.seek(0)
-                    line = "\n"
+                    if iteration < maxiter:
+                        dcklines.seek(0)
+                        line = "\n"
 
         # assert missing types
         # todo: list types that could not be parsed
@@ -930,6 +949,17 @@ class Deck(object):
             # in any case, add new one
             self.models.append(model)
 
+    def remove_models(self, model):
+        if isinstance(model, Component):
+            model = [model]
+        for model in model:
+            # iterate over models and try to pop the existing one
+            if model.unit_number in [mod.unit_number for mod in self.models]:
+                for i, item in enumerate(self.models):
+                    if item.unit_number == model.unit_number:
+                        self.models.pop(i)
+                        break
+
     def save(self, filename):
         """Saves the Deck object to file"""
         file = Path(filename)
@@ -955,7 +985,7 @@ class Deck(object):
 
     @classmethod
     def _parse_logic(cls, cc, dck, dcklines, line, proforma_root):
-        global model, ec
+        global model, ec, i
         while line:
             key, match = dck._parse_line(line)
             if key == "end":
@@ -974,9 +1004,11 @@ class Deck(object):
                     cb.update(Constant.from_expression(line))
                 cc.set_statement(cb)
             if key == "simulation":
-                sss = match.group(key)
-                s_ = Simulation(*map(Constant, sss.split()))
-                repr(s_.start)
+                sss = match.group(key).strip()
+                start, stop, step = tuple(
+                    map(lambda x: dck.return_equation_or_constant(x), sss.split(" "))
+                )
+                s_ = Simulation(*(start, stop, step))
                 cc.set_statement(s_)
             if key == "tolerances":
                 sss = match.group(key)
@@ -1021,17 +1053,22 @@ class Deck(object):
                 list_eq = []
                 for line in [next(dcklines) for x in range(int(n_equations))]:
                     # extract number and value
-                    value = line.strip()
+                    if line == "\n":
+                        continue
+                    head, sep, tail = line.strip().partition("!")
+                    value = head.strip()
                     # create equation
                     list_eq.append(Equation.from_expression(value))
-                ec = EquationCollection(list_eq)
-                ec._unit = 1
-                # dck.update_models(ec)
+                ec = EquationCollection(list_eq, name=Name("block"))
+                dck.remove_models(ec)
+                ec._unit = ec.new_id
+                dck.update_models(ec)
                 # append the dictionary to the data list
             if key == "userconstantend":
                 dck.update_models(ec)
             # read studio markup
             if key == "unitnumber":
+                dck.remove_models(ec)
                 unit_number = match.group(key)
                 ec._unit = int(unit_number)
                 dck.update_models(ec)
@@ -1051,15 +1088,15 @@ class Deck(object):
                 t = match.group("typenumber").strip()
                 n = match.group("name").strip()
 
-                _meta = MetaData(type=t)
-                model = TrnsysModel(_meta, name=n)
-                model._unit = int(u)
-                dck.update_models(model)
-                # read studio markup
-                cls.unit_studio_markup(
-                    dck, dcklines, key, line, match, model, proforma_root
-                )
-
+                try:
+                    xml = Path("tests/input_files").glob("Type{}*.xml".format(t))
+                    model = TrnsysModel.from_xml(next(iter(xml)), name=n)
+                except:
+                    _meta = MetaData(type=t)
+                    model = TrnsysModel(_meta, name=n)
+                else:
+                    model._unit = int(u)
+                    dck.update_models(model)
             if key == "parameters" or key == "inputs":
                 if model._meta.variables:
                     n_vars = int(match.group(key).strip())
@@ -1076,7 +1113,7 @@ class Deck(object):
                                 tvar = match.group("typevariable").strip()
                                 try:
                                     cls.set_typevariable(dck, i, model, tvar, key)
-                                except Exception as e:
+                                except KeyError:
                                     line = cls._parse_logic(
                                         cc, dck, dcklines, line, proforma_root
                                     )
@@ -1132,54 +1169,6 @@ class Deck(object):
                         )
                     except:
                         pass
-
-            line = dcklines.readline()
-        return line
-
-    @staticmethod
-    def set_typevariable(dck, i, model, tvar, key):
-        """Set the value to the :class:`TypeVariable`.
-
-        Args:
-            dck (Deck): the Deck object.
-            i (int): the idx of the TypeVariable.
-            model (Component): the component to modify.
-            tvar (str or float): the new value to set.
-            key (str): the specific type of TypeVariable, eg.: 'inputs',
-                'parameters', 'outputs'.
-        """
-        try:
-            tvar = float(tvar)
-        except:
-            # deal with a string, either a Constant or a "[u, n]"
-            if "," in tvar:
-                unit_number, output_number = map(int, tvar.split(","))
-                other = dck.models.iloc[unit_number]
-                other.connect_to(model, mapping={output_number - 1: i})
-            else:
-                if any((tvar in n.outputs) for n in dck.models):
-                    # one Equation or Constant has this tvar
-                    other = next((n for n in dck.models if (tvar in n.outputs)), None)
-                    getattr(model, key)[i] = other[tvar]
-                    other.connect_to(model, mapping={0: i})
-        else:
-            getattr(model, key)[i] = tvar
-
-    @staticmethod
-    def unit_studio_markup(dck, dcklines, key, line, match, model, proforma_root):
-        for line in [next(dcklines) for x in range(4)]:
-            key, match = dck._parse_line(line)
-            if key == "unitname":
-                pass
-                # actual don't use this unit name since it was parsed earlier
-                # unit_name = match.group(key)
-                # model.name = unit_name
-            if key == "layer":
-                layer = match.group(key)
-                model.change_component_layer(layer)
-            if key == "position":
-                pos = match.group(key)
-                model.set_canvas_position(map(float, pos.strip().split()), False)
             if key == "model":
                 _mod = match.group("model")
                 tmf = Path(_mod.replace("\\", "/"))
@@ -1204,6 +1193,48 @@ class Deck(object):
                         continue
                     meta = MetaData.from_xml(xml)
                 model.update_meta(meta)
+
+            line = dcklines.readline()
+        return line
+
+    def return_equation_or_constant(self, name):
+        for n in self.models:
+            if name in n.outputs:
+                return n[name]
+        return Constant(name)
+
+    @staticmethod
+    def set_typevariable(dck, i, model, tvar, key):
+        """Set the value to the :class:`TypeVariable`.
+
+        Args:
+            dck (Deck): the Deck object.
+            i (int): the idx of the TypeVariable.
+            model (Component): the component to modify.
+            tvar (str or float): the new value to set.
+            key (str): the specific type of TypeVariable, eg.: 'inputs',
+                'parameters', 'outputs'.
+        """
+        try:
+            tvar = float(tvar)
+        except:
+            # deal with a string, either a Constant or a "[u, n]"
+            if "0,0" in tvar:
+                # this is an unconnected typevariable, pass.
+                pass
+            elif "," in tvar:
+                unit_number, output_number = map(int, tvar.split(","))
+                other = dck.models.iloc[unit_number]
+                other.connect_to(model, mapping={output_number - 1: i})
+            else:
+                if any((tvar in n.outputs) for n in dck.models):
+                    # one Equation or Constant has this tvar
+                    other = next((n for n in dck.models if (tvar in n.outputs)), None)
+                    getattr(model, key)[i] = other[tvar]
+                    getattr(model, key)[i]._connected_to = other[tvar]
+        else:
+            # simply set the new value
+            getattr(model, key)[i] = tvar
 
     def _parse_line(self, line):
         """Do a regex search against all defined regexes and return the key and match result of the first matching regex
@@ -1275,9 +1306,7 @@ class Deck(object):
                 r"(?i)(?P<key>^\*\$position)(?P<position>.*?)(?=(?:!|$))"
             ),
             "unit": re.compile(
-                r"(?i)(^unit)(?P<unitnumber>.*?)(type)(?P<typenumber>.*\s)("
-                r"?P<name>\s.*?)("
-                r"?=(?:!|$))"
+                r"(?i)unit (?P<unitnumber>.*?)type (?P<typenumber>\d*?\s)(?P<name>.*$)"
             ),
             "model": re.compile(
                 r"(?i)(?P<key>^\*\$model)(?P<model>.*?)(?=(" r"?:!|$))"
@@ -1293,7 +1322,7 @@ class Deck(object):
                 r"(?i)(?P<key>^\*\$user_constants)(" r"?=(?:!|$))"
             ),
             "parameters": re.compile(
-                r"(?i)(?P<key>^parameters)(?P<parameters>.*?)(?=(?:!|$))"
+                r"(?i)(?P<key>^parameters )(?P<parameters>.*?)(?=(?:!|$))"
             ),
             "inputs": re.compile(r"(?i)(?P<key>^inputs)(?P<inputs>.*?)(?=(?:!|$))"),
             "typevariable": re.compile(r"^(?![*$!\s])(?P<typevariable>.*?)(?=(?:!|$))"),

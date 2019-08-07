@@ -181,7 +181,7 @@ class MetaData(object):
             soup = BeautifulSoup(xml, "xml")
             my_objects = soup.findAll("TrnsysModel")
             for trnsystype in my_objects:
-                name = kwargs.pop("name", None)
+                kwargs.pop("name", None)
                 meta = cls.from_tag(trnsystype, **kwargs)
                 return meta
 
