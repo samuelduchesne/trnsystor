@@ -1379,6 +1379,10 @@ class InputCollection(VariableCollection):
         """Returns the string representation for the Input File (.dck)"""
         from pyTrnsysType.input_file import Equation, TypeVariable, Constant
 
+        if self.size == 0:
+            # Don't need to print empty inputs
+            return ""
+
         head = "INPUTS {}\n".format(self.size)
         # "{u_i}, {o_i}": is an integer number referencing the number of the
         # UNIT to which the ith INPUT is connected. is an integer number
@@ -1394,7 +1398,7 @@ class InputCollection(VariableCollection):
                                 input.connected_to.model.unit_number,
                                 input.connected_to.one_based_idx,
                             ),
-                            "{out_model_name}:{output_name} -> {in_model_name}:{input_name}".format(
+                            "! {out_model_name}:{output_name} -> {in_model_name}:{input_name}".format(
                                 out_model_name=input.connected_to.model.name,
                                 output_name=input.connected_to.name,
                                 in_model_name=input.model.name,
@@ -1406,7 +1410,7 @@ class InputCollection(VariableCollection):
                     _ins.append(
                         (
                             input.connected_to.name,
-                            "{out_model_name}:{output_name} -> {in_model_name}:{input_name}".format(
+                            "! {out_model_name}:{output_name} -> {in_model_name}:{input_name}".format(
                                 out_model_name=input.connected_to.model.name,
                                 output_name=input.connected_to.name,
                                 in_model_name=input.model.name,
