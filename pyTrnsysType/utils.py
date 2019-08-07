@@ -198,6 +198,8 @@ def redistribute_vertices(geom, distance):
         geom:
         distance:
     """
+    if geom.length == 0:
+        return geom
     if geom.geom_type == "LineString":
         num_vert = int(round(geom.length / distance))
         if num_vert == 0:
