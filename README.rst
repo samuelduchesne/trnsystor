@@ -30,8 +30,8 @@ Make sure to pass a string to the method by reading the `_io.TextIOWrapper` prod
 .. code-block:: python
 
     >>> from pyTrnsysType import TrnsysModel
-    >>> with open("tests/input_files/Type951.xml") as xml:
-    ...     pipe1 = TrnsysModel.from_xml(xml.read())
+    >>> xml = "tests/input_files/Type951.xml"
+    >>> pipe1 = TrnsysModel.from_xml(xml)
 
 
 Calling `pipe1` will display it's Type number and Name:
@@ -47,12 +47,9 @@ For example, to set the *Number of Fluid Nodes*, simply set the new value as you
 
 .. code-block:: python
 
-    >>> from pyTrnsysType import TrnsysModel
-    >>> with open("tests/input_files/Type951.xml") as xml:
-    ...    pipe1 = TrnsysModel.from_xml(xml.read())
     >>> pipe1.parameters['Number_of_Fluid_Nodes'] = 50
     >>> pipe1.parameters['Number_of_Fluid_Nodes']
-    Number of Fluid Nodes; units=-; value=50
+    NNumber of Fluid Nodes; units=-; value=50
     The number of nodes into which each pipe will be divided. Increasing the number of nodes will improve the accuracy but cost simulation run-time.
 
 
@@ -64,19 +61,24 @@ The new outputs are now accessible and can also be accessed with loops:
 
 .. code-block:: python
 
-    for i in range(1,50):
-        print(pipe1.outputs["Average_Fluid_Temperature_Pipe_1_{}".format(i)])
+    >>> for i in range(1,50):
+    ...    print(pipe1.outputs["Average_Fluid_Temperature_Pipe_1_{}".format(i)])
+    Average Fluid Temperature - Pipe 1-1; units=C; value=0.0 celsius
+    The average temperature of the fluid in the specified node of the first buried pipe.
+    ... *skipping redundant lines*
+    Average Fluid Temperature - Pipe 1-49; units=C; value=0.0 celsius
+    The average temperature of the fluid in the specified node of the first buried pipe.
 
 
 Connecting outputs with inputs
 ------------------------------
 
 Connecting model outputs to other model inputs is quite straightforward and uses a simple mapping technique. For 
-example, to map the first two ouputs of `pipe1` to the first two outputs of `pipe2`, we create a mapping of the form 
+example, to map the first two ouputs of `pipe1` to the first two inputs of `pipe2`, we create a mapping of the form
 `mapping = {0:0, 1:1}`. In other words, this means that the output 0 of pipe1 is connected to the input 1 of pipe2 
 and the output 1 of pipe1 is connected to the output 1 of pipe2. Keep in mind that since python traditionally uses  
-0-based indexing, it has been decided the same logic in this package even though TRNSYS uses 1-based indexing. The 
-package will internally assign the 1-based index.
+0-based indexing, it has been decided that the same logic in this package even though TRNSYS uses 1-based indexing. The
+package will internally assign the 1-based index automatically.
 
 For convenience, the mapping can also be done using the output/input names such as `mapping = 
 {'Outlet_Air_Temperature': 'Inlet_Air_Temperature', 'Outlet_Air_Humidity_Ratio': 'Inlet_Air_Humidity_Ratio'}`:
