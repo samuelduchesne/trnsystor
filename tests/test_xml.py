@@ -60,7 +60,7 @@ class TestTrnsysModel:
         n_nodes = 20
         pipe_type.parameters["Number_of_Radial_Soil_Nodes"] = n_nodes
 
-        mylist = list(pipe_type.parameters.data.keys())
+        mylist = list(pipe_type.parameters.keys())
         sub = "Radial_Distance_of_Node_"
         actual = len([s for s in mylist if sub.lower() in s.lower()])
 
@@ -69,13 +69,24 @@ class TestTrnsysModel:
         assert actual == n_nodes
 
     def test_cycles_2(self, pipe_type):
-        """changing number of fluid nodes from 10 to 20 should create 20 outputs
+        """changing number of fluid nodes from 100 to 20 should create 20 outputs
         for pipe 2 and 20 outputs for pipe 1"""
+
+        outputs = pipe_type.outputs
+        mylist = list(outputs.keys())
+        sub_1 = "Average_Fluid_Temperature_Pipe_1_"
+        sub_2 = "Average_Fluid_Temperature_Pipe_2_"
+        expected_1 = len([s for s in mylist if sub_1.lower() in s.lower()])
+        expected_2 = len([s for s in mylist if sub_2.lower() in s.lower()])
+
+        assert 100 == expected_1
+        assert 100 == expected_2
+
         n_nodes = 20
         pipe_type.parameters["Number_of_Fluid_Nodes"] = n_nodes
 
         outputs = pipe_type.outputs
-        mylist = list(outputs.data.keys())
+        mylist = list(outputs.keys())
         sub_1 = "Average_Fluid_Temperature_Pipe_1_"
         sub_2 = "Average_Fluid_Temperature_Pipe_2_"
         expected_1 = len([s for s in mylist if sub_1.lower() in s.lower()])
@@ -85,6 +96,7 @@ class TestTrnsysModel:
         assert n_nodes == expected_2
 
     def test_cycles_issue14(self):
+        """https://github.com/samuelduchesne/pyTrnsysType/issues/14"""
         from pyTrnsysType.trnsymodel import TrnsysModel
 
         valve = TrnsysModel.from_xml("tests/input_files/Type647.xml")
@@ -94,6 +106,17 @@ class TestTrnsysModel:
         with pytest.raises(KeyError):
             # Make sure the cyclebase is not returned
             assert valve.outputs["Outlet_Flowrate"]
+
+    def test_cycles_order(self):
+        from pyTrnsysType.trnsymodel import TrnsysModel
+        weather_type = TrnsysModel.from_xml("tests/input_files/Type15-3.xml")
+
+        assert weather_type.outputs[24].name == "Beam radiation for surface-1"
+
+        weather_type.parameters["Number_of_surfaces"] = 2
+
+        assert weather_type.outputs[26].name == "Beam radiation for surface-2"
+
 
     def test_cancel_missing_tag(self, tank_type):
         from pyTrnsysType.trnsymodel import TrnsysModel
@@ -195,7 +218,7 @@ class TestTrnsysModel:
         assert repr(tank_type.parameters) == str(tank_type.parameters)
 
     def test_TypeVariable_repr(self, tank_type):
-        for _, a in tank_type.inputs.data.items():
+        for _, a in tank_type.inputs.items():
             assert float(a) == 45.0
             assert (
                 repr(a) == "Hot-side temperature; units=C; value=45.0 celsius\nThe"
@@ -205,7 +228,7 @@ class TestTrnsysModel:
                 " element."
             )
             break
-        for _, a in tank_type.outputs.data.items():
+        for _, a in tank_type.outputs.items():
             assert float(a) == 0.0
             assert (
                 repr(a) == "Temperature to heat source; units=C; value=0.0 "
@@ -214,7 +237,7 @@ class TestTrnsysModel:
                 "source (the temperature of the bottom node)."
             )
             break
-        for _, a in tank_type.parameters.data.items():
+        for _, a in tank_type.parameters.items():
             assert int(a) == 1
             assert (
                 repr(a) == "Fixed inlet positions; units=-; value=1\nThe auxiliary"

@@ -779,9 +779,12 @@ class TrnsysModel(Component):
         cycle: TypeCycle
         for _, cycle in cycles.items():
             idxs = cycle.idxs
+            # get list of variables that are not cycles
             items = [
                 output_dict.get(id(key))
-                for key in [list(output_dict.values())[i] for i in idxs]
+                for key in [
+                    [i for i in output_dict.values() if not i._iscycle][i] for i in idxs
+                ]
             ]
             if cycle.is_question:
                 n_times = []
@@ -846,11 +849,12 @@ class TrnsysModel(Component):
                 )
             ]
             # make sure to cycle through all possible items
-            for item, n_time in (
+            items_list = list(
                 zip(items, itertools.cycle(n_times))
                 if len(items) > len(n_times)
                 else zip(itertools.cycle(items), n_times)
-            ):
+            )
+            for item, n_time in items_list:
                 item._iscyclebase = True
                 basename = item.name
                 item_base = self._meta.variables.get(id(item))
@@ -869,7 +873,7 @@ class TrnsysModel(Component):
                         self._meta.variables.update({id(item): item})
                     else:
                         item.name = basename + "-{}".format(n)
-                        item.order += len(idxs)  # so that oder number is unique
+                        item.order += 1 if n_time > 1 else 0
                         item._iscycle = True
                         self._meta.variables.update({id(item): item})
 
@@ -1111,7 +1115,8 @@ class TypeVariable(object):
                 filter(
                     lambda kv: isinstance(
                         self.model._meta.variables[kv], self.__class__
-                    ),
+                    )
+                    and self.model._meta.variables[kv]._iscyclebase == False,
                     self.model._meta.variables,
                 ),
                 key=lambda key: self.model._meta.variables[key].order,
@@ -1145,7 +1150,7 @@ class TypeCycle(object):
     ):
         """
         Args:
-            role:
+            role (str): The role of the TypeCycle. "paramter", "input", "output"
             firstRow:
             lastRow:
             cycles:
