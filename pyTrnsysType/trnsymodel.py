@@ -1317,7 +1317,8 @@ class VariableCollection(collections.UserDict):
             key:
             value:
         """
-        from pyTrnsysType.input_file import Equation, Constant
+        from pyTrnsysType.input_file import Equation
+        from pyTrnsysType.input_file import Constant
 
         if isinstance(value, TypeVariable):
             """if a TypeVariable is given, simply set it"""
@@ -1372,7 +1373,8 @@ class InputCollection(VariableCollection):
 
     def _to_deck(self):
         """Returns the string representation for the Input File (.dck)"""
-        from pyTrnsysType.input_file import Equation, TypeVariable, Constant
+        from pyTrnsysType.input_file import Equation
+        from pyTrnsysType.input_file import Constant
 
         if self.size == 0:
             # Don't need to print empty inputs
@@ -1466,7 +1468,7 @@ class ParameterCollection(VariableCollection):
 
     def _to_deck(self):
         """Returns the string representation for the Input File (.dck)"""
-        from pyTrnsysType.input_file import Equation, TypeVariable
+        from pyTrnsysType.input_file import Equation
 
         head = "PARAMETERS {}\n".format(self.size)
         # loop through parameters and print the (value, name) tuples.
