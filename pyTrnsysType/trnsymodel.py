@@ -1193,18 +1193,26 @@ class TypeCycle(object):
     @property
     def idxs(self):
         """0-based index of the TypeVariable(s) concerned with this cycle"""
-        return list(
-            itertools.chain(
-                *(
-                    range(int(cycle.firstRow) - 1, int(cycle.lastRow))
-                    for cycle in self.cycles
+        return (
+            list(
+                itertools.chain(
+                    *(
+                        range(int(cycle.firstRow) - 1, int(cycle.lastRow))
+                        for cycle in self.cycles
+                    )
                 )
             )
+            if self.cycles
+            else None
         )
 
     @property
     def is_question(self):
-        return any(cycle.question is not None for cycle in self.cycles)
+        return (
+            any(cycle.question is not None for cycle in self.cycles)
+            if self.cycles
+            else None
+        )
 
 
 class CycleCollection(collections.UserList):
