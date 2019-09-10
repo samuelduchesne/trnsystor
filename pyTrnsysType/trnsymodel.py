@@ -1425,10 +1425,11 @@ class InputCollection(VariableCollection):
                         )
                     )
             else:
+                # The input is unconnected.
                 _ins.append(
                     (
                         "0,0",
-                        "[unconnected] {in_model_name}:{input_name}".format(
+                        "! [unconnected] {in_model_name}:{input_name}".format(
                             in_model_name=input.model.name, input_name=input.name
                         ),
                     )
