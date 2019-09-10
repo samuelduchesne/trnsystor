@@ -1036,18 +1036,23 @@ class TypeVariable(object):
 
         Args:
             tag (Tag): The XML tag with its attributes and contents.
-            model:
+            model (TrnsysModel):
         """
         role = tag.find("role").text
         val = tag.find("default").text
         try:
             val = float(val)
-        except:
-            if val == "STEP":
+        except: # todo: find type of error
+            # val is a string
+            if val == 'STEP':
                 val = 1
                 # Todo: figure out better logic when default value
                 #  is 'STEP
-        _type = parse_type(tag.find("type").text)
+            elif val == "START":
+                val = 1
+            elif val == "STOP":
+                val = 8760
+        _type = parse_type(tag.find('type').text)
         attr = {attr.name: attr.text for attr in tag if isinstance(attr, Tag)}
         attr.update({"model": model})
         if role == "parameter":
