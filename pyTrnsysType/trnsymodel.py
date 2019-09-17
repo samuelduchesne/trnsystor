@@ -228,6 +228,8 @@ class ExternalFile(object):
 
 
 class ExternalFileCollection(collections.UserDict):
+    """A collection of :class:`ExternalFile` objects"""
+
     def __getitem__(self, key):
         """
         Args:

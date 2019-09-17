@@ -390,6 +390,25 @@ class Deck(object):
                     )
         return G
 
+    def check_deck_integrity(self):
+        """Checks if Deck definition passes a few obvious rules"""
+
+        # Check if external file assignments are all unique.
+        from collections import Counter
+
+        ext_files = []
+        for model in self.models:
+            if isinstance(model, TrnsysModel):
+                if model.external_files:
+                    for _, file in model.external_files.items():
+                        if file:
+                            ext_files.append(file.value)
+        if sum(1 for i in Counter(ext_files).values() if i > 1):
+            lg.warn(
+                "Some ExternalFile paths have duplicated names. Please make sure all "
+                "ASSIGNED paths are unique unless this is desired."
+            )
+
     def update_models(self, model):
         """Update the Deck.models attribute with a :class:`TrnsysModel` or a
         list of :class:`TrnsysModel`.
@@ -433,6 +452,8 @@ class Deck(object):
         Args:
             filename:
         """
+        self.check_deck_integrity()
+
         file = Path(filename)
         dir = file.dirname()
         if dir != "" and not dir.exists():
