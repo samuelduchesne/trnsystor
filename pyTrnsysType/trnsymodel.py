@@ -611,8 +611,13 @@ class TrnsysModel(Component):
 
     @property
     def derivatives(self):
-        """TypeVariableCollection: returns the model's derivatives"""
+        """VariableCollection: returns the model's derivatives"""
         return self._get_derivatives()
+
+    @property
+    def initial_input_values(self):
+        """VariableCollection: returns the model's initial input values."""
+        return self._get_initial_input_values()
 
     @property
     def parameters(self):
@@ -682,6 +687,19 @@ class TrnsysModel(Component):
 
         return model
 
+    def _get_initial_input_values(self):
+        """initial input values getter"""
+        try:
+            self._resolve_cycles("input", Input)
+            input_dict = self._get_ordered_filtered_types(Input, "variables")
+            # filter out cyclebases
+            input_dict = {
+                k: v for k, v in input_dict.items() if v._iscyclebase == False
+            }
+            return InitialInputValuesCollection.from_dict(input_dict)
+        except:
+            return InitialInputValuesCollection()
+
     def _get_inputs(self):
         """inputs getter. Sorts by order number and resolves cycles each time it
         is called
@@ -728,7 +746,7 @@ class TrnsysModel(Component):
         deriv_dict = self._get_ordered_filtered_types(Derivative, "variables")
         # filter out cyclebases
         deriv_dict = {k: v for k, v in deriv_dict.items() if v._iscyclebase == False}
-        return VariableCollection.from_dict(deriv_dict)
+        return DerivativesCollection.from_dict(deriv_dict)
 
     def _get_external_files(self):
         if self._meta.external_files:
@@ -885,6 +903,8 @@ class TrnsysModel(Component):
         studio = self.studio
         params = self.parameters
         inputs = self.inputs
+        initial_input_values = self.initial_input_values
+        derivatives = self.derivatives
         externals = self.external_files._to_deck() if self.external_files else ""
 
         return (
@@ -892,6 +912,8 @@ class TrnsysModel(Component):
             + str(studio)
             + params._to_deck()
             + inputs._to_deck()
+            + initial_input_values._to_deck()
+            + derivatives._to_deck()
             + str(externals)
         )
 
@@ -997,7 +1019,7 @@ class TypeVariable(object):
                 "];]" ,"];["
             default (int, float or pint._Quantity): the default value of the
                 variable. The default value is replaced by the initial value for
-                the inputs and derivatives and suppressed for the outputs
+                the inputs and derivatives and suppressed for the outputs.
             symbol (str): The symbol of the unit (not used).
             definition (str): A short description of the variable.
             model:
@@ -1042,9 +1064,9 @@ class TypeVariable(object):
         val = tag.find("default").text
         try:
             val = float(val)
-        except: # todo: find type of error
+        except:  # todo: find type of error
             # val is a string
-            if val == 'STEP':
+            if val == "STEP":
                 val = 1
                 # Todo: figure out better logic when default value
                 #  is 'STEP
@@ -1052,7 +1074,7 @@ class TypeVariable(object):
                 val = 1
             elif val == "STOP":
                 val = 8760
-        _type = parse_type(tag.find('type').text)
+        _type = parse_type(tag.find("type").text)
         attr = {attr.name: attr.text for attr in tag if isinstance(attr, Tag)}
         attr.update({"model": model})
         if role == "parameter":
@@ -1155,7 +1177,7 @@ class TypeCycle(object):
     ):
         """
         Args:
-            role (str): The role of the TypeCycle. "paramter", "input", "output"
+            role (str): The role of the TypeCycle. "parameter", "input", "output"
             firstRow:
             lastRow:
             cycles:
@@ -1275,6 +1297,26 @@ class Input(TypeVariable):
         )
 
 
+class InitialInputValue(TypeVariable):
+    """A subclass of :class:`TypeVariable` specific to Initial Input Values"""
+
+    def __init__(self, val, **kwargs):
+        """A subclass of :class:`TypeVariable` specific to inputs.
+
+        Args:
+            val:
+            **kwargs:
+        """
+        super().__init__(val, **kwargs)
+
+        self._parse_types()
+
+    def __repr__(self):
+        return "{}; units={}; value={:~P}\n{}".format(
+            self.name, self.unit, self.default, self.definition
+        )
+
+
 class Output(TypeVariable):
     """A subclass of :class:`TypeVariable` specific to outputs"""
 
@@ -1373,6 +1415,113 @@ class VariableCollection(collections.UserDict):
     def size(self):
         """The number of parameters"""
         return len(self)
+
+
+class InitialInputValuesCollection(VariableCollection):
+    """Subclass of :class:`VariableCollection` specific to Initial Input Values"""
+
+    def __init__(self):
+        super().__init__()
+        pass
+
+    def __repr__(self):
+        num_inputs = "{} Initial Input Values:\n".format(self.size)
+        value: TypeVariable
+        inputs = "\n".join(
+            [
+                '"{}": {:~P}'.format(key, value.default)
+                for key, value in self.data.items()
+            ]
+        )
+        return num_inputs + inputs
+
+    def __getitem__(self, key):
+        """
+        Args:
+            key:
+        """
+        if isinstance(key, int):
+            type_variable = list(self.values())[key]
+        else:
+            type_variable = super(VariableCollection, self).__getitem__(key)
+        return type_variable
+
+    def __setitem__(self, key, value):
+        """Setter for default values (initial values).
+
+        Args:
+            key:
+            value:
+        """
+        from pyTrnsysType.input_file import Equation
+        from pyTrnsysType.input_file import Constant
+
+        if isinstance(value, TypeVariable):
+            """if a TypeVariable is given, simply set it"""
+            super().__setitem__(key, value)
+        elif isinstance(value, (int, float, str)):
+            """a str, float, int, etc. is passed"""
+            value = _parse_value(
+                value, self[key].type, self[key].unit, (self[key].min, self[key].max)
+            )
+            self[key].__setattr__("default", value)
+        elif isinstance(value, _Quantity):
+            self[key].__setattr__("default", value.to(self[key].value.units))
+        elif isinstance(value, (Equation, Constant)):
+            self[key].__setattr__("default", value)
+        else:
+            raise TypeError(
+                "Cannot set a default value of type {} in this "
+                "VariableCollection".format(type(value))
+            )
+
+    def _to_deck(self):
+        """Returns the string representation for the Initial Input Values"""
+        if self.size == 0:
+            # Don't need to print empty inputs
+            return ""
+
+        head = "*** INITIAL INPUT VALUES\n"
+        _ins = [
+            (
+                v.default.m if isinstance(v.default, _Quantity) else v.default,
+                "! {}".format(v.name),
+            )
+            for v in self.values()
+        ]
+        core = tabulate.tabulate(_ins, tablefmt="plain", numalign="left")
+        return head + core + "\n"
+
+
+class DerivativesCollection(VariableCollection):
+    """Subclass of :class:`VariableCollection` specific to Derivatives"""
+
+    def __init__(self):
+        super().__init__()
+        pass
+
+    def __repr__(self):
+        num_inputs = "{} Inputs:\n".format(self.size)
+        inputs = "\n".join(
+            ['"{}": {:~P}'.format(key, value.value) for key, value in self.data.items()]
+        )
+        return num_inputs + inputs
+
+    def _to_deck(self):
+        """Returns the string representation for the Input File (.dck)"""
+
+        if self.size == 0:
+            # Don't need to print empty inputs
+            return ""
+
+        head = "DERIVATIVES {}\n".format(self.size)
+        _ins = []
+        derivative: TypeVariable
+        for derivative in self.values():
+            _ins.append((derivative.value.m, "! {}".format(derivative.name)))
+        core = tabulate.tabulate(_ins, tablefmt="plain", numalign="left")
+
+        return head + core + "\n"
 
 
 class InputCollection(VariableCollection):

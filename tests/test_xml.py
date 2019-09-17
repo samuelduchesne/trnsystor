@@ -109,6 +109,7 @@ class TestTrnsysModel:
 
     def test_cycles_order(self):
         from pyTrnsysType.trnsymodel import TrnsysModel
+
         weather_type = TrnsysModel.from_xml("tests/input_files/Type15-3.xml")
 
         assert weather_type.outputs[24].name == "Beam radiation for surface-1"
@@ -116,7 +117,6 @@ class TestTrnsysModel:
         weather_type.parameters["Number_of_surfaces"] = 2
 
         assert weather_type.outputs[26].name == "Beam radiation for surface-2"
-
 
     def test_cancel_missing_tag(self, tank_type):
         from pyTrnsysType.trnsymodel import TrnsysModel
@@ -161,6 +161,15 @@ class TestTrnsysModel:
 
         assert fan_type.parameters[attr_name].value == new_value
 
+    def test_get_initial_input_values(self, tank_type):
+        print(tank_type.initial_input_values)
+
+    def test_set_initial_input_values(self, fan_type):
+        new_value = -20
+        attr_name = "Inlet_Air_Temperature"
+        fan_type.initial_input_values[attr_name] = new_value
+        assert fan_type.initial_input_values[attr_name]
+
     def test_get_attr_derivative(self, tank_type):
         """Test setter for class Derivative"""
         attr_name = "Initial_temperature_of_node_1"
@@ -186,6 +195,10 @@ class TestTrnsysModel:
     def test_to_deck(self, fan_type):
         """test to Input File representation of a TrnsysModel"""
         print(fan_type._to_deck())
+
+    def test_initial_input_values_to_deck(self, fan_type):
+        """test to Input File representation of a TrnsysModel"""
+        print(fan_type.initial_input_values._to_deck())
 
     def test_set_attr_cycle_question(self, tank_type):
         attr_name = "Besides_the_top_and_bottom_nodes_how_many_other_nodes_are_there_"
@@ -732,7 +745,7 @@ class TestDeck:
         yield pvt_deck.graph
 
     @pytest.mark.xfail(raises=ValueError)
-    def test_irragular_dekc(self, irregular_deck):
+    def test_irragular_deck(self, irregular_deck):
         assert irregular_deck
 
     def test_update_with_model(self, weather_type, tank_type, pipe_type):

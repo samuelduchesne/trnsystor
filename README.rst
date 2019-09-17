@@ -143,3 +143,17 @@ One can create
 
 
 .. _Python: https://www.economist.com/graphic-detail/2018/07/26/python-is-becoming-the-worlds-most-popular-coding-language
+
+
+Changing Initial Input Values
+-----------------------------
+
+To change the initial value of an input, simply call it by name or with it's zero-based index and set a new value.
+This new value will be checked against the bounds set by the proforma as for a regular input or parameter.
+
+.. code-block:: python
+
+    >>> pipe1.parameters['Number_of_Fluid_Nodes'] = 50
+    >>> pipe_type.initial_input_values["Inlet_Fluid_Temperature_Pipe_1"] = 70
+    >>> pipe_type.initial_input_values["Inlet_Fluid_Temperature_Pipe_1"].default  # or, pipe_type.initial_input_values[0]
+    70.0 <Unit('degC')>
