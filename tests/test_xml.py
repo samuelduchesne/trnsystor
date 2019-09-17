@@ -727,7 +727,7 @@ class TestDeck:
 
         file = "tests/input_files/test_deck.dck"
         with patch("builtins.input", return_value="y"):
-            dck = Deck.from_file(file, proforma_root="tests/input_files")
+            dck = Deck.read_file(file, proforma_root="tests/input_files")
             yield dck
 
     @pytest.mark.xfail(raises=ValueError)
@@ -737,7 +737,7 @@ class TestDeck:
 
         file = "tests/input_files/Case600h10.dck"
         with patch("builtins.input", return_value="y"):
-            dck = Deck.from_file(file)
+            dck = Deck.read_file(file)
             yield dck
 
     @pytest.fixture(scope="class")
@@ -752,7 +752,7 @@ class TestDeck:
         from pyTrnsysType.input_file import Deck, ControlCards
 
         cc = ControlCards.basic_template()
-        dck = Deck("test", cc)
+        dck = Deck("test", control_cards=cc)
 
         # update with single component
         dck.update_models(weather_type)

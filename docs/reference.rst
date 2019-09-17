@@ -61,6 +61,7 @@ Statements
     input_file.Constant
     input_file.Equation
     input_file.ControlCards
+    input_file.Deck
     input_file.ConstantCollection
     input_file.EquationCollection
 

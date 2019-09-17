@@ -1,9 +1,11 @@
+import datetime
 import itertools
 import logging as lg
 import re
 import tempfile
 
 import tabulate
+from pandas import to_datetime
 from path import Path
 from shapely.geometry import LineString, Point
 
@@ -126,7 +128,6 @@ class ControlCards(object):
         for TOLERANCES, LIMITS, SOLVER, EQSOLVER and DFQ if they are not present
 
         Args:
-            width:
             version (Version): The VERSION Statement. labels the deck with the
                 TRNSYS version number. See :class:`Version` for more details.
             simulation (Simulation): The SIMULATION Statement.determines the
@@ -156,6 +157,8 @@ class ControlCards(object):
             dfq (DFQ, optional): Allows the user to select one of three
                 algorithms built into TRNSYS to numerically solve differential
                 equations. See :class:`DFQ` for more details.
+            width (Width, optional): Set the number of characters to be allowed
+                on a line of TRNSYS output. See :class:`Width` for more details.
             nocheck (NoCheck, optional): The Convergence Check Suppression
                 Statement. Remove up to 20 inputs for the convergence check. See
                 :class:`NoCheck` for more details.
@@ -173,8 +176,7 @@ class ControlCards(object):
                 details.
 
         Note:
-            Some Statements have not been implemented because only TRNSYS 
-            gods 😇
+            Some Statements have not been implemented because only TRNSYS gods 😇
             use them. Here is a list of Statements that have been ignored:
 
             - The Convergence Promotion Statement (ACCELERATE)
@@ -244,8 +246,8 @@ class ControlCards(object):
         return cls(Version(), Simulation())
 
     def _to_deck(self):
-        """Creates a string representation. If the :attr:`doc` is specified,
-        a small description is printed in comments
+        """Creates a string representation. If the :attr:`doc` is specified, a
+        small description is printed in comments
         """
         head = "*** Control Cards\n"
         v_ = []
@@ -260,6 +262,10 @@ class ControlCards(object):
         return str(head) + str(statements)
 
     def set_statement(self, statement):
+        """
+        Args:
+            statement:
+        """
         self.__setattr__(statement.__class__.__name__.lower(), statement)
 
 
@@ -267,16 +273,31 @@ __statements__ = [""]
 
 
 class Deck(object):
-    def __init__(self, name, control_cards=None, models=None):
-        """
+    """The Deck class holds :class:`TrnsysModel` objects, the
+    :class:`ControlCards` and specifies the name of the project. This class
+    handles reading from a file (see :func:`read_file`) and printing to a file
+    (see :func:`save`).
+    """
+
+    def __init__(
+        self, name, author=None, date_created=None, control_cards=None, models=None
+    ):
+        """Initialize a Deck object with parameters:
 
         Args:
-            models (list or ComponentCollection): A list of Components (
-            :class:`TrnsysModel`, :class:`EquationCollection`, etc.). If a
-            list is passed, it is converted to a :class:`ComponentCollection`.
-            name (str): A name for this deck. Could be the name of the project.
+            name (str): The name of the project.
+            author (str): The author of the project.
+            date_created (str): The creation date. If None, defaults to
+                datetime.datetime.now().
             control_cards (ControlCards, optional): The ControlCards. See
                 :class:`ControlCards` for more details.
+            models (list or ComponentCollection): A list of Components (
+                :class:`TrnsysModel`, :class:`EquationCollection`, etc.). If a
+                list is passed, it is converted to a :class:`ComponentCollection`.
+                name (str): A name for this deck. Could be the name of the project.
+
+        Returns:
+            (Deck): The Deck object.
         """
         if not models:
             self.models = ComponentCollection()
@@ -296,12 +317,34 @@ class Deck(object):
         else:
             self.control_cards = ControlCards.basic_template()
         self.name = name
+        self.author = author
+        self.date_created = (
+            to_datetime(date_created, infer_datetime_format=True).isoformat()
+            if date_created
+            else datetime.datetime.now().isoformat()
+        )
 
     @classmethod
-    def from_file(cls, file, proforma_root=None):
+    def read_file(cls, file, author=None, date_created=None, proforma_root=None):
+        """Returns a Deck from a file
+
+        Args:
+            file (str): Either the absolute or relative path to the file to be
+                opened.
+            author (str): The author of the project.
+            date_created (str): The creation date. If None, defaults to
+                datetime.datetime.now().
+            proforma_root (str): Either the absolute or relative path to the
+                folder where proformas (in xml format) are stored.
+        """
         file = Path(file)
         with open(file) as dcklines:
-            dck = cls(name=file.basename(), control_cards=None)
+            dck = cls(
+                name=file.basename(),
+                author=author,
+                date_created=date_created,
+                control_cards=None,
+            )
             cc = ControlCards()
             dck._control_card = cc
             no_whitelines = list(filter(None, (line.rstrip() for line in dcklines)))
@@ -348,8 +391,8 @@ class Deck(object):
         return G
 
     def update_models(self, model):
-        """Update the Deck.models attribute with a :class:`TrnsysModel`
-        or a list of :class:`TrnsysModel`.
+        """Update the Deck.models attribute with a :class:`TrnsysModel` or a
+        list of :class:`TrnsysModel`.
 
         Args:
             model (Component or list of Component):
@@ -370,6 +413,10 @@ class Deck(object):
             self.models.append(model)
 
     def remove_models(self, model):
+        """
+        Args:
+            model:
+        """
         if isinstance(model, Component):
             model = [model]
         for model in model:
@@ -381,7 +428,11 @@ class Deck(object):
                         break
 
     def save(self, filename):
-        """Saves the Deck object to file"""
+        """Saves the Deck object to file
+
+        Args:
+            filename:
+        """
         file = Path(filename)
         dir = file.dirname()
         if dir != "" and not dir.exists():
@@ -391,7 +442,6 @@ class Deck(object):
             _file.write(deck_str)
 
     def _to_string(self):
-        """"""
         end = self.control_cards.__dict__.pop("end", End())
         cc = self.control_cards._to_deck()
 
@@ -415,6 +465,14 @@ class Deck(object):
 
     @classmethod
     def _parse_logic(cls, cc, dck, dcklines, line, proforma_root):
+        """
+        Args:
+            cc:
+            dck:
+            dcklines:
+            line:
+            proforma_root:
+        """
         global model, ec, i
         while line:
             key, match = dck._parse_line(line)
@@ -628,6 +686,10 @@ class Deck(object):
         return line
 
     def return_equation_or_constant(self, name):
+        """
+        Args:
+            name:
+        """
         for n in self.models:
             if name in n.outputs:
                 return n[name]
@@ -667,7 +729,8 @@ class Deck(object):
             getattr(model, key)[i] = tvar
 
     def _parse_line(self, line):
-        """Do a regex search against all defined regexes and return the key and match result of the first matching regex
+        """Do a regex search against all defined regexes and return the key and
+        match result of the first matching regex
 
         Args:
             line (str): the line string to parse.
@@ -684,8 +747,8 @@ class Deck(object):
         return None, None
 
     def _setup_re(self):
-        """set up regular expressions. use https://regexper.com to visualise these if
-        required
+        """set up regular expressions. use https://regexper.com to visualise
+        these if required
         """
 
         rx_dict = {

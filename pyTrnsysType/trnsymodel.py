@@ -452,8 +452,10 @@ class Component(metaclass=ABCMeta):
                 destination :class:`TrnsysModel` (other). The location can also
                 be a 2-tuple giving the coordinates of the origin
                 :class:`TrnsysModel` and the destination :class:`TrnsysModel`.
-            color (str): color string. Can be a single color format string
-                (default='#1f78b4').
+            color (str or tuple): The color of the line. Accepts any matplotlib
+                color. You can specify colors in many ways, including full names
+                (‘green’), hex strings (‘#008000’), RGB or RGBA tuples
+                ((0,1,0,1)) or grayscale intensities as a string (‘0.8’).
             linestyle (str): Possible values: '-' or 'solid', '--' or 'dashed',
                 '-.' or 'dashdot', ':' or 'dotted', '-.' or 'dashdotdot'.
             linewidth (float): The width of the line in points.
@@ -1177,7 +1179,8 @@ class TypeCycle(object):
     ):
         """
         Args:
-            role (str): The role of the TypeCycle. "parameter", "input", "output"
+            role (str): The role of the TypeCycle. "parameter", "input",
+                "output"
             firstRow:
             lastRow:
             cycles:
@@ -1418,7 +1421,9 @@ class VariableCollection(collections.UserDict):
 
 
 class InitialInputValuesCollection(VariableCollection):
-    """Subclass of :class:`VariableCollection` specific to Initial Input Values"""
+    """Subclass of :class:`VariableCollection` specific to Initial Input
+    Values
+    """
 
     def __init__(self):
         super().__init__()
@@ -1775,11 +1780,15 @@ class LinkStyle(object):
                 destination :class:`TrnsysModel` (other). The location can also
                 be a 2-tuple giving the coordinates of the origin
                 :class:`TrnsysModel` and the destination :class:`TrnsysModel`.
-            color (color): The color of the line.
+            color (str or tuple): The color of the line. Accepts any matplotlib
+                color. You can specify colors in many ways, including full names
+                ('green'), hex strings ('#008000'), RGB or RGBA tuples
+                ((0,1,0,1)) or grayscale intensities as a string ('0.8').
             linestyle (str): Possible values: '-' or 'solid', '--' or 'dashed',
                 '-.' or 'dashdot', ':' or 'dotted', '-.' or 'dashdotdot'.
             linewidth (float): The link line width in points.
-            path (LineString or MultiLineString):
+            path (LineString or MultiLineString): The path the link should
+                follow.
         """
         if isinstance(loc, tuple):
             loc_u, loc_v = loc
