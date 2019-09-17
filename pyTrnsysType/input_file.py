@@ -207,7 +207,7 @@ class ControlCards(object):
     @classmethod
     def all(cls):
         """Returns a SimulationCard with all available Statements initialized
-        with their default values. This class method is not recommended since
+        or with their default values. This class method is not recommended since
         many of the Statements are a time consuming process and should be used
         as a debugging tool.
         """
@@ -216,34 +216,34 @@ class ControlCards(object):
             Simulation(),
             Tolerances(),
             Limits(),
-            NaNCheck(),
-            OverwriteCheck(),
-            TimeReport(),
+            NaNCheck(n=1),
+            OverwriteCheck(n=1),
+            TimeReport(n=1),
             DFQ(),
             Width(),
             NoCheck(),
             EqSolver(),
             Solver(),
             NoList(),
-            List(),
-            Map(),
+            List(activate=True),
+            Map(activate=True),
         )
 
     @classmethod
     def debug_template(cls):
         """Returns a SimulationCard with useful debugging Statements."""
         return cls(
-            Version(),
-            Simulation(),
-            map=Map(),
-            nancheck=NaNCheck(),
-            overwritecheck=OverwriteCheck(),
+            version=Version(),
+            simulation=Simulation(),
+            map=Map(activate=True),
+            nancheck=NaNCheck(n=1),
+            overwritecheck=OverwriteCheck(n=1),
         )
 
     @classmethod
     def basic_template(cls):
         """Returns a SimulationCard with only the required Statements"""
-        return cls(Version(), Simulation())
+        return cls(version=Version(), simulation=Simulation())
 
     def _to_deck(self):
         """Creates a string representation. If the :attr:`doc` is specified, a

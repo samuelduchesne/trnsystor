@@ -357,7 +357,7 @@ class NoList(Statement):
     def __init__(self, active=True):
         """
         Args:
-            active (bool): Setting active to True will add the NOLIST statement
+            active (bool): Setting activate to True will add the NOLIST statement
         """
         super().__init__()
         self.active = active
@@ -373,14 +373,14 @@ class Map(Statement):
     component interconnections.
     """
 
-    def __init__(self, active=True):
+    def __init__(self, activate=True):
         """Setting active to True will add the MAP statement
 
         Args:
-            active (bool): Setting active to True will add the MAP statement
+            activate (bool): Setting active to True will add the MAP statement
         """
         super().__init__()
-        self.active = active
+        self.active = activate
         self.doc = "MAP statement"
 
     def _to_deck(self):
