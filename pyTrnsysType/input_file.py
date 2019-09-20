@@ -449,8 +449,14 @@ class Deck(object):
     def save(self, filename):
         """Saves the Deck object to file
 
+        Examples:
+
+            >>> from pyTrnsysType.input_file import Deck
+            >>> deck = Deck()
+            >>> deck.save("my_project.dck")
+
         Args:
-            filename:
+            filename (str): The name of the file (with the extension).
         """
         self.check_deck_integrity()
 
