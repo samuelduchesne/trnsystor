@@ -282,7 +282,7 @@ class ExternalFileCollection(collections.UserDict):
             v_ = (
                 (
                     "ASSIGN",
-                    "{}".format(ext_file.value.normpath()),
+                    '"{}"'.format(ext_file.value.normpath()),
                     ext_file.logical_unit,
                 )
                 for ext_file in self.values()
