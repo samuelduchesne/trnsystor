@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrnsysModel>
+    <object>Electrical Storage Battery</object>
+    <author>Contributors are listed in manuals</author>
+    <organization>Solar Energy Laboratory, University of Wisconsin - Madison</organization>
+    <editor>TESS</editor>
+    <creationDate>2/12/1999</creationDate>
+    <modifictionDate>February 2016</modifictionDate>
+    <mode>2</mode>
+    <validation>2</validation>
+    <icon>.\Studio\Icon\Type47a.bmp</icon>
+    <type>47</type>
+    <maxInstance>9999</maxInstance>
+    <keywords/>
+    <details>This model of a lead-acid storage battery operates in conjunction with solar cell array and power
+        conditioning components. It specifies how the battery state of charge varies over time, given the rate of charge
+        or discharge. This proforma corresponds to Mode 1, based on a simple energy balance of the battery. The power is
+        simply taken as input. This model does not calculate nor output any values of current or voltage.
+    </details>
+    <variables>
+        <variable><!--parameter-1-->
+            <order>1</order>
+            <name>Mode</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>1</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1</default>
+            <symbol>SN</symbol>
+            <definition>Specify 1. Mode 1 corresponds to a simple energy balance.</definition>
+        </variable>
+        <variable><!--parameter-2-->
+            <order>2</order>
+            <name>Cell energy capacity</name>
+            <role>parameter</role>
+            <dimension>Energy</dimension>
+            <unit>Wh</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>200</default>
+            <symbol>SN</symbol>
+            <definition>Rated Energy Capacity of each cell. The battery capacity is obtained by multiplying the cell
+                capacity by the number of cells in series and by the number of cells in parallel.
+            </definition>
+        </variable>
+        <variable><!--parameter-3-->
+            <order>3</order>
+            <name>Cells in parallel</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1</default>
+            <symbol>SN</symbol>
+            <definition>Number of cells connected in parallel in the battery.</definition>
+        </variable>
+        <variable><!--parameter-4-->
+            <order>4</order>
+            <name>Cells in series</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>6</default>
+            <symbol>SN</symbol>
+            <definition>Number of cells in series in the battery. A lead-acid battery cell has a rated voltage of 2V. So
+                a 12V battery includes 6 cells in series, and a 24V battery includes 12 cells in series.
+            </definition>
+        </variable>
+        <variable><!--parameter-5-->
+            <order>5</order>
+            <name>Charging efficiency</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>1.0</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.9</default>
+            <symbol>SN</symbol>
+            <definition>The charging efficiency is typically higher when the battery is at a low state of charge (&lt;=85%)
+                but can drop below 50% for when the battery is at a high state of charge (SOC higher than 90%). This
+                model, however assumes that the charging efficiency is independent of battery state of charge.
+            </definition>
+        </variable>
+        <variable><!--input-1-->
+            <order>6</order>
+            <name>Power to or from battery</name>
+            <role>input</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The power injected to the battery has a positive sign, while the power going from the battery to
+                the load is negative.
+            </definition>
+        </variable>
+        <variable><!--output-1-->
+            <order>7</order>
+            <name>Cell state of charge</name>
+            <role>output</role>
+            <dimension>Energy</dimension>
+            <unit>Wh</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The State Of Charge is expressed in the same units as the rated cell capacity (Wh). This value
+                is given for one cell (all cells are assumed to be identical).
+            </definition>
+        </variable>
+        <variable><!--output-2-->
+            <order>8</order>
+            <name>Fractional state of charge</name>
+            <role>output</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>1</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>This is the ratio between the State Of Charge and the rated energy capacity.</definition>
+        </variable>
+        <variable><!--output-3-->
+            <order>9</order>
+            <name>Power</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>Power to (&gt;0) or from (&lt;0) the battery.</definition>
+        </variable>
+        <variable><!--output-4-->
+            <order>10</order>
+            <name>Power lost during charge</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>Power loss. This is equal to (1-Efficiency)*Power when charging (0 else).</definition>
+        </variable>
+        <variable><!--derivative-1-->
+            <order>11</order>
+            <name>State of charge1</name>
+            <role>derivative</role>
+            <dimension>Energy</dimension>
+            <unit>Wh</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>Initial State Of Charge of one cell of the battery. This value should use the same units as
+                parameter 2. The value is given for one cell. The SOC of the battery is obtained by multiplying this
+                value by the number of cells.
+            </definition>
+        </variable>
+        <variable><!--output-5-->
+            <order>12</order>
+            <name>Excess power</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>A positive value of this output indicates that power had to be dumped by the battery in order to
+                keep it at 100% SOC. A negative value of this output indicates that auxiliary power was needed in order
+                to keep the battery at 0% SOC. In order for the simulation to continue running without generating an
+                error, the Type assumes that a power sink/source is available to dump or provide the required excess.
+            </definition>
+        </variable>
+        <variable><!--output-6-->
+            <order>13</order>
+            <name>Battery state of charge</name>
+            <role>output</role>
+            <dimension>Energy</dimension>
+            <unit>Wh</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The State Of Charge is expressed in the same units as the rated cell capacity (Wh). This value
+                is given for the entire battery bank.
+            </definition>
+        </variable>
+    </variables>
+    <cycles/>
+    <source>.\SourceCode\Types\Type47.f90</source>
+</TrnsysModel>

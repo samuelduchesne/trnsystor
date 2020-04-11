@@ -1,3 +1,4 @@
+import os
 from tempfile import NamedTemporaryFile
 
 import pytest
@@ -59,20 +60,33 @@ class TestTrnsysModel:
         n_nodes = 20
         pipe_type.parameters["Number_of_Radial_Soil_Nodes"] = n_nodes
 
-        mylist = list(pipe_type.parameters.data.keys())
+        mylist = list(pipe_type.parameters.keys())
         sub = "Radial_Distance_of_Node_"
         actual = len([s for s in mylist if sub.lower() in s.lower()])
 
+        assert pipe_type.parameters["Radial_Distance_of_Node_1"].idx == 27
+        assert pipe_type.parameters["Radial_Distance_of_Node_1"].one_based_idx == 28
         assert actual == n_nodes
 
     def test_cycles_2(self, pipe_type):
-        """changing number of fluid nodes from 10 to 20 should create 20 outputs
+        """changing number of fluid nodes from 100 to 20 should create 20 outputs
         for pipe 2 and 20 outputs for pipe 1"""
+
+        outputs = pipe_type.outputs
+        mylist = list(outputs.keys())
+        sub_1 = "Average_Fluid_Temperature_Pipe_1_"
+        sub_2 = "Average_Fluid_Temperature_Pipe_2_"
+        expected_1 = len([s for s in mylist if sub_1.lower() in s.lower()])
+        expected_2 = len([s for s in mylist if sub_2.lower() in s.lower()])
+
+        assert 100 == expected_1
+        assert 100 == expected_2
+
         n_nodes = 20
         pipe_type.parameters["Number_of_Fluid_Nodes"] = n_nodes
 
         outputs = pipe_type.outputs
-        mylist = list(outputs.data.keys())
+        mylist = list(outputs.keys())
         sub_1 = "Average_Fluid_Temperature_Pipe_1_"
         sub_2 = "Average_Fluid_Temperature_Pipe_2_"
         expected_1 = len([s for s in mylist if sub_1.lower() in s.lower()])
@@ -82,6 +96,7 @@ class TestTrnsysModel:
         assert n_nodes == expected_2
 
     def test_cycles_issue14(self):
+        """https://github.com/samuelduchesne/pyTrnsysType/issues/14"""
         from pyTrnsysType.trnsymodel import TrnsysModel
 
         valve = TrnsysModel.from_xml("tests/input_files/Type647.xml")
@@ -91,6 +106,17 @@ class TestTrnsysModel:
         with pytest.raises(KeyError):
             # Make sure the cyclebase is not returned
             assert valve.outputs["Outlet_Flowrate"]
+
+    def test_cycles_order(self):
+        from pyTrnsysType.trnsymodel import TrnsysModel
+
+        weather_type = TrnsysModel.from_xml("tests/input_files/Type15-3.xml")
+
+        assert weather_type.outputs[24].name == "Beam radiation for surface-1"
+
+        weather_type.parameters["Number_of_surfaces"] = 2
+
+        assert weather_type.outputs[26].name == "Beam radiation for surface-2"
 
     def test_cancel_missing_tag(self, tank_type):
         from pyTrnsysType.trnsymodel import TrnsysModel
@@ -137,6 +163,15 @@ class TestTrnsysModel:
 
         assert fan_type.parameters[attr_name].value == new_value.to("l/s")
 
+    def test_get_initial_input_values(self, tank_type):
+        print(tank_type.initial_input_values)
+
+    def test_set_initial_input_values(self, fan_type):
+        new_value = -20
+        attr_name = "Inlet_Air_Temperature"
+        fan_type.initial_input_values[attr_name] = new_value
+        assert fan_type.initial_input_values[attr_name]
+
     def test_get_attr_derivative(self, tank_type):
         """Test setter for class Derivative"""
         attr_name = "Initial_temperature_of_node_1"
@@ -162,6 +197,10 @@ class TestTrnsysModel:
     def test_to_deck(self, fan_type):
         """test to Input File representation of a TrnsysModel"""
         print(fan_type._to_deck())
+
+    def test_initial_input_values_to_deck(self, fan_type):
+        """test to Input File representation of a TrnsysModel"""
+        print(fan_type.initial_input_values._to_deck())
 
     def test_set_attr_cycle_question(self, tank_type):
         attr_name = "Besides_the_top_and_bottom_nodes_how_many_other_nodes_are_there_"
@@ -194,7 +233,7 @@ class TestTrnsysModel:
         assert repr(tank_type.parameters) == str(tank_type.parameters)
 
     def test_TypeVariable_repr(self, tank_type):
-        for _, a in tank_type.inputs.data.items():
+        for _, a in tank_type.inputs.items():
             assert float(a) == 45.0
             assert (
                 repr(a) == "Hot-side temperature; units=C; value=45.0 °C\nThe"
@@ -204,7 +243,7 @@ class TestTrnsysModel:
                 " element."
             )
             break
-        for _, a in tank_type.outputs.data.items():
+        for _, a in tank_type.outputs.items():
             assert float(a) == 0.0
             assert (
                 repr(a) == "Temperature to heat source; units=C; value=0.0 "
@@ -213,7 +252,7 @@ class TestTrnsysModel:
                 "source (the temperature of the bottom node)."
             )
             break
-        for _, a in tank_type.parameters.data.items():
+        for _, a in tank_type.parameters.items():
             assert int(a) == 1
             assert (
                 repr(a) == "Fixed inlet positions; units=-; value=1\nThe auxiliary"
@@ -290,7 +329,8 @@ class TestTrnsysModel:
             fan_type.connect_to(fan_2, mapping=mapping)
 
     def test_connect_eqcollection_to_type(self, fan_type, tank_type):
-        from pyTrnsysType import Equation, EquationCollection
+        from pyTrnsysType import EquationCollection
+        from pyTrnsysType import Equation
 
         ec = EquationCollection(Equation.from_expression("my=b"))
         ec.set_canvas_position((500, 500))
@@ -342,15 +382,14 @@ class TestTrnsysModel:
         from pyTrnsysType.trnsymodel import TrnsysModel
 
         dr = TrnsysModel.from_xml("tests/input_files/Type9c.xml")
-        assert dr._meta.compileCommand == r"df /c"
+        assert dr._meta.compileCommand.text == r"df /c"
 
     def test_set_position(self, fan_type):
         fan_type.set_canvas_position((500, 400))
         assert fan_type.studio.position == Point(500, 400)
 
     def test_set_link_style_to_itself(self, fan_type):
-        with pytest.raises(NotImplementedError):
-            fan_type.set_link_style(fan_type)
+        fan_type.set_link_style(fan_type)
 
     def test_set_link_style(self, fan_type):
         fan2 = fan_type.copy()
@@ -399,43 +438,43 @@ class TestTrnsysModel:
 
 class TestStatements:
     def test_statement_class(self):
-        from pyTrnsysType.statements import Statement
+        from pyTrnsysType import Statement
 
         statement = Statement()
         assert print(statement) == None
 
     def test_version_statement(self):
-        from pyTrnsysType.statements import Version
+        from pyTrnsysType import Version
 
         ver = Version(v=(17, 3))
         assert ver._to_deck() == "VERSION 17.3"
 
     def test_simulation_statement(self):
-        from pyTrnsysType.statements import Simulation
+        from pyTrnsysType import Simulation
 
         simul = Simulation(0, 8760, 1)
         assert simul._to_deck() == "SIMULATION 0 8760 1"
 
     def test_tolerances_statement(self):
-        from pyTrnsysType.statements import Tolerances
+        from pyTrnsysType import Tolerances
 
         tol = Tolerances(0.001, 0.001)
         assert tol._to_deck() == "TOLERANCES 0.001 0.001"
 
     def test_limits_statement(self):
-        from pyTrnsysType.statements import Limits
+        from pyTrnsysType import Limits
 
         lim = Limits(20, 50)
         assert lim._to_deck() == "LIMITS 20 50 20"
 
     def test_dfq_statement(self):
-        from pyTrnsysType.statements import DFQ
+        from pyTrnsysType import DFQ
 
         dfq_statement = DFQ(3)
         assert dfq_statement._to_deck() == "DFQ 3"
 
     def test_width_statement(self):
-        from pyTrnsysType.statements import Width
+        from pyTrnsysType import Width
 
         width_statement = Width(80)
         assert width_statement._to_deck() == "WIDTH 80"
@@ -443,7 +482,7 @@ class TestStatements:
             wrong_statement = Width(1000)
 
     def test_nocheck_statement(self, fan_type):
-        from pyTrnsysType.statements import NoCheck
+        from pyTrnsysType import NoCheck
 
         fan_type.copy()
         fan_type._unit = 1  # we need to force the id to one here
@@ -455,7 +494,7 @@ class TestStatements:
             no_check = NoCheck(inputs=list(fan_type.inputs.values()) * 10)
 
     def test_nolist_statement(self):
-        from pyTrnsysType.statements import NoList
+        from pyTrnsysType import NoList
 
         no_list = NoList(active=True)
         assert no_list._to_deck() == "NOLIST"
@@ -465,13 +504,13 @@ class TestStatements:
     @pytest.mark.parametrize("classmethod", ["all", "debug_template", "basic_template"])
     def test_control_cards(self, classmethod):
         """Call different class methods on ControlCards"""
-        from pyTrnsysType.input_file import ControlCards
+        from pyTrnsysType import ControlCards
 
         cc = getattr(ControlCards, classmethod)()
         print(cc._to_deck())
 
     def test_nancheck_statement(self):
-        from pyTrnsysType.statements import NaNCheck
+        from pyTrnsysType import NaNCheck
 
         nan_check = NaNCheck(n=1)
         assert nan_check._to_deck() == "NAN_CHECK 1"
@@ -479,7 +518,7 @@ class TestStatements:
         assert nan_check._to_deck() == "NAN_CHECK 0"
 
     def test_overwritecheck_statement(self):
-        from pyTrnsysType.statements import OverwriteCheck
+        from pyTrnsysType import OverwriteCheck
 
         nan_check = OverwriteCheck(n=1)
         assert nan_check._to_deck() == "OVERWRITE_CHECK 1"
@@ -487,7 +526,7 @@ class TestStatements:
         assert nan_check._to_deck() == "OVERWRITE_CHECK 0"
 
     def test_timereport_statement(self):
-        from pyTrnsysType.statements import TimeReport
+        from pyTrnsysType import TimeReport
 
         nan_check = TimeReport(n=1)
         assert nan_check._to_deck() == "TIME_REPORT 1"
@@ -498,7 +537,7 @@ class TestStatements:
 class TestConstantsAndEquations:
     @pytest.fixture()
     def equation(self):
-        from pyTrnsysType.input_file import Equation
+        from pyTrnsysType import Equation
 
         equa1 = Equation()
 
@@ -507,7 +546,8 @@ class TestConstantsAndEquations:
 
     @pytest.fixture()
     def equation_block(self):
-        from pyTrnsysType.input_file import Equation, EquationCollection
+        from pyTrnsysType import EquationCollection
+        from pyTrnsysType import Equation
 
         equa1 = Equation.from_expression("TdbAmb = [011,001]")
         equa2 = Equation.from_expression("rhAmb = [011,007]")
@@ -519,7 +559,7 @@ class TestConstantsAndEquations:
 
     @pytest.fixture()
     def constant(self):
-        from pyTrnsysType.input_file import Constant
+        from pyTrnsysType import Constant
 
         c_1 = Constant()
 
@@ -528,7 +568,8 @@ class TestConstantsAndEquations:
 
     @pytest.fixture()
     def constant_block(self):
-        from pyTrnsysType.input_file import Constant, ConstantCollection
+        from pyTrnsysType import ConstantCollection
+        from pyTrnsysType import Constant
 
         c_1 = Constant.from_expression("A = 1", doc="A is a constant")
         c_2 = Constant.from_expression("B = 2")
@@ -546,13 +587,24 @@ class TestConstantsAndEquations:
 
         name = "var_a"
         exp = "log(a) + (b / 12 - c) * d"
-        from pyTrnsysType.input_file import Equation
+        from pyTrnsysType import Equation
 
         start = Equation("start", 0)
         cp = Constant("specific_heat", 4.19)
         eq = Equation.from_symbolic_expression(
-            name, exp, *(tank_type.outputs[0], start, fan_type.outputs[0], cp),
+            name, exp, *(tank_type.outputs[0], start, fan_type.outputs[0], cp)
         )
+        print(eq)
+
+    def test_symbolic_expression_2(self, tank_type, fan_type):
+        from pyTrnsysType import Equation
+
+        build_loop = "QBuildingLoop"
+        cap = "capacity"
+        load = "load"
+
+        exp_build_loop = "Lt(l, c)*l + Ge(l, c)*c"
+        eq = Equation.from_symbolic_expression(build_loop, exp_build_loop, *(load, cap))
         print(eq)
 
     def test_malformed_symbolic_expression(self, tank_type, fan_type):
@@ -562,19 +614,20 @@ class TestConstantsAndEquations:
         name = "var_a"
         exp = "log(a) + b / 12 - c"
         c_ = Constant.from_expression("start=0")
-        from pyTrnsysType.input_file import Equation
+        from pyTrnsysType import Equation
 
         start = Equation("start", 0)
         with pytest.raises(AttributeError):
             Equation.from_symbolic_expression(name, exp, (tank_type.outputs[0], start))
 
     def test_empty_equationcollection(self):
-        from pyTrnsysType.input_file import EquationCollection
+        from pyTrnsysType import EquationCollection
 
         eq = EquationCollection()
 
     def test_equation_collection(self, equation_block):
-        from pyTrnsysType.input_file import Equation, EquationCollection
+        from pyTrnsysType import EquationCollection
+        from pyTrnsysType import Equation
 
         equa_col_2 = EquationCollection(
             [equa for equa in equation_block.values()], name="test"
@@ -590,7 +643,8 @@ class TestConstantsAndEquations:
 
     def test_update_equation_collection(self, equation_block):
         """test different .update() recipes"""
-        from pyTrnsysType.input_file import Equation, EquationCollection
+        from pyTrnsysType import EquationCollection
+        from pyTrnsysType import Equation
 
         list_equations = [equa for equa in equation_block.values()]
 
@@ -617,7 +671,8 @@ class TestConstantsAndEquations:
         ec.update(list_equations, F=list_equations)
 
     def test_equation_with_typevariable(self, fan_type):
-        from pyTrnsysType.input_file import Equation, EquationCollection
+        from pyTrnsysType import EquationCollection
+        from pyTrnsysType import Equation
 
         fan_type._unit = 1
         equa1 = Equation("T_out", fan_type.outputs[0])
@@ -629,14 +684,15 @@ class TestConstantsAndEquations:
 
     def test_two_unnamed_equationcollection(self, fan_type):
         """make sure objects with same name=None can be created"""
-        from pyTrnsysType.input_file import Equation, EquationCollection
+        from pyTrnsysType import EquationCollection
+        from pyTrnsysType import Equation
 
         eq1 = Equation("A", fan_type.outputs[0])
         EquationCollection([eq1])
         EquationCollection([eq1])
 
     def test_constant_collection(self, constant_block):
-        from pyTrnsysType.input_file import ConstantCollection
+        from pyTrnsysType import ConstantCollection
 
         c_block_2 = ConstantCollection(
             [c for c in constant_block.values()], name="test c block"
@@ -649,7 +705,8 @@ class TestConstantsAndEquations:
 
     def test_update_constant_collection(self, constant_block):
         """test different .update() recipes"""
-        from pyTrnsysType.input_file import Constant, ConstantCollection
+        from pyTrnsysType import ConstantCollection
+        from pyTrnsysType import Constant
 
         list_constants = [cts for cts in constant_block.values()]
 
@@ -677,13 +734,84 @@ class TestConstantsAndEquations:
 
 
 class TestDeck:
-    def test_from_deckfile(self):
+    @pytest.fixture(scope="class")
+    def pvt_deck(self):
         from pyTrnsysType import Deck
 
         file = "tests/input_files/test_deck.dck"
         with patch("builtins.input", return_value="y"):
-            dck = Deck._from_deckfile(file, proforma_root="tests/input_files")
-            assert dck
+            dck = Deck.read_file(file, proforma_root="tests/input_files")
+            yield dck
+
+    @pytest.mark.xfail(raises=ValueError)
+    @pytest.fixture(scope="class")
+    def irregular_deck(self):
+        from pyTrnsysType import Deck
+
+        file = "tests/input_files/Case600h10.dck"
+        with patch("builtins.input", return_value="y"):
+            dck = Deck.read_file(file)
+            yield dck
+
+    @pytest.fixture(scope="class")
+    def G(self, pvt_deck):
+        yield pvt_deck.graph
+
+    @pytest.mark.xfail(raises=ValueError)
+    def test_irragular_deck(self, irregular_deck):
+        assert irregular_deck
+
+    def test_update_with_model(self, weather_type, tank_type, pipe_type):
+        from pyTrnsysType import ControlCards
+        from pyTrnsysType import Deck
+
+        cc = ControlCards.basic_template()
+        dck = Deck("test", control_cards=cc)
+
+        # update with single component
+        dck.update_models(weather_type)
+        assert len(dck.models) == 1
+
+        # update with list of components
+        dck.update_models([tank_type, pipe_type])
+        assert len(dck.models) == 3
+
+    def test_deck_graph(self, pvt_deck, G):
+        import networkx as nx
+        import matplotlib.pyplot as plt
+
+        print(len(pvt_deck.models))
+        assert not nx.is_empty(G)
+        pos = {
+            unit: tuple((pos.x, pos.y)) if pos else tuple((50, 50))
+            for unit, pos in G.nodes(data="pos")
+        }
+        nx.draw_networkx(G, pos=pos)
+        plt.show()
+
+    @pytest.mark.xfail(
+        "TRAVIS" in os.environ and os.environ["TRAVIS"] == "true",
+        reason="Skipping this test on Travis CI.",
+    )
+    def test_deck_graphviz(self, pvt_deck, G):
+        import networkx as nx
+        import matplotlib.pyplot as plt
+
+        pos = nx.nx_agraph.graphviz_layout(G, "dot")
+        nx.draw_networkx(G, pos=pos)
+        plt.show()
+
+    def test_cycles(self, G):
+        import networkx as nx
+
+        cycles = nx.find_cycle(G)
+        print(cycles)
+
+    def test_print(self, pvt_deck):
+        print(self, pvt_deck)
+
+    def test_save(self, pvt_deck):
+        pvt_deck.save("test.dck")
 
 
 class TestComponent:
@@ -694,10 +822,13 @@ class TestComponent:
 
 
 class TestComponentCollection:
-    def test_get_item(self, tank_type):
+    def test_get_item(self, tank_type, fan_type):
         from pyTrnsysType.trnsymodel import ComponentCollection
 
-        cc = ComponentCollection()
-        cc.update({tank_type: tank_type})
-        cc["Storage Tank; Fixed Inlets, Uniform Losses"]._unit = 1
-        assert cc[1] == cc["Storage Tank; Fixed Inlets, Uniform Losses"]
+        cc = ComponentCollection([tank_type])
+        assert cc.loc[tank_type] == cc.iloc[tank_type.unit_number]
+        tank_type._unit = 30
+        assert cc.loc[tank_type] == cc.iloc[tank_type.unit_number] == 30
+        print(cc.loc.keys())
+        print(cc.iloc.keys())
+        [print(item) for item in cc]

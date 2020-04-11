@@ -114,7 +114,17 @@ def _parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
     try:
         f = _type(value)
     except:
+        if value == "STEP":
+            value = 1
+            # Todo: figure out better logic when default value
+            #  is 'STEP
+        elif value == "START":
+            value = 1
+        elif value == "STOP":
+            value = 8760
         f = float(value)
+    if isinstance(f, str):
+        return f
     xmin, xmax = map(resolve_type, bounds)
     is_bound = xmin <= f <= xmax
     if is_bound:
@@ -139,6 +149,8 @@ def parse_type(_type):
         return int
     elif _type == "real":
         return float
+    elif _type == "string":
+        return str
     else:
         raise NotImplementedError()
 
@@ -191,6 +203,8 @@ def redistribute_vertices(geom, distance):
         geom:
         distance:
     """
+    if geom.length == 0:
+        return geom
     if geom.geom_type == "LineString":
         num_vert = int(round(geom.length / distance))
         if num_vert == 0:

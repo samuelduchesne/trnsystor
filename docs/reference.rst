@@ -3,38 +3,26 @@
 Reference
 =========
 
-TrnsysModel
------------
+Main Classes
+------------
 
-.. currentmodule:: pyTrnsysType.trnsymodel
+.. currentmodule:: pyTrnsysType
 .. autosummary::
     :template: autosummary.rst
     :nosignatures:
     :toctree: reference/
 
+    Constant
+    Equation
+    ControlCards
+    Deck
     TrnsysModel
-    MetaData
-    Component
-    ComponentCollection
-    ExternalFile
-    ExternalFileCollection
-    TypeVariable
-    TypeCycle
-    CycleCollection
     Parameter
     Input
     Output
-    Derivative
-    VariableCollection
-    InputCollection
-    OutputCollection
-    ParameterCollection
-    StudioHeader
-    LinkStyle
-    AnchorPoint
 
-Statements
-----------
+Trnsys Statements
+-----------------
 
 .. currentmodule:: pyTrnsysType
 .. autosummary::
@@ -42,27 +30,60 @@ Statements
     :nosignatures:
     :toctree: reference
 
-    statements.Statement
-    statements.Version
-    statements.NaNCheck
-    statements.OverwriteCheck
-    statements.TimeReport
-    statements.List
-    statements.Simulation
-    statements.Tolerances
-    statements.Limits
-    statements.DFQ
-    statements.NoCheck
-    statements.NoList
-    statements.Map
-    statements.EqSolver
-    statements.End
-    statements.Solver
-    input_file.Constant
-    input_file.Equation
-    input_file.ControlCards
-    input_file.ConstantCollection
-    input_file.EquationCollection
+    Statement
+    Version
+    NaNCheck
+    OverwriteCheck
+    TimeReport
+    List
+    Simulation
+    Tolerances
+    Limits
+    DFQ
+    NoCheck
+    NoList
+    Map
+    EqSolver
+    End
+    Solver
+
+Helper Classes
+--------------
+
+.. currentmodule:: pyTrnsysType
+.. autosummary::
+    :template: autosummary.rst
+    :nosignatures:
+    :toctree: reference/
+
+    MetaData
+    Component
+    ExternalFile
+    TypeVariable
+    TypeCycle
+    Derivative
+    StudioHeader
+    LinkStyle
+    AnchorPoint
+
+Collections
+-----------
+
+.. currentmodule:: pyTrnsysType
+.. autosummary::
+    :template: autosummary.rst
+    :nosignatures:
+    :toctree: reference
+
+    ConstantCollection
+    EquationCollection
+    ComponentCollection
+    ExternalFileCollection
+    CycleCollection
+    VariableCollection
+    InputCollection
+    OutputCollection
+    ParameterCollection
 
 
 Utils

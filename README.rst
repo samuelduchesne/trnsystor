@@ -8,7 +8,9 @@
 pyTrnsysType
 ============
 
-A python TRNSYS type parser
+A python scripting language for TRNSYS. 
+
+Create .dck files from stratch in an object-oriented python structure. Add components, specify parameters, connect components together and more throught python code.
 
 Installation
 ------------
@@ -22,10 +24,9 @@ Usage
 -----
 
 Since TRNSYS 18, type proformas can be exported to XML schemas. *pyTrnsysType* builds on this easy to read data 
-structure to easily create TrnsysModel using the most popular scripting language in the data science community: Python_.
+structure to easily create TrnsysModels using the most popular scripting language in the data science community: Python_.
 
-From the xml file of a type proforma, simply create a TrnsysModel object by invoking the `from_xml()` constructor. 
-Make sure to pass a string to the method by reading the `_io.TextIOWrapper` produced by the `open()` method:
+From the xml file of a type proforma, simply create a TrnsysModel object by invoking the `from_xml()` constructor:
 
 .. code-block:: python
 
@@ -42,7 +43,7 @@ Calling `pipe1` will display it's Type number and Name:
     Type951: Ecoflex 2-Pipe: Buried Piping System
 
 
-Then, `pipe1` can be used to **get** and **set** attributes such as inputs, outputs and parameters.
+Then, `pipe1` can be used to **get** and **set** attributes such as inputs, outputs, parameters and external files.
 For example, to set the *Number of Fluid Nodes*, simply set the new value as you would change a dict value:
 
 .. code-block:: python
@@ -78,7 +79,7 @@ example, to map the first two ouputs of `pipe1` to the first two inputs of `pipe
 `mapping = {0:0, 1:1}`. In other words, this means that the output 0 of pipe1 is connected to the input 1 of pipe2 
 and the output 1 of pipe1 is connected to the output 1 of pipe2. Keep in mind that since python traditionally uses  
 0-based indexing, it has been decided that the same logic in this package even though TRNSYS uses 1-based indexing. The
-package will internally assign the 1-based index automatically.
+package will internally assign the 1-based index automatically when saving to file.
 
 For convenience, the mapping can also be done using the output/input names such as `mapping = 
 {'Outlet_Air_Temperature': 'Inlet_Air_Temperature', 'Outlet_Air_Humidity_Ratio': 'Inlet_Air_Humidity_Ratio'}`:
@@ -91,10 +92,71 @@ For convenience, the mapping can also be done using the output/input names such 
     pipe1.connect_to(pipe2, mapping={0:0, 1:1})
 
 
-Simulation Cards
-----------------
+Equations
+---------
 
-The Simulation Cards is a chuck of code that informs TRNSYS of various simulation constrols such as start time end 
+In the TRNSYS studio, equations are components holding a list of user-defined expressions. In pyTrnsysType a similar 
+approach has been taken: the `Equation` class handles the creation of equations and the `EquationCollection` class 
+handles the block of equations. Here's an example:
+
+First, create a series of Equation by invoking the `from_expression` constructor. This allows you to input the 
+equation as a string.
+
+.. code-block:: python
+
+    >>> from pyTrnsysType import Equation, EquationCollection
+    >>> equa1 = Equation.from_expression("TdbAmb = [011,001]")
+    >>> equa2 = Equation.from_expression("rhAmb = [011,007]")
+    >>> equa3 = Equation.from_expression("Tsky = [011,004]")
+    >>> equa4 = Equation.from_expression("vWind = [011,008]")
+
+One can create a equation block:
+
+.. code-block:: python
+
+    >>> equa_col_1 = EquationCollection([equa1, equa2, equa3, equa4],
+                                        name='test')
+
+
+.. _Python: https://www.economist.com/graphic-detail/2018/07/26/python-is-becoming-the-worlds-most-popular-coding-language
+
+
+Changing Initial Input Values
+-----------------------------
+
+To change the initial value of an input, simply call it by name or with it's zero-based index and set a new value.
+This new value will be checked against the bounds set by the proforma as for a regular input or parameter.
+
+.. code-block:: python
+
+    >>> pipe1.parameters['Number_of_Fluid_Nodes'] = 50
+    >>> pipe_type.initial_input_values["Inlet_Fluid_Temperature_Pipe_1"] = 70
+    >>> pipe_type.initial_input_values["Inlet_Fluid_Temperature_Pipe_1"].default  # or, pipe_type.initial_input_values[0]
+    70.0 <Unit('degC')>
+    
+Creating a Deck file
+--------------------
+
+A deck file (.dck) is created by instanciating a `Deck` object and calling the instance method `.save()`. The Deck object contains the Simulation Cards and the different models (components) for the project. The following code block shows one way of creating a Deck and saving it to file.
+
+.. code-block:: python
+
+    >>> from pyTrnsysType import Deck, ControlCards
+    >>> 
+    >>> control_card = ControlCards.debug_template(). # Specifies a predefined set of control cards. See section bellow.
+    >>> cdeck = Deck(name="mydeck", control_cards=control_card, author="jovyan")
+    >>> 
+    >>> list_models = []  # a list of TrnsysModel objects created earlier
+    >>>  
+    >>> deck.update_models(list_models)
+    >>> 
+    >>> deck.save("my_project.dck")
+
+    
+Simulation Cards
+________________
+
+The Simulation Cards is a chuck of code that informs TRNSYS of various simulation controls such as start time end 
 time and time-step. pyTrnsysType implements many of those *Statements* with a series of Statement objects.
 
 For instance, to create simulation cards using default values, simply call the `all()` constructor:
@@ -115,31 +177,3 @@ For instance, to create simulation cards using default values, simply call the `
     LIMITS 25 10 25       ! Max iterations	Max warnings	Trace limit
     EQSOLVER 0            ! EQUATION SOLVER statement
 
-
-Equations
----------
-
-In the TRNSYS studio, equations are components holding a list of user-defined expressions. In pyTrnsysType a similar 
-approach has been taken: the `Equation` class handles the creation of equations and the `EquationCollection` class 
-handles the block of equations. Here's an example:
-
-First, create a series of Equation by invoking the `from_expression` constructor. This allows you two input the 
-equation as a string.
-
-.. code-block:: python
-
-    >>> from pyTrnsysType import Equation, EquationCollection
-    >>> equa1 = Equation.from_expression("TdbAmb = [011,001]")
-    >>> equa2 = Equation.from_expression("rhAmb = [011,007]")
-    >>> equa3 = Equation.from_expression("Tsky = [011,004]")
-    >>> equa4 = Equation.from_expression("vWind = [011,008]")
-
-One can create
-
-.. code-block:: python
-
-    >>> equa_col_1 = EquationCollection([equa1, equa2, equa3, equa4],
-                                        name='test')
-
-
-.. _Python: https://www.economist.com/graphic-detail/2018/07/26/python-is-becoming-the-worlds-most-popular-coding-language
