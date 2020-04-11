@@ -324,13 +324,17 @@ class ComponentCollection(collections.UserList):
 
 
 class Component(metaclass=ABCMeta):
+    """Base class for Trnsys elements that interact with the Studio.
+    :class:`TrnsysModel`,  :class:`ConstantCollection` and
+    :class:`EquationCollection` implement this class."""
     new_id = itertools.count(start=1)
 
     def __init__(self, name, meta):
-        """
+        """Initialize a Component with the following parameters:
+
         Args:
-            name:
-            meta:
+            name (str): Name of the component.
+            meta (MetaData): MetaData associated with this component.
         """
         self._unit = next(TrnsysModel.new_id)
         self.name = name
