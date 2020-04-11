@@ -3,10 +3,26 @@
 Reference
 =========
 
+FileModel
+---------
+
+.. currentmodule:: pyTrnsysType
+.. autosummary::
+    :template: autosummary.rst
+    :nosignatures:
+    :toctree: reference/
+
+    Constant
+    Equation
+    ControlCards
+    Deck
+    ConstantCollection
+    EquationCollection
+
 TrnsysModel
 -----------
 
-.. currentmodule:: pyTrnsysType.trnsymodel
+.. currentmodule:: pyTrnsysType
 .. autosummary::
     :template: autosummary.rst
     :nosignatures:
@@ -42,28 +58,22 @@ Statements
     :nosignatures:
     :toctree: reference
 
-    statements.Statement
-    statements.Version
-    statements.NaNCheck
-    statements.OverwriteCheck
-    statements.TimeReport
-    statements.List
-    statements.Simulation
-    statements.Tolerances
-    statements.Limits
-    statements.DFQ
-    statements.NoCheck
-    statements.NoList
-    statements.Map
-    statements.EqSolver
-    statements.End
-    statements.Solver
-    input_file.Constant
-    input_file.Equation
-    input_file.ControlCards
-    input_file.Deck
-    input_file.ConstantCollection
-    input_file.EquationCollection
+    Statement
+    Version
+    NaNCheck
+    OverwriteCheck
+    TimeReport
+    List
+    Simulation
+    Tolerances
+    Limits
+    DFQ
+    NoCheck
+    NoList
+    Map
+    EqSolver
+    End
+    Solver
 
 
 Utils
