@@ -280,11 +280,7 @@ class ExternalFileCollection(collections.UserDict):
         if self:
             head = "*** External files\n"
             v_ = (
-                (
-                    "ASSIGN",
-                    '"{}"'.format(ext_file.value),
-                    ext_file.logical_unit,
-                )
+                ("ASSIGN", '"{}"'.format(ext_file.value), ext_file.logical_unit,)
                 for ext_file in self.values()
             )
             core = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
