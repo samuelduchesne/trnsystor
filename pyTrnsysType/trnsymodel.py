@@ -378,7 +378,7 @@ class Component(metaclass=ABCMeta):
             pt = affine_transform(pt)
         self.studio.position = pt
 
-    def change_component_layer(self, layers):
+    def set_component_layer(self, layers):
         """Change the component's layer. Pass a list to change multiple layers
 
         Args:
@@ -2361,7 +2361,7 @@ class Deck(object):
                 ec.name = unit_name
             if key == "layer":
                 layer = match.group(key)
-                ec.change_component_layer(layer)
+                ec.set_component_layer(layer)
             if key == "position":
                 pos = match.group(key)
                 ec.set_canvas_position(map(float, pos.strip().split()), False)
