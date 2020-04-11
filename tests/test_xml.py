@@ -103,9 +103,11 @@ class TestTrnsysModel:
                     new_tag = soup.new_tag("obscureTag")
                     new_tag.string = "this is a test"
                     soup.find("TrnsysModel").append(new_tag)
-                with NamedTemporaryFile("w") as tmp:
+                with NamedTemporaryFile("w", delete=False) as tmp:
                     tmp.write(str(soup))
+                    tmp.close()
                     tank = TrnsysModel.from_xml(tmp.name)
+                    os.unlink(tmp.name)
 
     def test_out_of_bounds(self, pipe_type):
         """should trigger ValueError because out of bounds"""
