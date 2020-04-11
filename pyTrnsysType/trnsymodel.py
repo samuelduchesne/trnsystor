@@ -188,6 +188,7 @@ class MetaData(object):
 
 class ExternalFile(object):
     logic_unit = itertools.count(start=30)
+    _logic_unit = itertools.count(start=30)
 
     def __init__(self, question, default, answers, parameter, designate):
         """
@@ -207,7 +208,7 @@ class ExternalFile(object):
         self.default = Path(default)
         self.question = question
 
-        self.logical_unit = next(self.logic_unit)
+        self.logical_unit = next(self._logic_unit)
 
         self.value = self.default
 
