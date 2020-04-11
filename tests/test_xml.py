@@ -596,6 +596,17 @@ class TestConstantsAndEquations:
         )
         print(eq)
 
+    def test_symbolic_expression_2(self, tank_type, fan_type):
+        from pyTrnsysType.input_file import Equation
+
+        build_loop = "QBuildingLoop"
+        cap = "capacity"
+        load = "load"
+
+        exp_build_loop = "Lt(l, c)*l + Ge(l, c)*c"
+        eq = Equation.from_symbolic_expression(build_loop, exp_build_loop, *(load, cap))
+        print(eq)
+
     def test_malformed_symbolic_expression(self, tank_type, fan_type):
         """passed only two args while expression asks for 3"""
         from pyTrnsysType.input_file import Constant
