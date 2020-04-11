@@ -1,53 +1,58 @@
 import collections
 import copy
+import datetime
 import itertools
+import logging as lg
 import re
+import tempfile
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
 import tabulate
 from bs4 import BeautifulSoup, Tag
 from matplotlib.colors import colorConverter
+from pandas import to_datetime
 from path import Path
 from pint.quantity import _Quantity
 from shapely.geometry import Point, LineString, MultiLineString, MultiPoint
+from sympy import Symbol, Expr
 
-import pyTrnsysType
 from pyTrnsysType.utils import (
     get_int_from_rgb,
     _parse_value,
     parse_type,
     standerdized_name,
-    redistribute_vertices,
+    redistribute_vertices, get_rgb_from_int, affine_transform, TypeVariableSymbol,
+    print_my_latex,
 )
 
 
 class MetaData(object):
     def __init__(
-        self,
-        object=None,
-        author=None,
-        organization=None,
-        editor=None,
-        creationDate=None,
-        modifictionDate=None,
-        mode=None,
-        validation=None,
-        icon=None,
-        type=None,
-        maxInstance=None,
-        keywords=None,
-        details=None,
-        comment=None,
-        variables=None,
-        plugin=None,
-        variablesComment=None,
-        cycles=None,
-        source=None,
-        externalFiles=None,
-        compileCommand=None,
-        model=None,
-        **kwargs
+            self,
+            object=None,
+            author=None,
+            organization=None,
+            editor=None,
+            creationDate=None,
+            modifictionDate=None,
+            mode=None,
+            validation=None,
+            icon=None,
+            type=None,
+            maxInstance=None,
+            keywords=None,
+            details=None,
+            comment=None,
+            variables=None,
+            plugin=None,
+            variablesComment=None,
+            cycles=None,
+            source=None,
+            externalFiles=None,
+            compileCommand=None,
+            model=None,
+            **kwargs
     ):
         """General information that is associated with a :class:`TrnsysModel`.
         This information is contained in the General Tab of the Proforma.
@@ -366,7 +371,7 @@ class Component(metaclass=ABCMeta):
         if not isinstance(pt, Point):
             pt = Point(*pt)
         if trnsys_coords:
-            pt = pyTrnsysType.affine_transform(pt)
+            pt = affine_transform(pt)
         self.studio.position = pt
 
     def change_component_layer(self, layers):
@@ -438,7 +443,8 @@ class Component(metaclass=ABCMeta):
         pass
 
     def set_link_style(
-        self, other, loc="best", color="#1f78b4", linestyle="-", linewidth=1, path=None
+            self, other, loc="best", color="#1f78b4", linestyle="-", linewidth=1,
+            path=None
     ):
         """Set outgoing link styles between self and other.
 
@@ -865,11 +871,11 @@ class TrnsysModel(Component):
             [
                 output_dict.pop(key)
                 for key in dict(
-                    filter(
-                        lambda kv: kv[1].role == type_ and kv[1]._iscycle,
-                        self._meta.variables.items(),
-                    )
+                filter(
+                    lambda kv: kv[1].role == type_ and kv[1]._iscycle,
+                    self._meta.variables.items(),
                 )
+            )
             ]
             # make sure to cycle through all possible items
             items_list = list(
@@ -913,13 +919,13 @@ class TrnsysModel(Component):
         externals = self.external_files._to_deck() if self.external_files else ""
 
         return (
-            str(unit_type)
-            + str(studio)
-            + params._to_deck()
-            + inputs._to_deck()
-            + initial_input_values._to_deck()
-            + derivatives._to_deck()
-            + str(externals)
+                str(unit_type)
+                + str(studio)
+                + params._to_deck()
+                + inputs._to_deck()
+                + initial_input_values._to_deck()
+                + derivatives._to_deck()
+                + str(externals)
         )
 
     def update_meta(self, new_meta):
@@ -949,10 +955,10 @@ class TrnsysModel(Component):
                 {
                     id(ext): ext
                     for ext in {
-                        ExternalFile.from_tag(tag)
-                        for tag in tag
-                        if isinstance(tag, Tag)
-                    }
+                    ExternalFile.from_tag(tag)
+                    for tag in tag
+                    if isinstance(tag, Tag)
+                }
                 }
             )
 
@@ -977,21 +983,21 @@ class TypeVariable(object):
     """
 
     def __init__(
-        self,
-        val,
-        order=None,
-        name=None,
-        role=None,
-        dimension=None,
-        unit=None,
-        type=None,
-        min=None,
-        max=None,
-        boundaries=None,
-        default=None,
-        symbol=None,
-        definition=None,
-        model=None,
+            self,
+            val,
+            order=None,
+            name=None,
+            role=None,
+            dimension=None,
+            unit=None,
+            type=None,
+            min=None,
+            max=None,
+            boundaries=None,
+            default=None,
+            symbol=None,
+            definition=None,
+            model=None,
     ):
         """Initialize a TypeVariable with the following attributes:
 
@@ -1148,7 +1154,7 @@ class TypeVariable(object):
                     lambda kv: isinstance(
                         self.model._meta.variables[kv], self.__class__
                     )
-                    and self.model._meta.variables[kv]._iscyclebase == False,
+                               and self.model._meta.variables[kv]._iscyclebase == False,
                     self.model._meta.variables,
                 ),
                 key=lambda key: self.model._meta.variables[key].order,
@@ -1169,16 +1175,16 @@ class TypeVariable(object):
 
 class TypeCycle(object):
     def __init__(
-        self,
-        role=None,
-        firstRow=None,
-        lastRow=None,
-        cycles=None,
-        minSize=None,
-        maxSize=None,
-        paramName=None,
-        question=None,
-        **kwargs
+            self,
+            role=None,
+            firstRow=None,
+            lastRow=None,
+            cycles=None,
+            minSize=None,
+            maxSize=None,
+            paramName=None,
+            question=None,
+            **kwargs
     ):
         """
         Args:
@@ -1383,8 +1389,6 @@ class VariableCollection(collections.UserDict):
             key:
             value:
         """
-        from pyTrnsysType.input_file import Equation
-        from pyTrnsysType.input_file import Constant
 
         if isinstance(value, TypeVariable):
             """if a TypeVariable is given, simply set it"""
@@ -1461,8 +1465,6 @@ class InitialInputValuesCollection(VariableCollection):
             key:
             value:
         """
-        from pyTrnsysType.input_file import Equation
-        from pyTrnsysType.input_file import Constant
 
         if isinstance(value, TypeVariable):
             """if a TypeVariable is given, simply set it"""
@@ -1548,8 +1550,6 @@ class InputCollection(VariableCollection):
 
     def _to_deck(self):
         """Returns the string representation for the Input File (.dck)"""
-        from pyTrnsysType.input_file import Equation
-        from pyTrnsysType.input_file import Constant
 
         if self.size == 0:
             # Don't need to print empty inputs
@@ -1570,7 +1570,8 @@ class InputCollection(VariableCollection):
                                 input.connected_to.model.unit_number,
                                 input.connected_to.one_based_idx,
                             ),
-                            "! {out_model_name}:{output_name} -> {in_model_name}:{input_name}".format(
+                            "! {out_model_name}:{output_name} -> {in_model_name}:{"
+                            "input_name}".format(
                                 out_model_name=input.connected_to.model.name,
                                 output_name=input.connected_to.name,
                                 in_model_name=input.model.name,
@@ -1582,7 +1583,8 @@ class InputCollection(VariableCollection):
                     _ins.append(
                         (
                             input.connected_to.name,
-                            "! {out_model_name}:{output_name} -> {in_model_name}:{input_name}".format(
+                            "! {out_model_name}:{output_name} -> {in_model_name}:{"
+                            "input_name}".format(
                                 out_model_name=input.connected_to.model.name,
                                 output_name=input.connected_to.name,
                                 in_model_name=input.model.name,
@@ -1592,7 +1594,8 @@ class InputCollection(VariableCollection):
                     )
                 else:
                     raise NotImplementedError(
-                        "With unit {}, printing input '{}' connected with output of type '{}' from unit '{}' is not supported".format(
+                        "With unit {}, printing input '{}' connected with output of "
+                        "type '{}' from unit '{}' is not supported".format(
                             input.model.name,
                             input.name,
                             type(input.connected_to),
@@ -1644,7 +1647,6 @@ class ParameterCollection(VariableCollection):
 
     def _to_deck(self):
         """Returns the string representation for the Input File (.dck)"""
-        from pyTrnsysType.input_file import Equation
 
         head = "PARAMETERS {}\n".format(self.size)
         # loop through parameters and print the (value, name) tuples.
@@ -1766,7 +1768,7 @@ def _studio_to_linestyle(ls):
 
 class LinkStyle(object):
     def __init__(
-        self, u, v, loc, color="black", linestyle="-", linewidth=None, path=None
+            self, u, v, loc, color="black", linestyle="-", linewidth=None, path=None
     ):
         """
         Args:
@@ -1865,36 +1867,37 @@ class LinkStyle(object):
     def _to_deck(self):
         """0:20:40:20:1:0:0:0:1:513,441:471,441:471,430:447,430"""
         anchors = (
-            ":".join(
-                [
-                    ":".join(
-                        map(
-                            str,
-                            AnchorPoint(self.u).studio_anchor_mapping[
-                                self.u_anchor_name
-                            ],
-                        )
-                    ),
-                    ":".join(
-                        map(
-                            str,
-                            AnchorPoint(self.u).studio_anchor_mapping[
-                                self.v_anchor_name
-                            ],
-                        )
-                    ),
-                ]
-            )
-            + ":"
+                ":".join(
+                    [
+                        ":".join(
+                            map(
+                                str,
+                                AnchorPoint(self.u).studio_anchor_mapping[
+                                    self.u_anchor_name
+                                ],
+                            )
+                        ),
+                        ":".join(
+                            map(
+                                str,
+                                AnchorPoint(self.u).studio_anchor_mapping[
+                                    self.v_anchor_name
+                                ],
+                            )
+                        ),
+                    ]
+                )
+                + ":"
         )
 
         color = (
-            str(
-                get_int_from_rgb(
-                    tuple([u * 255 for u in colorConverter.to_rgb(self.get_color())])
+                str(
+                    get_int_from_rgb(
+                        tuple(
+                            [u * 255 for u in colorConverter.to_rgb(self.get_color())])
+                    )
                 )
-            )
-            + ":"
+                + ":"
         )
         path = ",".join(
             [":".join(map(str, n.astype(int).tolist())) for n in np.array(self.path)]
@@ -2032,3 +2035,1848 @@ class AnchorPoint(object):
     @property
     def centroid(self):
         return self.model.studio.position
+
+
+class Deck(object):
+    """The Deck class holds :class:`TrnsysModel` objects, the
+    :class:`ControlCards` and specifies the name of the project. This class
+    handles reading from a file (see :func:`read_file`) and printing to a file
+    (see :func:`save`).
+    """
+
+    def __init__(
+            self, name, author=None, date_created=None, control_cards=None, models=None
+    ):
+        """Initialize a Deck object with parameters:
+
+        Args:
+            name (str): The name of the project.
+            author (str): The author of the project.
+            date_created (str): The creation date. If None, defaults to
+                datetime.datetime.now().
+            control_cards (ControlCards, optional): The ControlCards. See
+                :class:`ControlCards` for more details.
+            models (list or ComponentCollection): A list of Components (
+                :class:`TrnsysModel`, :class:`EquationCollection`, etc.). If a
+                list is passed, it is converted to a :class:`ComponentCollection`.
+                name (str): A name for this deck. Could be the name of the project.
+
+        Returns:
+            (Deck): The Deck object.
+        """
+        if not models:
+            self.models = ComponentCollection()
+        else:
+            if isinstance(models, ComponentCollection):
+                self.models = models
+            elif isinstance(models, list):
+                self.models = ComponentCollection(models)
+            else:
+                raise TypeError(
+                    "Cant't create a Deck object with models of "
+                    "type '{}'".format(type(models))
+                )
+            self.models = ComponentCollection(models)
+        if control_cards:
+            self.control_cards = control_cards
+        else:
+            self.control_cards = ControlCards.basic_template()
+        self.name = name
+        self.author = author
+        self.date_created = (
+            to_datetime(date_created, infer_datetime_format=True).isoformat()
+            if date_created
+            else datetime.datetime.now().isoformat()
+        )
+
+    @classmethod
+    def read_file(cls, file, author=None, date_created=None, proforma_root=None):
+        """Returns a Deck from a file
+
+        Args:
+            file (str): Either the absolute or relative path to the file to be
+                opened.
+            author (str): The author of the project.
+            date_created (str): The creation date. If None, defaults to
+                datetime.datetime.now().
+            proforma_root (str): Either the absolute or relative path to the
+                folder where proformas (in xml format) are stored.
+        """
+        file = Path(file)
+        with open(file) as dcklines:
+            dck = cls(
+                name=file.basename(),
+                author=author,
+                date_created=date_created,
+                control_cards=None,
+            )
+            cc = ControlCards()
+            dck._control_card = cc
+            no_whitelines = list(filter(None, (line.rstrip() for line in dcklines)))
+            with tempfile.TemporaryFile("r+") as dcklines:
+                dcklines.writelines("\n".join(no_whitelines))
+                dcklines.seek(0)
+                line = dcklines.readline()
+                iteration = 0
+                maxiter = 26
+                while line:
+                    iteration += 1
+                    # at each line check for a match with a regex
+                    line = cls._parse_logic(cc, dck, dcklines, line, proforma_root)
+
+                    if iteration < maxiter:
+                        dcklines.seek(0)
+                        line = "\n"
+
+        # assert missing types
+        # todo: list types that could not be parsed
+        return dck
+
+    def __str__(self):
+        return self._to_string()
+
+    @property
+    def graph(self):
+        import networkx as nx
+
+        G = nx.MultiDiGraph()
+        for component in self.models:
+            G.add_node(component.unit_number, model=component, pos=component.centroid)
+            for output, typevar in component.inputs.items():
+                if typevar.is_connected:
+                    v = component
+                    u = typevar.connected_to.model
+                    G.add_edge(
+                        u.unit_number,
+                        v.unit_number,
+                        key=output,
+                        from_model=u,
+                        to_model=v,
+                    )
+        return G
+
+    def check_deck_integrity(self):
+        """Checks if Deck definition passes a few obvious rules"""
+
+        # Check if external file assignments are all unique.
+        from collections import Counter
+
+        ext_files = []
+        for model in self.models:
+            if isinstance(model, TrnsysModel):
+                if model.external_files:
+                    for _, file in model.external_files.items():
+                        if file:
+                            ext_files.append(file.value)
+        if sum(1 for i in Counter(ext_files).values() if i > 1):
+            lg.warn(
+                "Some ExternalFile paths have duplicated names. Please make sure all "
+                "ASSIGNED paths are unique unless this is desired."
+            )
+
+    def update_models(self, model):
+        """Update the Deck.models attribute with a :class:`TrnsysModel` or a
+        list of :class:`TrnsysModel`.
+
+        Args:
+            model (Component or list of Component):
+
+        Returns:
+            None.
+        """
+        if isinstance(model, Component):
+            model = [model]
+        for model in model:
+            # iterate over models and try to pop the existing one
+            if model.unit_number in [mod.unit_number for mod in self.models]:
+                for i, item in enumerate(self.models):
+                    if item.unit_number == model.unit_number:
+                        self.models.pop(i)
+                        break
+            # in any case, add new one
+            self.models.append(model)
+
+    def remove_models(self, model):
+        """
+        Args:
+            model:
+        """
+        if isinstance(model, Component):
+            model = [model]
+        for model in model:
+            # iterate over models and try to pop the existing one
+            if model.unit_number in [mod.unit_number for mod in self.models]:
+                for i, item in enumerate(self.models):
+                    if item.unit_number == model.unit_number:
+                        self.models.pop(i)
+                        break
+
+    def save(self, filename):
+        """Saves the Deck object to file
+
+        Examples:
+
+            >>> from pyTrnsysType import Deck
+            >>> deck = Deck()
+            >>> deck.save("my_project.dck")
+
+        Args:
+            filename (str): The name of the file (with the extension).
+        """
+        self.check_deck_integrity()
+
+        file = Path(filename)
+        dir = file.dirname()
+        if dir != "" and not dir.exists():
+            file.dirname().makedirs_p()
+        with open(file, "w+") as _file:
+            deck_str = str(self)
+            _file.write(deck_str)
+
+    def _to_string(self):
+        end = self.control_cards.__dict__.pop("end", End())
+        cc = self.control_cards._to_deck()
+
+        models = "\n\n".join([model._to_deck() for model in self.models])
+
+        model: Component
+        styles = "*!LINK_STYLE\n" + "".join(
+            map(
+                str,
+                list(
+                    itertools.chain.from_iterable(
+                        [model.studio.link_styles.values() for model in self.models]
+                    )
+                ),
+            )
+        )
+
+        end = end._to_deck()
+
+        return "\n\n".join([cc, models, end, styles])
+
+    @classmethod
+    def _parse_logic(cls, cc, dck, dcklines, line, proforma_root):
+        """
+        Args:
+            cc:
+            dck:
+            dcklines:
+            line:
+            proforma_root:
+        """
+        global model, ec, i
+        while line:
+            key, match = dck._parse_line(line)
+            if key == "end":
+                end_ = End()
+                cc.set_statement(end_)
+            if key == "version":
+                version = match.group("version")
+                v_ = Version.from_string(version.strip())
+                cc.set_statement(v_)
+            # identify a ConstantCollection
+            if key == "constants":
+                n_cnts = match.group(key)
+                cb = ConstantCollection()
+                for n in range(int(n_cnts)):
+                    line = next(iter(dcklines))
+                    cb.update(Constant.from_expression(line))
+                cc.set_statement(cb)
+            if key == "simulation":
+                sss = match.group(key).strip()
+                start, stop, step = tuple(
+                    map(lambda x: dck.return_equation_or_constant(x), sss.split(" "))
+                )
+                s_ = Simulation(*(start, stop, step))
+                cc.set_statement(s_)
+            if key == "tolerances":
+                sss = match.group(key)
+                t_ = Tolerances(*(map(float, map(str.strip, sss.split()))))
+                cc.set_statement(t_)
+            if key == "limits":
+                sss = match.group(key)
+                l_ = Limits(*(map(int, map(str.strip, sss.split()))))
+                cc.set_statement(l_)
+            if key == "dfq":
+                k = match.group(key)
+                cc.set_statement(DFQ(k.strip()))
+            if key == "width":
+                w = match.group(key)
+                cc.set_statement(Width(w.strip()))
+            if key == "list":
+                k = match.group(key)
+                cc.set_statement(List(*k.strip().split()))
+            if key == "solver":
+                k = match.group(key)
+                cc.set_statement(Solver(*k.strip().split()))
+            if key == "nancheck":
+                k = match.group(key)
+                cc.set_statement(NaNCheck(*k.strip().split()))
+            if key == "overwritecheck":
+                k = match.group(key)
+                cc.set_statement(OverwriteCheck(*k.strip().split()))
+            if key == "timereport":
+                k = match.group(key)
+                cc.set_statement(TimeReport(*k.strip().split()))
+            if key == "eqsolver":
+                k = match.group(key)
+                cc.set_statement(EqSolver(*k.strip().split()))
+            if key == "userconstants":
+                line = dcklines.readline()
+                key, match = dck._parse_line(line)
+            # identify an equation block (EquationCollection)
+            if key == "equations":
+                # extract number of line, number of equations
+                n_equations = match.group("equations")
+                # read each line of the table until a blank line
+                list_eq = []
+                for line in [next(iter(dcklines)) for x in range(int(n_equations))]:
+                    # extract number and value
+                    if line == "\n":
+                        continue
+                    head, sep, tail = line.strip().partition("!")
+                    value = head.strip()
+                    # create equation
+                    list_eq.append(Equation.from_expression(value))
+                ec = EquationCollection(list_eq, name=Name("block"))
+                dck.remove_models(ec)
+                ec._unit = ec.new_id
+                dck.update_models(ec)
+                # append the dictionary to the data list
+            if key == "userconstantend":
+                dck.update_models(ec)
+            # read studio markup
+            if key == "unitnumber":
+                dck.remove_models(ec)
+                unit_number = match.group(key)
+                ec._unit = int(unit_number)
+                dck.update_models(ec)
+            if key == "unitname":
+                unit_name = match.group(key)
+                ec.name = unit_name
+            if key == "layer":
+                layer = match.group(key)
+                ec.change_component_layer(layer)
+            if key == "position":
+                pos = match.group(key)
+                ec.set_canvas_position(map(float, pos.strip().split()), False)
+            # identify a unit (TrnsysModel)
+            if key == "unit":
+                # extract unit_number, type_number and name
+                u = match.group("unitnumber").strip()
+                t = match.group("typenumber").strip()
+                n = match.group("name").strip()
+
+                try:
+                    xml = Path("tests/input_files").glob("Type{}*.xml".format(t))
+                    model = TrnsysModel.from_xml(next(iter(xml)), name=n)
+                except:
+                    _meta = MetaData(type=t)
+                    model = TrnsysModel(_meta, name=n)
+                else:
+                    model._unit = int(u)
+                    dck.update_models(model)
+            if key == "parameters" or key == "inputs":
+                if model._meta.variables:
+                    n_vars = int(match.group(key).strip())
+                    i = -1
+                    while line:
+                        i += 1
+                        line = dcklines.readline()
+                        if not line.strip():
+                            line = "\n"
+                            i -= 1
+                        else:
+                            varkey, match = dck._parse_line(line)
+                            if varkey == "typevariable":
+                                tvar = match.group("typevariable").strip()
+                                try:
+                                    cls.set_typevariable(dck, i, model, tvar, key)
+                                except KeyError:
+                                    line = cls._parse_logic(
+                                        cc, dck, dcklines, line, proforma_root
+                                    )
+                            if i == n_vars - 1:
+                                line = None
+            # identify linkstyles
+            if key == "link":
+                # identify u,v unit numbers
+                u, v = match.group(key).strip().split(":")
+
+                line = dcklines.readline()
+                key, match = dck._parse_line(line)
+
+                # identify linkstyle attributes
+                if key == "linkstyle":
+                    try:
+                        _lns = match.groupdict()
+                        path = _lns["path"].strip().split(":")
+
+                        mapping = AnchorPoint(
+                            dck.models.iloc[int(u)]
+                        ).studio_anchor_reverse_mapping
+
+                        def find_closest(mappinglist, coordinate):
+                            def distance(a, b):
+                                a_ = Point(a)
+                                b_ = Point(b)
+                                return a_.distance(b_)
+
+                            return min(
+                                mappinglist, key=lambda x: distance(x, coordinate)
+                            )
+
+                        u_coords = (int(_lns["u1"]), int(_lns["u2"]))
+                        v_coords = (int(_lns["v1"]), int(_lns["v2"]))
+                        loc = (
+                            mapping[find_closest(mapping.keys(), u_coords)],
+                            mapping[find_closest(mapping.keys(), v_coords)],
+                        )
+                        color = get_rgb_from_int(int(_lns["color"]))
+                        linestyle = _studio_to_linestyle(int(_lns["linestyle"]))
+                        linewidth = int(_lns["linewidth"])
+
+                        path = LineString([list(map(int, p.split(","))) for p in path])
+
+                        dck.models.iloc[int(u)].set_link_style(
+                            dck.models.iloc[int(v)],
+                            loc,
+                            tuple(c / 256 for c in color),
+                            linestyle,
+                            linewidth,
+                            path,
+                        )
+                    except:
+                        pass
+            if key == "model":
+                _mod = match.group("model")
+                tmf = Path(_mod.replace("\\", "/"))
+                tmf_basename = tmf.basename()
+                try:
+                    meta = MetaData.from_xml(tmf)
+                except:
+                    # replace extension with ".xml" and retry
+                    xml_basename = tmf_basename.stripext() + ".xml"
+                    proforma_root = Path(proforma_root)
+                    if proforma_root is None:
+                        proforma_root = Path.getcwd()
+                    xmls = proforma_root.glob("*.xml")
+                    xml = next((x for x in xmls if x.basename() == xml_basename), None)
+                    if not xml:
+                        msg = (
+                            "The proforma {} could not be found "
+                            "at"
+                            ' "{}"'.format(xml_basename, proforma_root)
+                        )
+                        lg.warning(msg)
+                        continue
+                    meta = MetaData.from_xml(xml)
+                model.update_meta(meta)
+
+            line = dcklines.readline()
+        return line
+
+    def return_equation_or_constant(self, name):
+        """
+        Args:
+            name:
+        """
+        for n in self.models:
+            if name in n.outputs:
+                return n[name]
+        return Constant(name)
+
+    @staticmethod
+    def set_typevariable(dck, i, model, tvar, key):
+        """Set the value to the :class:`TypeVariable`.
+
+        Args:
+            dck (Deck): the Deck object.
+            i (int): the idx of the TypeVariable.
+            model (Component): the component to modify.
+            tvar (str or float): the new value to set.
+            key (str): the specific type of TypeVariable, eg.: 'inputs',
+                'parameters', 'outputs'.
+        """
+        try:
+            tvar = float(tvar)
+        except:
+            # deal with a string, either a Constant or a "[u, n]"
+            if "0,0" in tvar:
+                # this is an unconnected typevariable, pass.
+                pass
+            elif "," in tvar:
+                unit_number, output_number = map(int, tvar.split(","))
+                other = dck.models.iloc[unit_number]
+                other.connect_to(model, mapping={output_number - 1: i})
+            else:
+                if any((tvar in n.outputs) for n in dck.models):
+                    # one Equation or Constant has this tvar
+                    other = next((n for n in dck.models if (tvar in n.outputs)), None)
+                    getattr(model, key)[i] = other[tvar]
+                    getattr(model, key)[i]._connected_to = other[tvar]
+        else:
+            # simply set the new value
+            getattr(model, key)[i] = tvar
+
+    def _parse_line(self, line):
+        """Do a regex search against all defined regexes and return the key and
+        match result of the first matching regex
+
+        Args:
+            line (str): the line string to parse.
+
+        Returns:
+            2-tuple: the key and the match.
+        """
+
+        for key, rx in self._setup_re().items():
+            match = rx.search(line)
+            if match:
+                return key, match
+        # if there are no matches
+        return None, None
+
+    def _setup_re(self):
+        """set up regular expressions. use https://regexper.com to visualise
+        these if required
+        """
+
+        rx_dict = {
+            "version": re.compile(
+                r"(?i)(?P<key>^version)(?P<version>.*?)(?=(?:!|\\n|$))"
+            ),
+            "constants": re.compile(
+                r"(?i)(?P<key>^constants)(?P<constants>.*?)(?=(?:!|\\n|$))"
+            ),
+            "simulation": re.compile(
+                r"(?i)(?P<key>^simulation)(" r"?P<simulation>.*?)(?=(?:!|$))"
+            ),
+            "tolerances": re.compile(
+                r"(?i)(?P<key>^tolerances)(" r"?P<tolerances>.*?)(?=(" r"?:!|$))"
+            ),
+            "limits": re.compile(r"(?i)(?P<key>^limits)(?P<limits>.*?)(?=(" r"?:!|$))"),
+            "dfq": re.compile(r"(?i)(?P<key>^dfq)(?P<dfq>.*?)(?=(?:!|$))"),
+            "width": re.compile(r"(?i)(?P<key>^width)(?P<width>.*?)(?=(" r"?:!|$))"),
+            "list": re.compile(r"(?i)(?P<key>^list)(?P<list>.*?)(?=(" r"?:!|$))"),
+            "solver": re.compile(r"(?i)(?P<key>^solver)(?P<solver>.*?)(?=(" r"?:!|$))"),
+            "nancheck": re.compile(
+                r"(?i)(?P<key>^nan_check)(?P<nancheck>.*?)(?=(" r"?:!|$))"
+            ),
+            "overwritecheck": re.compile(
+                r"(?i)(?P<key>^overwrite_check)(?P<overwritecheck>.*?)(?=(" r"?:!|$))"
+            ),
+            "timereport": re.compile(
+                r"(?i)(?P<key>^time_report)(?P<timereport>.*?)(?=(" r"?:!|$))"
+            ),
+            "eqsolver": re.compile(
+                r"(?i)(?P<key>^eqsolver)(?P<eqsolver>.*?)(?=(" r"?:!|$))"
+            ),
+            "equations": re.compile(
+                r"(?i)(?P<key>^equations)(?P<equations>.*?)(?=(?:!|$))"
+            ),
+            "userconstantend": re.compile(
+                r"(?i)(?P<key>^\*\$user_constants_end)(?P<userconstantend>.*?)("
+                r"?=(?:!|$))"
+            ),
+            "unitnumber": re.compile(
+                r"(?i)(?P<key>^\*\$unit_number)(" r"?P<unitnumber>.*?)(?=(?:!|$))"
+            ),
+            "unitname": re.compile(
+                r"(?i)(?P<key>^\*\$unit_name)(?P<unitname>.*?)(?=(?:!|$))"
+            ),
+            "layer": re.compile(r"(?i)(?P<key>^\*\$layer)(?P<layer>.*?)(?=(?:!|$))"),
+            "position": re.compile(
+                r"(?i)(?P<key>^\*\$position)(?P<position>.*?)(?=(?:!|$))"
+            ),
+            "unit": re.compile(
+                r"(?i)unit (?P<unitnumber>.*?)type (?P<typenumber>\d*?\s)(?P<name>.*$)"
+            ),
+            "model": re.compile(
+                r"(?i)(?P<key>^\*\$model)(?P<model>.*?)(?=(" r"?:!|$))"
+            ),
+            "link": re.compile(r"(?i)(^\*!link\s)(?P<link>.*?)(?=(?:!|$))"),
+            "linkstyle": re.compile(
+                r"(?i)(?:^\*!connection_set )(?P<u1>.*?):(?P<u2>.*?):("
+                r"?P<v1>.*?):(?P<v2>.*?):(?P<order>.*?):(?P<color>.*?):("
+                r"?P<linestyle>.*?):(?P<linewidth>.*?):(?P<ignored>.*?):("
+                r"?P<path>.*?$)"
+            ),
+            "userconstants": re.compile(
+                r"(?i)(?P<key>^\*\$user_constants)(" r"?=(?:!|$))"
+            ),
+            "parameters": re.compile(
+                r"(?i)(?P<key>^parameters )(?P<parameters>.*?)(?=(?:!|$))"
+            ),
+            "inputs": re.compile(r"(?i)(?P<key>^inputs)(?P<inputs>.*?)(?=(?:!|$))"),
+            "typevariable": re.compile(r"^(?![*$!\s])(?P<typevariable>.*?)(?=(?:!|$))"),
+            "end": re.compile(r"END"),
+        }
+        return rx_dict
+
+
+class ControlCards(object):
+    """The :class:`ControlCards` is a container for all the TRNSYS Simulation
+    Control Statements and Listing Control Statements. It implements the
+    :func:`_to_deck` method which pretty-prints the statements with their
+    docstrings.
+    """
+
+    def __init__(
+            self,
+            version=None,
+            simulation=None,
+            tolerances=None,
+            limits=None,
+            nancheck=None,
+            overwritecheck=None,
+            timereport=None,
+            dfq=None,
+            width=None,
+            nocheck=None,
+            eqsolver=None,
+            solver=None,
+            nolist=None,
+            list=None,
+            map=None,
+    ):
+        """Each simulation must have SIMULATION and END statements. The other
+        simulation control statements are optional. Default values are assumed
+        for TOLERANCES, LIMITS, SOLVER, EQSOLVER and DFQ if they are not present
+
+        Args:
+            version (Version): The VERSION Statement. labels the deck with the
+                TRNSYS version number. See :class:`Version` for more details.
+            simulation (Simulation): The SIMULATION Statement.determines the
+                starting and stopping times of the simulation as well as the
+                time step to be used. See :class:`Simulation` for more details.
+            tolerances (Tolerances, optional): Convergence Tolerances (
+                TOLERANCES). Specifies the error tolerances to be used during a
+                TRNSYS simulation. See :class:`Tolerances` for more details.
+            limits (Limits, optional): The LIMITS Statement. Sets limits on the
+                number of iterations that will be performed by TRNSYS during a
+                time step before it is determined that the differential
+                equations and/or algebraic equations are not converging. See
+                :class:`Limits` for more details.
+            nancheck (NaNCheck, optional): The NAN_CHECK Statement. An optional
+                debugging feature in TRNSYS. If the NAN_CHECK statement is
+                present, then the TRNSYS kernel checks every output of each
+                component at each iteration and generates a clean error if ever
+                one of those outputs has been set to the FORTRAN NaN condition.
+                See :class:`NaNCheck` for more details.
+            overwritecheck (OverwriteCheck, optional): The OVERWRITE_CHECK
+                Statement. An optional debugging feature in TRNSYS. Checks to
+                make sure that each Type did not write outside its allotted
+                space. See :class:`OverwriteCheck` for more details.
+            timereport (TimeReport, optional): The TIME_REPORT Statement. Turns
+                on or off the internal calculation of the time spent on each
+                unit. See :class:`TimeReport` for more details.
+            dfq (DFQ, optional): Allows the user to select one of three
+                algorithms built into TRNSYS to numerically solve differential
+                equations. See :class:`DFQ` for more details.
+            width (Width, optional): Set the number of characters to be allowed
+                on a line of TRNSYS output. See :class:`Width` for more details.
+            nocheck (NoCheck, optional): The Convergence Check Suppression
+                Statement. Remove up to 20 inputs for the convergence check. See
+                :class:`NoCheck` for more details.
+            eqsolver (EqSolver, optional): The Equation Solving Method
+                Statement. The order in which blocks of EQUATIONS are solved is
+                controlled by the EQSOLVER statement. See :class:`EqSolver` for
+                more details.
+            solver (Solver, optional): The SOLVER Statement. Select the
+                computational scheme. See :class:`Solver` for more details.
+            nolist (NoList, optional): The NOLIST Statement. See :class:`NoList`
+                for more details.
+            list (List, optional): The LIST Statement. See :class:`List` for
+                more details.
+            map (Map, optional): The MAP Statement. See :class:`Map` for more
+                details.
+
+        Note:
+            Some Statements have not been implemented because only TRNSYS gods 😇
+            use them. Here is a list of Statements that have been ignored:
+
+            - The Convergence Promotion Statement (ACCELERATE)
+            - The Calling Order Specification Statement (LOOP)
+        """
+        super().__init__()
+        self.version = version
+        self.simulation = simulation
+
+        self.tolerances = tolerances
+        self.limits = limits
+        self.nancheck = nancheck
+        self.overwritecheck = overwritecheck
+        self.timereport = timereport
+
+        self.dfq = dfq
+        self.nocheck = nocheck
+        self.eqsolver = eqsolver
+        self.solver = solver
+
+        # Listing Control Statements
+        self.nolist = nolist
+        self.list = list
+        self.map = map
+
+        self.end = End()
+
+    def __repr__(self):
+        return self._to_deck()
+
+    @classmethod
+    def all(cls):
+        """Returns a SimulationCard with all available Statements initialized
+        or with their default values. This class method is not recommended since
+        many of the Statements are a time consuming process and should be used
+        as a debugging tool.
+        """
+        return cls(
+            Version(),
+            Simulation(),
+            Tolerances(),
+            Limits(),
+            NaNCheck(n=1),
+            OverwriteCheck(n=1),
+            TimeReport(n=1),
+            DFQ(),
+            Width(),
+            NoCheck(),
+            EqSolver(),
+            Solver(),
+            NoList(),
+            List(activate=True),
+            Map(activate=True),
+        )
+
+    @classmethod
+    def debug_template(cls):
+        """Returns a SimulationCard with useful debugging Statements."""
+        return cls(
+            version=Version(),
+            simulation=Simulation(),
+            map=Map(activate=True),
+            nancheck=NaNCheck(n=1),
+            overwritecheck=OverwriteCheck(n=1),
+        )
+
+    @classmethod
+    def basic_template(cls):
+        """Returns a SimulationCard with only the required Statements"""
+        return cls(version=Version(), simulation=Simulation())
+
+    def _to_deck(self):
+        """Creates a string representation. If the :attr:`doc` is specified, a
+        small description is printed in comments
+        """
+        head = "*** Control Cards\n"
+        v_ = []
+        for param in self.__dict__.values():
+            if isinstance(param, Component):
+                v_.append((str(param), None))
+            if hasattr(param, "doc"):
+                v_.append((str(param), "! {}".format(param.doc)))
+            else:
+                pass
+        statements = tabulate.tabulate(tuple(v_), tablefmt="plain", numalign="left")
+        return str(head) + str(statements)
+
+    def set_statement(self, statement):
+        """
+        Args:
+            statement:
+        """
+        self.__setattr__(statement.__class__.__name__.lower(), statement)
+
+
+class Name(object):
+    """Handles the attribution of user defined names for :class:`TrnsysModel`,
+    :class:`EquationCollection` and more.
+    """
+
+    existing = []  # a list to store the created names
+
+    def __init__(self, name=None):
+        """Pick a name. Will increment the name if already used
+
+        Args:
+            name:
+        """
+        self.name = self.create_unique(name)
+
+    def create_unique(self, name):
+        """Check if name has already been used. If so, try to increment until
+        not used
+
+        Args:
+            name:
+        """
+        if not name:
+            return None
+        i = 0
+        key = name
+        while key in self.existing:
+            i += 1
+            key = key.split("_")
+            key = key[0] + "_{}".format(i)
+        the_name = key
+        self.existing.append(the_name)
+        return the_name
+
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        return str(self.name)
+
+
+class Statement(object):
+    """This is the base class for many of the TRNSYS Simulation Control and
+    Listing Control Statements. It implements common methods such as the repr()
+    method.
+    """
+
+    def __init__(self):
+        self.doc = ""
+
+    def __repr__(self):
+        return self._to_deck()
+
+    def _to_deck(self):
+        return ""
+
+
+class Version(Statement):
+    """Added with TRNSYS version 15. The idea of the command is that by labeling
+    decks with the TRNSYS version number that they were created under, it is
+    easy to keep TRNSYS backwards compatible. The version number is saved by the
+    TRNSYS kernel and can be acted upon.
+    """
+
+    def __init__(self, v=(18, 0)):
+        """Initialize the Version statement
+
+        Args:
+            v (tuple): A tuple of (major, minor) eg. 18.0 :> (18, 0)
+        """
+        super().__init__()
+        self.v = v
+        self.doc = "The VERSION Statement"
+
+    @classmethod
+    def from_string(cls, string):
+        """
+        Args:
+            string:
+        """
+        return cls(tuple(map(int, string.split("."))))
+
+    def _to_deck(self):
+        return "VERSION {}".format(".".join(map(str, self.v)))
+
+
+class Simulation(Statement):
+    """The SIMULATION statement is required for all simulations, and must be
+    placed in the TRNSYS input file prior to the first UNIT-TYPE statement. The
+    simulation statement determines the starting and stopping times of the
+    simulation as well as the time step to be used.
+    """
+
+    def __init__(self, start=0, stop=8760, step=1):
+        """Initialize the Simulation statement
+
+        Attention:
+            With TRNSYS 16 and beyond, the starting time is now specified as the
+            time at the beginning of the first time step.
+
+        Args:
+            start (int): The hour of the year at which the simulation is to
+                begin.
+            stop (int): The hour of the year at which the simulation is to end.
+            step (float): The time step to be used (hours).
+        """
+        super().__init__()
+        self.start = start
+        self.stop = stop
+        self.step = step
+        self.doc = "Start time\tEnd time\tTime step"
+
+    def _to_deck(self):
+        """SIMULATION to tf Δt"""
+        return "SIMULATION {} {} {}".format(self.start, self.stop, self.step)
+
+
+class Tolerances(Statement):
+    """The TOLERANCES statement is an optional control statement used to specify
+    the error tolerances to be used during a TRNSYS simulation.
+    """
+
+    def __init__(self, epsilon_d=0.01, epsilon_a=0.01):
+        """
+        Args:
+            epsilon_d: is a relative (and -epsilon_d is an absolute) error
+                tolerance controlling the integration error.
+            epsilon_a: is a relative (and -epsilon_a is an absolute) error
+                tolerance controlling the convergence of input and output
+                variables.
+        """
+        super().__init__()
+        self.epsilon_d = epsilon_d
+        self.epsilon_a = epsilon_a
+        self.doc = "Integration\tConvergence"
+
+    def _to_deck(self):
+        """TOLERANCES 0.001 0.001"""
+        head = "TOLERANCES {} {}".format(self.epsilon_d, self.epsilon_a)
+        return str(head)
+
+
+class Limits(Statement):
+    """The LIMITS statement is an optional control statement used to set limits
+    on the number of iterations that will be performed by TRNSYS during a time
+    step before it is determined that the differential equations and/or
+    algebraic equations are not converging.
+    """
+
+    def __init__(self, m=25, n=10, p=None):
+        """
+        Args:
+            m (int): is the maximum number of iterations which can be performed
+                during a time-step before a WARNING message is printed out.
+            n (int): is the maximum number of WARNING messages which may be
+                printed before the simulation terminates in ERROR.
+            p (int, optional): is an optional limit. If any component is called
+                p times in one time step, then the component will be traced (See
+                Section 2.3.5) for all subsequent calls in the timestep. When p
+                is not specified by the user, TRNSYS sets p equal to m.
+        """
+        super().__init__()
+        self.m = m
+        self.n = n
+        self.p = p if p is not None else self.m
+        self.doc = "Max iterations\tMax warnings\tTrace limit"
+
+    def _to_deck(self):
+        """TOLERANCES 0.001 0.001"""
+        head = "LIMITS {} {} {}".format(self.m, self.n, self.p)
+        return str(head)
+
+
+class NaNCheck(Statement):
+    """One problem that has plagued TRNSYS simulation debuggers is that in
+    Fortran, the “Not a Number” (NaN) condition can be passed along through
+    numerous subroutines without being flagged as an error. For example, a
+    division by zero results in a variable being set to NaN. This NaN can then
+    be used in subsequent equation, causing them to be set to NaN as well. The
+    problem persists for a time until a Range Check or an Integer Overflow error
+    occurs and actually stops simulation progress. To alleviate the problem, the
+    NAN_CHECK Statement was added as an optional debugging feature in TRNSYS
+    input files.
+    """
+
+    def __init__(self, n=0):
+        """Initialize a NaNCheck object.
+
+        Hint:
+            If the NAN_CHECK statement is present (n=1), then the TRNSYS kernel
+            checks every output of each component at each iteration and
+            generates a clean error if ever one of those outputs has been set to
+            the FORTRAN NaN condition. Because this checking is very time
+            consuming, users are not advised to leave NAN_CHECK set in their
+            input files as it causes simulations to run much more slowly.
+
+        Args:
+            n (int): Is 0 if the NAN_CHECK feature is not desired or 1 if
+                NAN_CHECK feature is desired. Default is 0.
+        """
+        super().__init__()
+        self.n = int(n)
+        self.doc = "The NAN_CHECK Statement"
+
+    def _to_deck(self):
+        return "NAN_CHECK {}".format(self.n)
+
+
+class OverwriteCheck(Statement):
+    """A common error in non standard and user written TRNSYS Type routines is
+    to reserve too little space in the global output array. By default, each
+    Type is accorded 20 spots in the global TRNSYS output array. However, there
+    is no way to prevent the Type from then writing in (for example) the 21st
+    spot; the entire global output array is always accessible. By activating the
+    OVERWRITE_CHECK statement, the TRNSYS kernel checks to make sure that each
+    Type did not write outside its allotted space. As with the NAN_CHECK
+    statement, OVERWRITE_CHECK is a time consuming process and should only be
+    used as a debugging tool when a simulation is ending in error.
+    """
+
+    def __init__(self, n=0):
+        """Initialize an OVERWRITE_CHECK object.
+
+        Hint:
+            OVERWRITE_CHECK is a time consuming process and should only be used
+            as a debugging tool when a simulation is ending in error.
+
+        Args:
+            n (int): Is 0 if the OVERWRITE_CHECK feature is not desired or 1 if
+                OVERWRITE_CHECK feature is desired.
+        """
+        super().__init__()
+        self.n = int(n)
+        self.doc = "The OVERWRITE_CHECK Statement"
+
+    def _to_deck(self):
+        return "OVERWRITE_CHECK {}".format(self.n)
+
+
+class TimeReport(Statement):
+    """The statement TIME_REPORT turns on or off the internal calculation of the
+    time spent on each unit. If this feature is desired, the listing file will
+    contain this information at the end of the file.
+    """
+
+    def __init__(self, n=0):
+        """Initialize a TIME_REPORT object.
+
+        Args:
+            n (int): Is 0 if the TIME_REPORT feature is not desired or 1 if
+                TIME_REPORT feature is desired.
+        """
+        super().__init__()
+        self.n = n
+        self.doc = "The TIME_REPORT Statement"
+
+    def _to_deck(self):
+        return "TIME_REPORT {n}".format(n=self.n)
+
+
+class List(Statement):
+    """The LIST statement is used to turn on the TRNSYS processor listing after
+    it has been turned off by a NOLIST statement.
+    """
+
+    def __init__(self, activate=False):
+        """Hint:
+            The listing is assumed to be on at the beginning of a TRNSYS input
+            file. As many LIST cards as desired may appear in a TRNSYS input
+            file and may be located anywhere in the input file.
+
+        Args:
+            activate (bool):
+        """
+        super().__init__()
+        self.activate = activate
+        self.doc = "The LIST Statement"
+
+
+class DFQ(Statement):
+    """The optional DFQ card allows the user to select one of three algorithms
+    built into TRNSYS to numerically solve differential equations (see Manual
+    08-Programmer’s Guide for additional information about solution of
+    differential equations).
+    """
+
+    def __init__(self, k=1):
+        """Initialize the Differential Equation Solving Method Statement
+
+        Args:
+            k (int, optional): an integer between 1 and 3. If a DFQ card is not
+                present in the TRNSYS input file, DFQ 1 is assumed.
+
+        Note:
+            The three numerical integration algorithms are:
+
+            1. Modified-Euler method (a 2nd order Runge-Kutta method)
+            2. Non-self-starting Heun's method (a 2nd order Predictor-Corrector
+               method)
+            3. Fourth-order Adams method (a 4th order Predictor-Corrector
+               method)
+        """
+        super().__init__()
+        self.k = k
+        self.doc = "TRNSYS numerical integration solver method"
+
+    def _to_deck(self):
+        return str("DFQ {}".format(self.k))
+
+
+class Width(Statement):
+    """The WIDTH statement is an optional control statement is used to set the
+    number of characters to be allowed on a line of TRNSYS output.
+
+    Note:
+        This statement is obsolete.
+    """
+
+    def __init__(self, n=120):
+        """Initialize the Width Statement.
+
+        Args:
+            n (int, optional): n is the number of characters per printed line; n
+                must be between 72 and 132.
+        """
+        super().__init__()
+        self.k = self._check_range(int(n))
+        self.doc = "The number of printed characters per line"
+
+    def _to_deck(self):
+        return str("WIDTH {}".format(self.k))
+
+    @staticmethod
+    def _check_range(n):
+        """
+        Args:
+            n:
+        """
+        if n >= 72 and n <= 132:
+            return n
+        else:
+            raise ValueError("The Width Statement mus be between 72 and 132.")
+
+
+class NoCheck(Statement):
+    """TRNSYS allows up to 20 different INPUTS to be removed from the list of
+    INPUTS to be checked for convergence (see Section 1.9).
+    """
+
+    def __init__(self, inputs=None):
+        """
+        Args:
+            inputs (list of Input):
+        """
+        super().__init__()
+        if not inputs:
+            inputs = []
+        if len(inputs) > 20:
+            raise ValueError(
+                "TRNSYS allows only up to 20 different INPUTS to " "be removed"
+            )
+        self.inputs = inputs
+        self.doc = "CHECK Statement"
+
+    def _to_deck(self):
+        head = "NOCHECK {}\n".format(len(self.inputs))
+        core = "\t".join(
+            [
+                "{}, {}".format(input.model.unit_number, input.one_based_idx)
+                for input in self.inputs
+            ]
+        )
+        return str(head) + str(core)
+
+
+class NoList(Statement):
+    """The NOLIST statement is used to turn off the listing of the TRNSYS input
+    file.
+    """
+
+    def __init__(self, active=True):
+        """
+        Args:
+            active (bool): Setting activate to True will add the NOLIST statement
+        """
+        super().__init__()
+        self.active = active
+        self.doc = "NOLIST statement"
+
+    def _to_deck(self):
+        return "NOLIST" if self.active else ""
+
+
+class Map(Statement):
+    """The MAP statement is an optional control statement that is used to obtain
+    a component output map listing which is particularly useful in debugging
+    component interconnections.
+    """
+
+    def __init__(self, activate=True):
+        """Setting active to True will add the MAP statement
+
+        Args:
+            activate (bool): Setting active to True will add the MAP statement
+        """
+        super().__init__()
+        self.active = activate
+        self.doc = "MAP statement"
+
+    def _to_deck(self):
+        return "MAP" if self.active else ""
+
+
+class EqSolver(Statement):
+    """With the release of TRNSYS 16, new methods for solving blocks of
+    EQUATIONS statements were added. For additional information on EQUATIONS
+    statements, please refer to section 6.3.9. The order in which blocks of
+    EQUATIONS are solved is controlled by the EQSOLVER statement.
+    """
+
+    def __init__(self, n=0):
+        """Hint:
+            :attr:`n` can have any of the following values:
+
+            1. n=0 (default if no value is provided) if a component output or
+               TIME changes, update the block of equations that depend upon
+               those values. Then update components that depend upon the first
+               block of equations. Continue looping until all equations have
+               been updated appropriately. This equation blocking method is most
+               like the method used in TRNSYS version 15 and before.
+            2. n=1 if a component output or TIME changes by more than the value
+               set in the TOLERANCES Statement (see Section 6.3.3), update the
+               block of equations that depend upon those values. Then update
+               components that depend upon the first block of equations.
+               Continue looping until all equations have been updated
+               appropriately.
+            3. n=2 treat equations as a component and update them only after
+               updating all components.
+
+        Args:
+            n (int): The order in which the equations are solved.
+        """
+        super().__init__()
+        self.n = n
+        self.doc = "EQUATION SOLVER statement"
+
+    def _to_deck(self):
+        return "EQSOLVER {}".format(self.n)
+
+
+class End(Statement):
+    """The END statement must be the last line of a TRNSYS input file. It
+    signals the TRNSYS processor that no more control statements follow and that
+    the simulation may begin.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.doc = "The END Statement"
+
+    def _to_deck(self):
+        return "END"
+
+
+class Solver(Statement):
+    """A SOLVER command has been added to TRNSYS to select the computational
+    scheme. The optional SOLVER card allows the user to select one of two
+    algorithms built into TRNSYS to numerically solve the system of algebraic
+    and differential equations.
+    """
+
+    def __init__(self, k=0, rf_min=1, rf_max=1):
+        """
+        Args:
+            k (int): the solution algorithm.
+            rf_min (float): the minimum relaxation factor.
+            rf_max (float): the maximum relaxation factor.
+
+        Note:
+            k is either the integer 0 or 1. If a SOLVER card is not present in
+            the TRNSYS input file, SOLVER 0 is assumed. If k = 0, the SOLVER
+            statement takes two additional parameters, RFmin and RFmax:
+
+            The two solution algorithms (k) are:
+                * 0: Successive Substitution
+                * 1: Powell’s Method
+        """
+        super().__init__()
+        self.rf_max = rf_max
+        self.rf_min = rf_min
+        self.k = k
+        self.doc = (
+            "Solver statement\tMinimum relaxation factor\tMaximum " "relaxation factor"
+        )
+
+    def _to_deck(self):
+        return (
+            "SOLVER {} {} {}".format(self.k, self.rf_min, self.rf_max)
+            if self.k == 0
+            else "SOLVER {}".format(self.k)
+        )
+
+
+class Constant(Statement):
+    """The CONSTANTS statement is useful when simulating a number of systems
+    with identical component configurations but with different parameter values,
+    initial input values, or initial values of time dependent variables.
+    """
+
+    _new_id = itertools.count(start=1)
+    instances = {}
+
+    def __init__(self, name=None, equals_to=None, doc=None):
+        """
+        Args:
+            name (str): The left hand side of the equation.
+            equals_to (str, TypeVariable): The right hand side of the equation.
+            doc (str, optional): A small description optionally printed in the
+                deck file.
+        """
+        super().__init__()
+        try:
+            c_ = Constant.instances[name]
+        except:
+            self._n = next(self._new_id)
+            self.name = name
+            self.equals_to = equals_to
+            self.doc = doc
+        else:
+            self._n = c_._n
+            self.name = c_.name
+            self.equals_to = c_.equals_to
+            self.doc = c_.doc
+        finally:
+            Constant.instances.update({self.name: self})
+
+    @classmethod
+    def from_expression(cls, expression, doc=None):
+        """Create a Constant from a string expression. Anything before the equal
+        sign ("=") will become the Constant's name and anything after will
+        become the equality statement.
+
+        Hint:
+            The simple expressions are processed much as FORTRAN arithmetic
+            statements are, with one significant exceptions. Expressions are
+            evaluated from left to right with no precedence accorded to any
+            operation over another. This rule must constantly be borne in mind
+            when writing long expressions.
+
+        Args:
+            expression (str): A user-defined expression to parse.
+            doc (str, optional): A small description optionally printed in the
+                deck file.
+        """
+        if "=" not in expression:
+            raise ValueError(
+                "The from_expression constructor must contain an expression "
+                "with the equal sign"
+            )
+        a, b = expression.split("=")
+        return cls(a.strip(), b.strip(), doc=doc)
+
+    @property
+    def constant_number(self):
+        """The equation number. Unique"""
+        return self._n
+
+    def _to_deck(self):
+        return self.equals_to
+
+
+class ConstantCollection(collections.UserDict, Component):
+    """A class that behaves like a dict and that collects one or more
+    :class:`Constants`.
+
+    You can pass a dict of Equation or you can pass a list of Equation. In
+    the latter, the :attr:`Equation.name` attribute will be used as a key.
+    """
+
+    def __init__(self, mutable=None, name=None):
+        """Initialize a new ConstantCollection.
+
+        Example:
+            >>> c_1 = Constant.from_expression("A = 1")
+            >>> c_2 = Constant.from_expression("B = 2")
+            >>> ConstantCollection([c_1, c_2])
+
+        Args:
+            mutable (Iterable, optional): An iterable.
+            name (str): A user defined name for this collection of constants.
+                This name will be used to identify this block of constants in
+                the .dck file;
+        """
+        if isinstance(mutable, list):
+            _dict = {f.name: f for f in mutable}
+        else:
+            _dict = mutable
+        super().__init__(_dict)
+        self.name = Name(name)
+        self.studio = StudioHeader.from_component(self)
+        self._unit = next(TrnsysModel.new_id)
+
+    def __getitem__(self, key):
+        """
+        Args:
+            key:
+        """
+        value = super().__getitem__(key)
+        return value
+
+    def __repr__(self):
+        return self._to_deck()
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
+
+    def update(self, E=None, **F):
+        """D.update([E, ]**F). Update D from a dict/list/iterable E and F.
+        If E is present and has a .keys() method, then does:  for k in E: D[
+        k] = E[k]
+        If E is present and lacks a .keys() method, then does:  for cts.name,
+        cts in E: D[cts.name] = cts
+        In either case, this is followed by: for k in F:  D[k] = F[k]
+
+        Args:
+            E (list, dict or Constant): The constant to add or update in D (
+                self).
+            F (list, dict or Constant): Other constants to update are passed.
+        """
+        if isinstance(E, Constant):
+            E.model = self
+            _e = {E.name: E}
+        elif isinstance(E, list):
+            _e = {cts.name: cts for cts in E}
+        else:
+            for v in E.values():
+                if not isinstance(v, Constant):
+                    raise TypeError(
+                        "Can only update an ConstantCollection with a"
+                        "Constant, not a {}".format(type(v))
+                    )
+            _e = {v.name: v for v in E.values()}
+        k: Constant
+        for k in F:
+            if isinstance(F[k], dict):
+                _f = {v.name: v for k, v in F.items()}
+            elif isinstance(F[k], list):
+                _f = {cts.name: cts for cts in F[k]}
+            else:
+                raise TypeError(
+                    "Can only update an ConstantCollection with a"
+                    "Constant, not a {}".format(type(F[k]))
+                )
+            _e.update(_f)
+        super(ConstantCollection, self).update(_e)
+
+    @property
+    def size(self):
+        return len(self)
+
+    @property
+    def unit_number(self):
+        return self._unit
+
+    def _to_deck(self):
+        """To deck representation
+
+        Examples::
+
+            CONSTANTS n
+            NAME1 = ... constant 1 ...
+            NAME2 = ... constant 2 ...
+            •
+            •
+            •
+            NAMEn = ... constant n ...
+        """
+        header_comment = '* CONSTANTS "{}"\n\n'.format(self.name)
+        head = "CONSTANTS {}\n".format(len(self))
+        v_ = ((equa.name, "=", str(equa)) for equa in self.values())
+        core = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
+        return str(header_comment) + str(head) + str(core)
+
+    def _get_inputs(self):
+        """inputs getter. Sorts by order number each time it is called
+        """
+        return self
+
+    def _get_outputs(self):
+        """outputs getter. Since self is already a  dict, return self.
+        """
+        return self
+
+
+class Equation(Statement):
+    """The EQUATIONS statement allows variables to be defined as algebraic
+    functions of constants, previously defined variables, and outputs from
+    TRNSYS components. These variables can then be used in place of numbers in
+    the TRNSYS input file to represent inputs to components; numerical values of
+    parameters; and initial values of inputs and time-dependent variables. The
+    capabilities of the EQUATIONS statement overlap but greatly exceed those of
+    the CONSTANTS statement described in the previous section.
+
+    Hint:
+        In pyTrnsysType, the Equation class works hand in hand with the
+        :class:`EquationCollection` class. This class behaves a little bit like
+        the equation component in the TRNSYS Studio, meaning that you can list
+        equation in a block, give it a name, etc. See the
+        :class:`EquationCollection` class for more details.
+    """
+
+    _new_id = itertools.count(start=1)
+
+    def __init__(self, name=None, equals_to=None, doc=None, model=None):
+        """
+        Args:
+            name (str): The left hand side of the equation.
+            equals_to (str, TypeVariable): The right hand side of the equation.
+            doc (str, optional): A small description optionally printed in the
+                deck file.
+        """
+        super().__init__()
+        self._n = next(self._new_id)
+        self.name = name
+        self.equals_to = equals_to
+        self.doc = doc
+        self.model = model  # the TrnsysModel this Equation belongs to.
+
+        self._connected_to = None
+
+    def __repr__(self):
+        return " = ".join([self.name, self._to_deck()])
+
+    def __str__(self):
+        return self.__repr__()
+
+    @classmethod
+    def from_expression(cls, expression, doc=None):
+        """Create an equation from a string expression. Anything before the
+        equal sign ("=") will become a Constant and anything after will become
+        the equality statement.
+
+        Example:
+            Create a simple expression like so:
+
+            >>> equa1 = Equation.from_expression("TdbAmb = [011,001]")
+
+        Args:
+            expression (str): A user-defined expression to parse.
+            doc (str, optional): A small description optionally printed in the
+                deck file.
+        """
+        if "=" not in expression:
+            raise ValueError(
+                "The from_expression constructor must contain an expression "
+                "with the equal sign"
+            )
+        a, b = expression.split("=")
+        return cls(a.strip(), b.strip(), doc=doc)
+
+    @classmethod
+    def from_symbolic_expression(cls, name, exp, *args, doc=None):
+        """Crate an equation with a combination of a generic expression (with
+        placeholder variables) and a list of arguments. The underlying engine
+        will use Sympy and symbolic variables. You can use a mixture of
+        :class:`TypeVariable` and :class:`Equation`, :class:`Constant` as
+        well as the python default :class:`str`.
+
+        .. Important::
+
+            If a `str` is passed in place of an expression argument (
+            :attr:`args`), make sure to declare that string as an Equation or
+            a Constant later in the routine.
+
+        Examples:
+            In this example, we define a variable (var_a) and we want it to be
+            equal to the 'Outlet Air Humidity Ratio' divided by 12 + log(
+            Temperature to heat source). In a TRNSYS deck file one would have to
+            manually determine the unit numbers and output numbers and write
+            something like : '[1, 2]/12 + log([1, 1])'. With the
+            :func:`~from_symbolic_expression`, we can do this very simply:
+
+            1. first, define the name of the variable:
+
+            >>> name = "var_a"
+
+            2. then, define the expression as a string. Here, the variables `a`
+            and `b` are symbols that represent the two type outputs. Note that
+            their name has bee chosen arbitrarily.
+
+            >>> exp = "log(a) + b / 12"
+            >>> # would be also equivalent to
+            >>> exp = "log(x) + y / 12"
+
+            3. here, we define the actual variables (the type outputs) after
+            loading our model from its proforma:
+
+            >>> from pyTrnsysType import TrnsysModel
+            >>> fan = TrnsysModel.from_xml("fan_type.xml")
+            >>> vars = (fan.outputs[0], fan.outputs[1])
+
+            .. Important::
+
+                The order of the symbolic variable encountered in the string
+                expression (step 2), from left to right, must be the same for
+                the tuple of variables. For instance, `a` is followed by `b`,
+                therefore `fan.outputs[0]` is followed by `fan.outputs[1]`.
+
+            4. finally, we create the Equation. Note that vars is passed with
+            the '*' declaration to unpack the tuple.
+
+            >>> from pyTrnsysType import Equation
+            >>> eq = Equation.from_symbolic_expression(name, exp, *vars)
+            >>> print(eq)
+            [1, 1]/12 + log([1, 2])
+
+        Args:
+            name (str): The name of the variable (left-hand side), of the
+                equation.
+            exp (str): The expression to evaluate. Use any variable name and
+                mathematical expression.
+            *args (tuple): A tuple of :class:`TypeVariable` that will replace
+                the any variable name specified in the above expression.
+            doc (str, optional): A small description optionally printed in the
+                deck file.
+
+        Returns:
+            Equation: The Equation Statement object.
+        """
+        from sympy.parsing.sympy_parser import parse_expr
+
+        exp = parse_expr(exp)
+
+        if len(exp.free_symbols) != len(args):
+            raise AttributeError(
+                "The expression does not have the same number of "
+                "variables as arguments passed to the symbolic expression "
+                "parser."
+            )
+        for i, arg in enumerate(sorted(exp.free_symbols, key=lambda sym: sym.name)):
+            new_symbol = args[i]
+            if isinstance(new_symbol, TypeVariable):
+                exp = exp.subs(arg, TypeVariableSymbol(new_symbol))
+            elif isinstance(new_symbol, (Equation, Constant)):
+                exp = exp.subs(arg, Symbol(new_symbol.name))
+            else:
+                exp = exp.subs(arg, Symbol(new_symbol))
+        return cls(name, exp)
+
+    @property
+    def eq_number(self):
+        """The equation number. Unique"""
+        return self._n
+
+    @property
+    def idx(self):
+        """The 0-based index of the Equation"""
+        ns = {e: i for i, e in enumerate(self.model)}
+        return ns[self.name]
+
+    @property
+    def one_based_idx(self):
+        """The 1-based index of the Equation"""
+        return self.idx + 1
+
+    @property
+    def unit_number(self):
+        return self.model.unit_number
+
+    @property
+    def is_connected(self):
+        """Whether or not this TypeVariable is connected to another type"""
+        return self.connected_to is not None
+
+    @property
+    def connected_to(self):
+        """The TrnsysModel to which this component is connected"""
+        return self._connected_to
+
+    def _to_deck(self):
+        if isinstance(self.equals_to, TypeVariable):
+            return "[{unit_number}, {output_id}]".format(
+                unit_number=self.equals_to.model.unit_number,
+                output_id=self.equals_to.one_based_idx,
+            )
+        elif isinstance(self.equals_to, Expr):
+            return print_my_latex(self.equals_to)
+        else:
+            return self.equals_to
+
+
+class EquationCollection(collections.UserDict, Component):
+    """A class that behaves like a dict and that collects one or more
+    :class:`Equations`. This class behaves a little bit like the equation
+    component in the TRNSYS Studio, meaning that you can list equation in a
+    block, give it a name, etc.
+
+    You can pass a dict of Equation or you can pass a list of Equation. In
+    this case, the :attr:`Equation.name` attribute will be used as a key.
+
+    Hint:
+        Creating equations in PyTrnsysType is done trough the :class:`Equation`
+        class. Equations are than collected in this EquationCollection. See the
+        :class:`Equation` class for more details.
+    """
+
+    def __init__(self, mutable=None, name=None):
+        """Initialize a new EquationCollection.
+
+        Example:
+            >>> equa1 = Equation.from_expression("TdbAmb = [011,001]")
+            >>> equa2 = Equation.from_expression("rhAmb = [011,007]")
+            >>> EquationCollection([equa1, equa2])
+
+        Args:
+            mutable (Iterable, optional): An iterable (dict or list).
+            name (str): A user defined name for this collection of equations.
+                This name will be used to identify this block of equations in
+                the .dck file;
+        """
+        if isinstance(mutable, list):
+            _dict = {f.name: f for f in mutable}
+        else:
+            _dict = mutable
+        super().__init__(_dict)
+        self.name = Name(name)
+        self._unit = next(TrnsysModel.new_id)
+        self.studio = StudioHeader.from_component(self)
+
+    def __getitem__(self, key):
+        """
+        Args:
+            key:
+        """
+        if isinstance(key, int):
+            value = list(self.data.values())[key]
+        else:
+            value = super().__getitem__(key)
+        return value
+
+    # def __hash__(self):
+    #     return self.unit_number
+
+    def __repr__(self):
+        return self._to_deck()
+
+    def __setitem__(self, key, value):
+        # optional processing here
+        value.model = self
+        super().__setitem__(key, value)
+
+    def __hash__(self):
+        return self._unit
+
+    def update(self, E=None, **F):
+        """D.update([E, ]**F). Update D from a dict/list/iterable E and F.
+        If E is present and has a .keys() method, then does:  for k in E: D[
+        k] = E[k]
+        If E is present and lacks a .keys() method, then does:  for eq.name,
+        eq in E: D[eq.name] = eq
+        In either case, this is followed by: for k in F:  D[k] = F[k]
+
+        Args:
+            E (list, dict or Equation): The equation to add or update in D (
+                self).
+            F (list, dict or Equation): Other Equations to update are passed.
+
+        Returns:
+            None
+        """
+        if isinstance(E, Equation):
+            E.model = self
+            _e = {E.name: E}
+        elif isinstance(E, list):
+            _e = {eq.name: eq for eq in E}
+        else:
+            for v in E.values():
+                if not isinstance(v, Equation):
+                    raise TypeError(
+                        "Can only update an EquationCollection with an"
+                        "Equation, not a {}".format(type(v))
+                    )
+            _e = {v.name: v for v in E.values()}
+        k: Equation
+        for k in F:
+            if isinstance(F[k], dict):
+                _f = {v.name: v for k, v in F.items()}
+            elif isinstance(F[k], list):
+                _f = {eq.name: eq for eq in F[k]}
+            else:
+                raise TypeError(
+                    "Can only update an EquationCollection with an"
+                    "Equation, not a {}".format(type(F[k]))
+                )
+            _e.update(_f)
+        super(EquationCollection, self).update(_e)
+
+    def setdefault(self, key, value=None):
+        if key not in self:
+            self[key] = value
+        return self[key]
+
+    @property
+    def size(self):
+        return len(self)
+
+    @property
+    def unit_number(self):
+        return self._unit
+
+    @property
+    def unit_name(self):
+        """This type does not have a unit_name. Return component name"""
+        return self.name
+
+    @property
+    def model(self):
+        """This model does not have a proforma. Return class name."""
+        return self.__class__.__name__
+
+    def _to_deck(self):
+        """To deck representation
+
+        Examples::
+
+            EQUATIONS n
+            NAME1 = ... equation 1 ...
+            NAME2 = ... equation 2 ...
+            •
+            •
+            •
+            NAMEn = ... equation n ...
+        """
+        header_comment = '* EQUATIONS "{}"\n\n'.format(self.name)
+        head = "EQUATIONS {}\n".format(len(self))
+        v_ = ((equa.name, "=", equa._to_deck()) for equa in self.values())
+        core = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
+        return str(header_comment) + str(head) + str(core)
+
+    def _get_inputs(self):
+        """inputs getter. Sorts by order number each time it is called
+        """
+        return self
+
+    def _get_outputs(self):
+        """outputs getter. Since self is already a  dict, return self.
+        """
+        return self
+
+    def _get_ordered_filtered_types(self, classe_, store):
+        """
+        Args:
+            classe_:
+            store:
+        """
+        return collections.OrderedDict(
+            (attr, self._meta[store][attr])
+            for attr in sorted(
+                self._get_filtered_types(classe_, store),
+                key=lambda key: self._meta[store][key].order,
+            )
+        )
+
+    def _get_filtered_types(self, classe_, store):
+        """
+        Args:
+            classe_:
+            store:
+        """
+        return filter(
+            lambda kv: isinstance(self._meta[store][kv], classe_), self._meta[store]
+        )
+
+
+class Derivatives:
+    # Todo: Implement Derivatives
+    pass
+
+
+class Trace:
+    # Todo: Implement Trace
+    pass
+
+
+class Format:
+    # Todo: Implement Format
+    pass
