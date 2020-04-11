@@ -197,7 +197,7 @@ class TestTrnsysModel:
         for _, a in tank_type.inputs.data.items():
             assert float(a) == 45.0
             assert (
-                repr(a) == "Hot-side temperature; units=C; value=45.0 celsius\nThe"
+                repr(a) == "Hot-side temperature; units=C; value=45.0 °C\nThe"
                 " temperature of the fluid flowing into the tank from "
                 "the heat source. The inlet location for this hot-side "
                 "fluid is one element below the upper auxiliary heating"
@@ -208,7 +208,7 @@ class TestTrnsysModel:
             assert float(a) == 0.0
             assert (
                 repr(a) == "Temperature to heat source; units=C; value=0.0 "
-                "celsius\nThe temperature of the fluid flowing from the"
+                "°C\nThe temperature of the fluid flowing from the"
                 " bottom of the storage tank and returning to the heat "
                 "source (the temperature of the bottom node)."
             )
