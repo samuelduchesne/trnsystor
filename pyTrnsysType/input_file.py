@@ -515,7 +515,7 @@ class Deck(object):
                 n_cnts = match.group(key)
                 cb = ConstantCollection()
                 for n in range(int(n_cnts)):
-                    line = next(dcklines)
+                    line = next(iter(dcklines))
                     cb.update(Constant.from_expression(line))
                 cc.set_statement(cb)
             if key == "simulation":
@@ -566,7 +566,7 @@ class Deck(object):
                 n_equations = match.group("equations")
                 # read each line of the table until a blank line
                 list_eq = []
-                for line in [next(dcklines) for x in range(int(n_equations))]:
+                for line in [next(iter(dcklines)) for x in range(int(n_equations))]:
                     # extract number and value
                     if line == "\n":
                         continue
