@@ -3,8 +3,8 @@
 Reference
 =========
 
-FileModel
----------
+Main Classes
+------------
 
 .. currentmodule:: pyTrnsysType
 .. autosummary::
@@ -16,41 +16,13 @@ FileModel
     Equation
     ControlCards
     Deck
-    ConstantCollection
-    EquationCollection
-
-TrnsysModel
------------
-
-.. currentmodule:: pyTrnsysType
-.. autosummary::
-    :template: autosummary.rst
-    :nosignatures:
-    :toctree: reference/
-
     TrnsysModel
-    MetaData
-    Component
-    ComponentCollection
-    ExternalFile
-    ExternalFileCollection
-    TypeVariable
-    TypeCycle
-    CycleCollection
     Parameter
     Input
     Output
-    Derivative
-    VariableCollection
-    InputCollection
-    OutputCollection
-    ParameterCollection
-    StudioHeader
-    LinkStyle
-    AnchorPoint
 
-Statements
-----------
+Trnsys Statements
+-----------------
 
 .. currentmodule:: pyTrnsysType
 .. autosummary::
@@ -74,6 +46,44 @@ Statements
     EqSolver
     End
     Solver
+
+Helper Classes
+--------------
+
+.. currentmodule:: pyTrnsysType
+.. autosummary::
+    :template: autosummary.rst
+    :nosignatures:
+    :toctree: reference/
+
+    MetaData
+    Component
+    ExternalFile
+    TypeVariable
+    TypeCycle
+    Derivative
+    StudioHeader
+    LinkStyle
+    AnchorPoint
+
+Collections
+-----------
+
+.. currentmodule:: pyTrnsysType
+.. autosummary::
+    :template: autosummary.rst
+    :nosignatures:
+    :toctree: reference
+
+    ConstantCollection
+    EquationCollection
+    ComponentCollection
+    ExternalFileCollection
+    CycleCollection
+    VariableCollection
+    InputCollection
+    OutputCollection
+    ParameterCollection
 
 
 Utils
