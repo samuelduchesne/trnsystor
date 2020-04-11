@@ -204,6 +204,9 @@ class ControlCards(object):
 
         self.end = End()
 
+    def __repr__(self):
+        return self._to_deck()
+
     @classmethod
     def all(cls):
         """Returns a SimulationCard with all available Statements initialized
