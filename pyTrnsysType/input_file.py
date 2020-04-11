@@ -5,19 +5,44 @@ import re
 
 import tabulate
 from path import Path
-from pyTrnsysType import TypeVariable, TrnsysModel, Component, StudioHeader, \
-    MetaData, AnchorPoint, ComponentCollection
-from pyTrnsysType.statements import Version, NaNCheck, OverwriteCheck, \
-    TimeReport, List, Simulation, Tolerances, Limits, \
-    DFQ, \
-    NoCheck, NoList, Map, EqSolver, End, Solver, Statement, Width
-from pyTrnsysType.utils import print_my_latex, TypeVariableSymbol, \
-    get_rgb_from_int
+from pyTrnsysType import (
+    TypeVariable,
+    TrnsysModel,
+    Component,
+    StudioHeader,
+    MetaData,
+    AnchorPoint,
+    ComponentCollection,
+)
+from pyTrnsysType.statements import (
+    Version,
+    NaNCheck,
+    OverwriteCheck,
+    TimeReport,
+    List,
+    Simulation,
+    Tolerances,
+    Limits,
+    DFQ,
+    NoCheck,
+    NoList,
+    Map,
+    EqSolver,
+    End,
+    Solver,
+    Statement,
+    Width,
+)
+from pyTrnsysType.utils import print_my_latex, TypeVariableSymbol, get_rgb_from_int
 from shapely.geometry import LineString, Point
 from sympy import Expr, Symbol
 
-from .trnsymodel import ParameterCollection, InputCollection, \
-    ExternalFileCollection, _studio_to_linestyle
+from .trnsymodel import (
+    ParameterCollection,
+    InputCollection,
+    ExternalFileCollection,
+    _studio_to_linestyle,
+)
 
 
 class Name(object):
@@ -82,8 +107,9 @@ class UnitType(object):
 
     def to_deck(self):
         """Returns the string representation for the Input File (.dck)"""
-        return "UNIT {n} TYPE {m} {Comment}\n".format(n=self.n, m=self.m,
-                                                      Comment=self.Comment)
+        return "UNIT {n} TYPE {m} {Comment}\n".format(
+            n=self.n, m=self.m, Comment=self.Comment
+        )
 
 
 class Parameters(object):
@@ -110,9 +136,11 @@ class Parameters(object):
         """Returns the string representation for the Input File (.dck)"""
         head = "PARAMETERS {}\n".format(self.n)
         # loop through parameters and print the (value, name) tuples.
-        v_ = ((self.v[param].value.m, "! {}".format(self.v.data[param].name))
-              for param in self.v)
-        params_str = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
+        v_ = (
+            (self.v[param].value.m, "! {}".format(self.v.data[param].name))
+            for param in self.v
+        )
+        params_str = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
         return head + params_str + "\n"
 
 
@@ -144,9 +172,12 @@ class Inputs(object):
         for input in self.inputs.values():
             if input.is_connected:
                 if isinstance(input.connected_to, TypeVariable):
-                    _ins.append("{}, {}".format(
-                        input.connected_to.model.unit_number,
-                        input.connected_to.one_based_idx))
+                    _ins.append(
+                        "{}, {}".format(
+                            input.connected_to.model.unit_number,
+                            input.connected_to.one_based_idx,
+                        )
+                    )
                 else:
                     _ins.append(input.connected_to.name)
             else:
@@ -175,9 +206,11 @@ class ExternalFiles(object):
         """Returns the string representation for the external files (.dck)"""
         if self.external_files:
             head = "*** External files\n"
-            v_ = (("ASSIGN", ext_file.value.normcase(), ext_file.logical_unit)
-                  for ext_file in self.external_files.values())
-            core = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
+            v_ = (
+                ("ASSIGN", ext_file.value.normcase(), ext_file.logical_unit)
+                for ext_file in self.external_files.values()
+            )
+            core = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
 
             return str(head) + str(core)
         else:
@@ -253,7 +286,8 @@ class Constant(Statement):
         if "=" not in expression:
             raise ValueError(
                 "The from_expression constructor must contain an expression "
-                "with the equal sign")
+                "with the equal sign"
+            )
         a, b = expression.split("=")
         return cls(a.strip(), b.strip(), doc=doc)
 
@@ -332,8 +366,9 @@ class ConstantCollection(collections.UserDict, Component):
             for v in E.values():
                 if not isinstance(v, Constant):
                     raise TypeError(
-                        'Can only update an ConstantCollection with a'
-                        'Constant, not a {}'.format(type(v)))
+                        "Can only update an ConstantCollection with a"
+                        "Constant, not a {}".format(type(v))
+                    )
             _e = {v.name: v for v in E.values()}
         k: Constant
         for k in F:
@@ -343,8 +378,9 @@ class ConstantCollection(collections.UserDict, Component):
                 _f = {cts.name: cts for cts in F[k]}
             else:
                 raise TypeError(
-                    'Can only update an ConstantCollection with a'
-                    'Constant, not a {}'.format(type(F[k])))
+                    "Can only update an ConstantCollection with a"
+                    "Constant, not a {}".format(type(F[k]))
+                )
             _e.update(_f)
         super(ConstantCollection, self).update(_e)
 
@@ -371,9 +407,8 @@ class ConstantCollection(collections.UserDict, Component):
         """
         header_comment = '* CONSTANTS "{}"\n\n'.format(self.name)
         head = "CONSTANTS {}\n".format(len(self))
-        v_ = ((equa.name, "=", str(equa))
-              for equa in self.values())
-        core = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
+        v_ = ((equa.name, "=", str(equa)) for equa in self.values())
+        core = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
         return str(header_comment) + str(head) + str(core)
 
     def _get_inputs(self):
@@ -440,7 +475,8 @@ class Equation(Statement):
         if "=" not in expression:
             raise ValueError(
                 "The from_expression constructor must contain an expression "
-                "with the equal sign")
+                "with the equal sign"
+            )
         a, b = expression.split("=")
         return cls(a.strip(), b.strip(), doc=doc)
 
@@ -514,15 +550,16 @@ class Equation(Statement):
             Equation: The Equation Statement object.
         """
         from sympy.parsing.sympy_parser import parse_expr
+
         exp = parse_expr(exp)
 
         if len(exp.free_symbols) != len(args):
             raise AttributeError(
-                'The expression does not have the same number of '
-                'variables as arguments passed to the symbolic expression '
-                'parser.')
-        for i, arg in enumerate(
-                sorted(exp.free_symbols, key=lambda sym: sym.name)):
+                "The expression does not have the same number of "
+                "variables as arguments passed to the symbolic expression "
+                "parser."
+            )
+        for i, arg in enumerate(sorted(exp.free_symbols, key=lambda sym: sym.name)):
             new_symbol = args[i]
             if isinstance(new_symbol, TypeVariable):
                 exp = exp.subs(arg, TypeVariableSymbol(new_symbol))
@@ -551,7 +588,8 @@ class Equation(Statement):
         if isinstance(self.equals_to, TypeVariable):
             return "[{unit_number}, {output_id}]".format(
                 unit_number=self.equals_to.model.unit_number,
-                output_id=self.equals_to.one_based_idx)
+                output_id=self.equals_to.one_based_idx,
+            )
         elif isinstance(self.equals_to, Expr):
             return print_my_latex(self.equals_to)
         else:
@@ -642,8 +680,9 @@ class EquationCollection(collections.UserDict, Component):
             for v in E.values():
                 if not isinstance(v, Equation):
                     raise TypeError(
-                        'Can only update an EquationCollection with an'
-                        'Equation, not a {}'.format(type(v)))
+                        "Can only update an EquationCollection with an"
+                        "Equation, not a {}".format(type(v))
+                    )
             _e = {v.name: v for v in E.values()}
         k: Equation
         for k in F:
@@ -653,8 +692,9 @@ class EquationCollection(collections.UserDict, Component):
                 _f = {eq.name: eq for eq in F[k]}
             else:
                 raise TypeError(
-                    'Can only update an EquationCollection with an'
-                    'Equation, not a {}'.format(type(F[k])))
+                    "Can only update an EquationCollection with an"
+                    "Equation, not a {}".format(type(F[k]))
+                )
             _e.update(_f)
         super(EquationCollection, self).update(_e)
 
@@ -696,9 +736,8 @@ class EquationCollection(collections.UserDict, Component):
         """
         header_comment = '* EQUATIONS "{}"\n\n'.format(self.name)
         head = "EQUATIONS {}\n".format(len(self))
-        v_ = ((equa.name, "=", equa._to_deck())
-              for equa in self.values())
-        core = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
+        v_ = ((equa.name, "=", equa._to_deck()) for equa in self.values())
+        core = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
         return str(header_comment) + str(head) + str(core)
 
     def _get_inputs(self):
@@ -718,9 +757,11 @@ class EquationCollection(collections.UserDict, Component):
             store:
         """
         return collections.OrderedDict(
-            (attr, self._meta[store][attr]) for attr in
-            sorted(self._get_filtered_types(classe_, store),
-                   key=lambda key: self._meta[store][key].order)
+            (attr, self._meta[store][attr])
+            for attr in sorted(
+                self._get_filtered_types(classe_, store),
+                key=lambda key: self._meta[store][key].order,
+            )
         )
 
     def _get_filtered_types(self, classe_, store):
@@ -730,8 +771,8 @@ class EquationCollection(collections.UserDict, Component):
             store:
         """
         return filter(
-            lambda kv: isinstance(self._meta[store][kv], classe_),
-            self._meta[store])
+            lambda kv: isinstance(self._meta[store][kv], classe_), self._meta[store]
+        )
 
 
 class ControlCards(object):
@@ -741,10 +782,24 @@ class ControlCards(object):
     docstrings.
     """
 
-    def __init__(self, version=None, simulation=None, tolerances=None,
-                 limits=None, nancheck=None, overwritecheck=None,
-                 timereport=None, dfq=None, width=None, nocheck=None,
-                 eqsolver=None, solver=None, nolist=None, list=None, map=None):
+    def __init__(
+        self,
+        version=None,
+        simulation=None,
+        tolerances=None,
+        limits=None,
+        nancheck=None,
+        overwritecheck=None,
+        timereport=None,
+        dfq=None,
+        width=None,
+        nocheck=None,
+        eqsolver=None,
+        solver=None,
+        nolist=None,
+        list=None,
+        map=None,
+    ):
         """Each simulation must have SIMULATION and END statements. The other
         simulation control statements are optional. Default values are assumed
         for TOLERANCES, LIMITS, SOLVER, EQSOLVER and DFQ if they are not present
@@ -833,15 +888,34 @@ class ControlCards(object):
         many of the Statements are a time consuming process and should be used
         as a debugging tool.
         """
-        return cls(Version(), Simulation(), Tolerances(), Limits(), NaNCheck(),
-                   OverwriteCheck(), TimeReport(), DFQ(), Width(), NoCheck(),
-                   EqSolver(), Solver(), NoList(), List(), Map())
+        return cls(
+            Version(),
+            Simulation(),
+            Tolerances(),
+            Limits(),
+            NaNCheck(),
+            OverwriteCheck(),
+            TimeReport(),
+            DFQ(),
+            Width(),
+            NoCheck(),
+            EqSolver(),
+            Solver(),
+            NoList(),
+            List(),
+            Map(),
+        )
 
     @classmethod
     def debug_template(cls):
         """Returns a SimulationCard with useful debugging Statements."""
-        return cls(Version(), Simulation(), map=Map(), nancheck=NaNCheck(),
-                   overwritecheck=OverwriteCheck())
+        return cls(
+            Version(),
+            Simulation(),
+            map=Map(),
+            nancheck=NaNCheck(),
+            overwritecheck=OverwriteCheck(),
+        )
 
     @classmethod
     def basic_template(cls):
@@ -853,17 +927,19 @@ class ControlCards(object):
         a small description is printed in comments
         """
         head = "*** Control Cards\n"
-        v_ = ((str(param), "! {}".format(
-            param.doc))
-              for param in self.__dict__.values() if hasattr(param, 'doc'))
-        statements = tabulate.tabulate(v_, tablefmt='plain', numalign="left")
+        v_ = (
+            (str(param), "! {}".format(param.doc))
+            for param in self.__dict__.values()
+            if hasattr(param, "doc")
+        )
+        statements = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
         return str(head) + str(statements)
 
     def set_statement(self, statement):
         self.__setattr__(statement.__class__.__name__.lower(), statement)
 
 
-__statements__ = ['']
+__statements__ = [""]
 
 
 class Deck(object):
@@ -886,13 +962,13 @@ class Deck(object):
                 # at each line check for a match with a regex
                 key, match = dck._parse_line(line)
 
-                if key == 'version':
-                    version = match.group('version')
+                if key == "version":
+                    version = match.group("version")
                     v_ = Version.from_string(version.strip())
                     cc.set_statement(v_)
 
                 # identify a ConstantCollection
-                if key == 'constants':
+                if key == "constants":
                     n_cnts = match.group(key)
                     cb = ConstantCollection()
                     for n in range(int(n_cnts)):
@@ -900,62 +976,62 @@ class Deck(object):
                         cb.update(Constant.from_expression(line))
                     cc.set_statement(cb)
 
-                if key == 'simulation':
+                if key == "simulation":
                     sss = match.group(key)
                     s_ = Simulation(*map(Constant, sss.split()))
                     repr(s_.start)
                     cc.set_statement(s_)
 
-                if key == 'tolerances':
+                if key == "tolerances":
                     sss = match.group(key)
                     t_ = Tolerances(*(map(float, map(str.strip, sss.split()))))
                     cc.set_statement(t_)
 
-                if key == 'limits':
+                if key == "limits":
                     sss = match.group(key)
                     l_ = Limits(*(map(int, map(str.strip, sss.split()))))
                     cc.set_statement(l_)
 
-                if key == 'dfq':
+                if key == "dfq":
                     k = match.group(key)
                     cc.set_statement(DFQ(k.strip()))
 
-                if key == 'width':
+                if key == "width":
                     w = match.group(key)
                     # todo: Implement Width
 
-                if key == 'list':
+                if key == "list":
                     k = match.group(key)
                     cc.set_statement(List(*k.strip().split()))
 
-                if key == 'solver':
+                if key == "solver":
                     k = match.group(key)
                     cc.set_statement(Solver(*k.strip().split()))
 
-                if key == 'nancheck':
+                if key == "nancheck":
                     k = match.group(key)
                     cc.set_statement(NaNCheck(*k.strip().split()))
 
-                if key == 'overwritecheck':
+                if key == "overwritecheck":
                     k = match.group(key)
                     cc.set_statement(OverwriteCheck(*k.strip().split()))
 
-                if key == 'timereport':
+                if key == "timereport":
                     k = match.group(key)
                     cc.set_statement(TimeReport(*k.strip().split()))
 
-                if key == 'eqsolver':
+                if key == "eqsolver":
                     k = match.group(key)
                     cc.set_statement(EqSolver(*k.strip().split()))
 
-                if key == 'userconstants':
+                if key == "userconstants":
                     line = dcklines.readline()
                     key, match = dck._parse_line(line)
 
                 # identify an equation block (EquationCollection)
-                if key == 'equations':
+                if key == "equations":
                     # extract number of line, number of equations
-                    n_equations = match.group('equations')
+                    n_equations = match.group("equations")
                     line = dcklines.readline()
                     # read each line of the table until a blank line
                     ec = EquationCollection()
@@ -971,26 +1047,26 @@ class Deck(object):
                     dck.append_model(ec)
 
                 # read studio markup
-                if key == 'unitnumber':
+                if key == "unitnumber":
                     unit_number = match.group(key)
                     ec._unit = int(unit_number)
-                if key == 'unitname':
+                if key == "unitname":
                     unit_name = match.group(key)
                     ec.name = unit_name
-                if key == 'layer':
+                if key == "layer":
                     layer = match.group(key)
                     ec.change_component_layer(layer)
-                if key == 'position':
+                if key == "position":
                     pos = match.group(key)
                     ec.set_canvas_position(map(float, pos.strip().split()))
 
                 # identify a unit (TrnsysModel)
-                if key == 'unit':
+                if key == "unit":
                     models = []
                     # extract unit_number, type_number and name
-                    u = match.group('unitnumber').strip()
-                    t = match.group('typenumber').strip()
-                    n = match.group('name').strip()
+                    u = match.group("unitnumber").strip()
+                    t = match.group("typenumber").strip()
+                    n = match.group("name").strip()
 
                     _meta = MetaData(type=t)
                     model = TrnsysModel(_meta, name=n)
@@ -1000,18 +1076,19 @@ class Deck(object):
                     # read studio markup
                     for n in range(4):
                         key, match = dck._parse_line(line)
-                        if key == 'unitname':
+                        if key == "unitname":
                             unit_name = match.group(key)
                             model.name = unit_name
-                        if key == 'layer':
+                        if key == "layer":
                             layer = match.group(key)
                             model.change_component_layer(layer)
-                        if key == 'position':
+                        if key == "position":
                             pos = match.group(key)
                             model.set_canvas_position(
-                                map(float, pos.strip().split()), True)
-                        if key == 'model':
-                            _mod = match.group('model')
+                                map(float, pos.strip().split()), True
+                            )
+                        if key == "model":
+                            _mod = match.group("model")
                             xml = Path(_mod.replace("\\", "/"))
                             xml_basename = xml.basename()
                             try:
@@ -1022,21 +1099,24 @@ class Deck(object):
                                 proforma_root = Path(proforma_root)
                                 if proforma_root is None:
                                     proforma_root = Path.getcwd()
-                                xmls = proforma_root.glob('*.xml')
-                                xml = next((x for x in xmls if x.basename() ==
-                                            xml_basename), None)
+                                xmls = proforma_root.glob("*.xml")
+                                xml = next(
+                                    (x for x in xmls if x.basename() == xml_basename),
+                                    None,
+                                )
                                 if not xml:
-                                    msg = 'The proforma {} could not be found ' \
-                                          '' \
-                                          '' \
-                                          '' \
-                                          '' \
-                                          '' \
-                                          '' \
-                                          '' \
-                                          'at' \
-                                          ' "{}"'.format(xml_basename,
-                                                         proforma_root)
+                                    msg = (
+                                        "The proforma {} could not be found "
+                                        ""
+                                        ""
+                                        ""
+                                        ""
+                                        ""
+                                        ""
+                                        ""
+                                        "at"
+                                        ' "{}"'.format(xml_basename, proforma_root)
+                                    )
                                     lg.warning(msg)
                                     break
                                 new_meta = MetaData.from_xml(xml)
@@ -1046,9 +1126,9 @@ class Deck(object):
                     dck.append_model(model)
 
                 # identify linkstyles
-                if key == 'link':
+                if key == "link":
                     # identify u,v unit numbers
-                    u, v = match.group(key).strip().split(':')
+                    u, v = match.group(key).strip().split(":")
 
                     line = dcklines.readline()
                     key, match = dck._parse_line(line)
@@ -1059,7 +1139,8 @@ class Deck(object):
                         path = _lns["path"].strip().split(":")
 
                         mapping = AnchorPoint(
-                            dck.models[int(u)]).studio_anchor_reverse_mapping
+                            dck.models[int(u)]
+                        ).studio_anchor_reverse_mapping
 
                         def find_closest(mappinglist, coordinate):
                             def distance(a, b):
@@ -1067,25 +1148,31 @@ class Deck(object):
                                 b_ = Point(b)
                                 return a_.distance(b_)
 
-                            return min(mappinglist, key=lambda x: distance(x,
-                                                                           coordinate))
+                            return min(
+                                mappinglist, key=lambda x: distance(x, coordinate)
+                            )
 
-                        u_coords = (int(_lns['u1']), int(_lns['u2']))
-                        v_coords = (int(_lns['v1']), int(_lns['v2']))
-                        loc = mapping[find_closest(mapping.keys(), u_coords)], \
-                              mapping[find_closest(mapping.keys(), v_coords)]
-                        color = get_rgb_from_int(int(_lns['color']))
-                        linestyle = _studio_to_linestyle(int(_lns['linestyle']))
-                        linewidth = int(_lns['linewidth'])
+                        u_coords = (int(_lns["u1"]), int(_lns["u2"]))
+                        v_coords = (int(_lns["v1"]), int(_lns["v2"]))
+                        loc = (
+                            mapping[find_closest(mapping.keys(), u_coords)],
+                            mapping[find_closest(mapping.keys(), v_coords)],
+                        )
+                        color = get_rgb_from_int(int(_lns["color"]))
+                        linestyle = _studio_to_linestyle(int(_lns["linestyle"]))
+                        linewidth = int(_lns["linewidth"])
 
-                        path = LineString(
-                            [list(map(int, p.split(","))) for p in path])
+                        path = LineString([list(map(int, p.split(","))) for p in path])
 
                         try:
                             dck.models[int(u)].set_link_style(
                                 dck.models[int(v)],
-                                loc, color, linestyle,
-                                linewidth, path)
+                                loc,
+                                color,
+                                linestyle,
+                                linewidth,
+                                path,
+                            )
                         except:
                             pass
 
@@ -1113,60 +1200,66 @@ class Deck(object):
         # set up regular expressions
         # use https://regexper.com to visualise these if required
         rx_dict = {
-            'version': re.compile(
-                r'(?i)(?P<key>^version)(?P<version>.*?)(?=(?:!|\\n|$))'),
-            'constants': re.compile(
-                r'(?i)(?P<key>^constants)(?P<constants>.*?)(?=(?:!|\\n|$))'),
-            'simulation': re.compile(r'(?i)(?P<key>^simulation)('
-                                     r'?P<simulation>.*?)(?=(?:!|$))'),
-            'tolerances': re.compile(r'(?i)(?P<key>^tolerances)('
-                                     r'?P<tolerances>.*?)(?=('
-                                     r'?:!|$))'),
-            'limits': re.compile(r'(?i)(?P<key>^limits)(?P<limits>.*?)(?=('
-                                 r'?:!|$))'),
-            'dfq': re.compile(r'(?i)(?P<key>^dfq)(?P<dfq>.*?)(?=(?:!|$))'),
-            'width': re.compile(r'(?i)(?P<key>^width)(?P<width>.*?)(?=('
-                                r'?:!|$))'),
-            'list': re.compile(r'(?i)(?P<key>^list)(?P<list>.*?)(?=('
-                               r'?:!|$))'),
-            'solver': re.compile(r'(?i)(?P<key>^solver)(?P<solver>.*?)(?=('
-                                 r'?:!|$))'),
-            'nancheck': re.compile(
-                r'(?i)(?P<key>^nan_check)(?P<nancheck>.*?)(?=('
-                r'?:!|$))'),
-            'overwritecheck': re.compile(
-                r'(?i)(?P<key>^overwrite_check)(?P<overwritecheck>.*?)(?=('
-                r'?:!|$))'),
-            'timereport': re.compile(
-                r'(?i)(?P<key>^time_report)(?P<timereport>.*?)(?=('
-                r'?:!|$))'),
-            'eqsolver': re.compile(
-                r'(?i)(?P<key>^eqsolver)(?P<eqsolver>.*?)(?=('
-                r'?:!|$))'),
-            'equations': re.compile(
-                r'(?i)(?P<key>^equations)(?P<equations>.*?)(?=(?:!|$))'),
-            'unitnumber': re.compile(r'(?i)(?P<key>^\*\$unit_number)('
-                                     r'?P<unitnumber>.*?)(?=(?:!|$))'),
-            'unitname': re.compile(
-                r'(?i)(?P<key>^\*\$unit_name)(?P<unitname>.*?)(?=(?:!|$))'),
-            'layer': re.compile(
-                r'(?i)(?P<key>^\*\$layer)(?P<layer>.*?)(?=(?:!|$))'),
-            'position': re.compile(
-                r'(?i)(?P<key>^\*\$position)(?P<position>.*?)(?=(?:!|$))'),
-            'unit': re.compile(
-                r'(?i)(^unit)(?P<unitnumber>.*?)(type)(?P<typenumber>.*\s)('
-                r'?P<name>\s.*?)('
-                r'?=(?:!|$))'),
-            'model': re.compile(r'(?i)(?P<key>^\*\$model)(?P<model>.*?)(?=('
-                                r'?:!|$))'),
-            'link': re.compile(r'(?i)(^\*!link\s)(?P<link>.*?)(?=(?:!|$))'),
-            'linkstyle': re.compile(
-                r'(?i)(?:^\*!connection_set )(?P<u1>.*?):(?P<u2>.*?):('
-                r'?P<v1>.*?):(?P<v2>.*?):(?P<order>.*?):(?P<color>.*?):('
-                r'?P<linestyle>.*?):(?P<linewidth>.*?):(?P<ignored>.*?):('
-                r'?P<path>.*?$)'),
-            'userconstants': re.compile(r'(?i)(?P<key>^\*\$user_constants)('
-                                        r'?=(?:!|$))'),
+            "version": re.compile(
+                r"(?i)(?P<key>^version)(?P<version>.*?)(?=(?:!|\\n|$))"
+            ),
+            "constants": re.compile(
+                r"(?i)(?P<key>^constants)(?P<constants>.*?)(?=(?:!|\\n|$))"
+            ),
+            "simulation": re.compile(
+                r"(?i)(?P<key>^simulation)(" r"?P<simulation>.*?)(?=(?:!|$))"
+            ),
+            "tolerances": re.compile(
+                r"(?i)(?P<key>^tolerances)(" r"?P<tolerances>.*?)(?=(" r"?:!|$))"
+            ),
+            "limits": re.compile(r"(?i)(?P<key>^limits)(?P<limits>.*?)(?=(" r"?:!|$))"),
+            "dfq": re.compile(r"(?i)(?P<key>^dfq)(?P<dfq>.*?)(?=(?:!|$))"),
+            "width": re.compile(r"(?i)(?P<key>^width)(?P<width>.*?)(?=(" r"?:!|$))"),
+            "list": re.compile(r"(?i)(?P<key>^list)(?P<list>.*?)(?=(" r"?:!|$))"),
+            "solver": re.compile(r"(?i)(?P<key>^solver)(?P<solver>.*?)(?=(" r"?:!|$))"),
+            "nancheck": re.compile(
+                r"(?i)(?P<key>^nan_check)(?P<nancheck>.*?)(?=(" r"?:!|$))"
+            ),
+            "overwritecheck": re.compile(
+                r"(?i)(?P<key>^overwrite_check)(?P<overwritecheck>.*?)(?=(" r"?:!|$))"
+            ),
+            "timereport": re.compile(
+                r"(?i)(?P<key>^time_report)(?P<timereport>.*?)(?=(" r"?:!|$))"
+            ),
+            "eqsolver": re.compile(
+                r"(?i)(?P<key>^eqsolver)(?P<eqsolver>.*?)(?=(" r"?:!|$))"
+            ),
+            "equations": re.compile(
+                r"(?i)(?P<key>^equations)(?P<equations>.*?)(?=(?:!|$))"
+            ),
+            "unitnumber": re.compile(
+                r"(?i)(?P<key>^\*\$unit_number)(" r"?P<unitnumber>.*?)(?=(?:!|$))"
+            ),
+            "unitname": re.compile(
+                r"(?i)(?P<key>^\*\$unit_name)(?P<unitname>.*?)(?=(?:!|$))"
+            ),
+            "layer": re.compile(r"(?i)(?P<key>^\*\$layer)(?P<layer>.*?)(?=(?:!|$))"),
+            "position": re.compile(
+                r"(?i)(?P<key>^\*\$position)(?P<position>.*?)(?=(?:!|$))"
+            ),
+            "unit": re.compile(
+                r"(?i)(^unit)(?P<unitnumber>.*?)(type)(?P<typenumber>.*\s)("
+                r"?P<name>\s.*?)("
+                r"?=(?:!|$))"
+            ),
+            "model": re.compile(
+                r"(?i)(?P<key>^\*\$model)(?P<model>.*?)(?=(" r"?:!|$))"
+            ),
+            "link": re.compile(r"(?i)(^\*!link\s)(?P<link>.*?)(?=(?:!|$))"),
+            "linkstyle": re.compile(
+                r"(?i)(?:^\*!connection_set )(?P<u1>.*?):(?P<u2>.*?):("
+                r"?P<v1>.*?):(?P<v2>.*?):(?P<order>.*?):(?P<color>.*?):("
+                r"?P<linestyle>.*?):(?P<linewidth>.*?):(?P<ignored>.*?):("
+                r"?P<path>.*?$)"
+            ),
+            "userconstants": re.compile(
+                r"(?i)(?P<key>^\*\$user_constants)(" r"?=(?:!|$))"
+            ),
         }
         return rx_dict
 

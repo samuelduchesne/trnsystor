@@ -37,7 +37,7 @@ class Version(Statement):
         Args:
             string:
         """
-        return cls(*map(int, string.split('.')))
+        return cls(*map(int, string.split(".")))
 
     def _to_deck(self):
         return "VERSION {}".format(".".join(map(str, self.v)))
@@ -298,7 +298,7 @@ class Width(Statement):
         if n >= 72 and n <= 132:
             return n
         else:
-            raise ValueError('The Width Statement mus be between 72 and 132.')
+            raise ValueError("The Width Statement mus be between 72 and 132.")
 
 
 class NoCheck(Statement):
@@ -315,18 +315,20 @@ class NoCheck(Statement):
         if not inputs:
             inputs = []
         if len(inputs) > 20:
-            raise ValueError("TRNSYS allows only up to 20 different INPUTS to "
-                             "be removed")
+            raise ValueError(
+                "TRNSYS allows only up to 20 different INPUTS to " "be removed"
+            )
         self.inputs = inputs
         self.doc = "CHECK Statement"
 
     def _to_deck(self):
         head = "NOCHECK {}\n".format(len(self.inputs))
         core = "\t".join(
-            ["{}, {}".format(
-                input.model.unit_number,
-                input.one_based_idx)
-                for input in self.inputs])
+            [
+                "{}, {}".format(input.model.unit_number, input.one_based_idx)
+                for input in self.inputs
+            ]
+        )
         return str(head) + str(core)
 
 
@@ -446,9 +448,13 @@ class Solver(Statement):
         self.rf_max = rf_max
         self.rf_min = rf_min
         self.k = k
-        self.doc = "Solver statement\tMinimum relaxation factor\tMaximum " \
-                   "relaxation factor"
+        self.doc = (
+            "Solver statement\tMinimum relaxation factor\tMaximum " "relaxation factor"
+        )
 
     def _to_deck(self):
-        return "SOLVER {} {} {}".format(self.k, self.rf_min, self.rf_max) \
-            if self.k == 0 else "SOLVER {}".format(self.k)
+        return (
+            "SOLVER {} {} {}".format(self.k, self.rf_min, self.rf_max)
+            if self.k == 0
+            else "SOLVER {}".format(self.k)
+        )
