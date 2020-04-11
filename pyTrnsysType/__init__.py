@@ -1,5 +1,5 @@
 # Version of the package
-__version__ = "1.1.2-dev"
+__version__ = "1.2.0"
 
 # warn if a newer version of archetypal is available
 from outdated import warn_if_outdated
