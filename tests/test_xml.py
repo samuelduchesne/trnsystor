@@ -135,7 +135,7 @@ class TestTrnsysModel:
         new_value = fan_type.parameters[attr_name].value.to("m^3/s") * 10
         fan_type.parameters[attr_name] = new_value
 
-        assert fan_type.parameters[attr_name].value == new_value
+        assert fan_type.parameters[attr_name].value == new_value.to("l/s")
 
     def test_get_attr_derivative(self, tank_type):
         """Test setter for class Derivative"""
