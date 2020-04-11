@@ -4,3 +4,6 @@ pytest-cov
 coverage
 coveralls
 sphinx>=2.1
+networkx
+recommonmark
+sphinx_rtd_theme
