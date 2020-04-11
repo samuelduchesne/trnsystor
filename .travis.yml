@@ -13,10 +13,9 @@ before_install:
   - conda info -a
 
 install:
-  - conda create -q -n pyTrnsysType python=3.6
-  - conda install -n pyTrnsysType pytest pytest-cov coverage coveralls
+  - conda create -q -n pyTrnsysType python=3
   - source activate pyTrnsysType
-  - pip install --no-cache-dir .
+  - pip install --no-cache-dir .[dev]
 
 script:
   - pytest --cov=pyTrnsysType --verbose tests/

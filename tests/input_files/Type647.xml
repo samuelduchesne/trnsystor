@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrnsysModel>
+    <object>Fluid Diverting Valve w/Up to 100 Outlets</object>
+    <author>Jeff Thornton</author>
+    <organization>Thermal Energy System Specialists</organization>
+    <editor>Jeff Thornton</editor>
+    <creationDate>1/1/98</creationDate>
+    <modifictionDate>July 2010</modifictionDate>
+    <mode>2</mode>
+    <validation>34</validation>
+    <icon>C:\Users\saleta\Dropbox\Polytechnique\Doc\software\pyTrnsysType\tests\input_files\Type647.bmp</icon>
+    <type>647</type>
+    <maxInstance>9999</maxInstance>
+    <keywords>
+        <keyword>Flow Diverter</keyword>
+        <keyword>Diverting Valve</keyword>
+    </keywords>
+    <details>Refer to the document: ".\Tess Models\Documentation\07-HydronicsLibraryMathematicalReference.pdf" for a
+        complete technical description of this component.
+
+        Type647 models a diverting valve that splits a liquid inlet mass flow into fractional outlet mass flows.
+        One inlet flow may be split into as many as 100 individual streams. The limit of 100 inlet flows can be
+        modified in the Fortran source code.
+    </details>
+    <comment>Flow Diverter</comment>
+    <variablesComment>Flow Diverter</variablesComment>
+    <variables>
+        <variable><!--parameter-1-->
+            <order>1</order>
+            <name>Number of Outlet Ports</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>100</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>2</default>
+            <symbol>SN</symbol>
+            <definition>The number of outlet ports from the diverting valve. The outlet temperature for each port is set
+                equal to the inlet temperature. The outlet flowrate is the inlet flowrate multiplied by the given
+                fraction for the port.
+            </definition>
+        </variable>
+        <variable><!--input-1-->
+            <order>2</order>
+            <name>Inlet Temperature</name>
+            <role>input</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>20.0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the fluid entering the diverting valve.</definition>
+        </variable>
+        <variable><!--input-2-->
+            <order>3</order>
+            <name>Inlet Flowrate</name>
+            <role>input</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1000.</default>
+            <symbol>SN</symbol>
+            <definition>The flowrate of fluid entering the diverting valve</definition>
+        </variable>
+        <variable><!--input-3-->
+            <order>4</order>
+            <name>Fraction of Flow to Outlet</name>
+            <role>input</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>1.000</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.5</default>
+            <symbol>SN</symbol>
+            <definition>The fraction of fluid that exits the diverting valve at the specified outlet port. The sum of
+                the fractions must be equal to 1.0 or the last input fraction will be ignored and instead calculated
+                from conservation of mass.
+            </definition>
+        </variable>
+        <variable><!--output-1-->
+            <order>5</order>
+            <name>Outlet Temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the fluid at the specified outlet.</definition>
+        </variable>
+        <variable><!--output-2-->
+            <order>6</order>
+            <name>Outlet Flowrate</name>
+            <role>output</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.00</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The flowrate of fluid exiting the device at the specified outlet.</definition>
+        </variable>
+    </variables>
+    <cycles>
+        <cycle>
+            <role>input</role>
+            <firstRow>1</firstRow>
+            <lastRow>3</lastRow>
+            <cycles>
+                <cycle>
+                    <role>input</role>
+                    <firstRow>3</firstRow>
+                    <lastRow>3</lastRow>
+                    <paramName>Number of Outlet Ports</paramName>
+                    <cycles/>
+                    <minSize>1</minSize>
+                    <maxSize>100</maxSize>
+                </cycle>
+            </cycles>
+            <minSize>1</minSize>
+            <maxSize>50</maxSize>
+        </cycle>
+        <cycle>
+            <role>output</role>
+            <firstRow>1</firstRow>
+            <lastRow>2</lastRow>
+            <cycles>
+                <cycle>
+                    <role>output</role>
+                    <firstRow>1</firstRow>
+                    <lastRow>2</lastRow>
+                    <paramName>Number of Outlet Ports</paramName>
+                    <cycles/>
+                    <minSize>1</minSize>
+                    <maxSize>100</maxSize>
+                </cycle>
+            </cycles>
+            <minSize>1</minSize>
+            <maxSize>50</maxSize>
+        </cycle>
+    </cycles>
+    <source>.\Tess Models\SourceCode\Type647.f90</source>
+</TrnsysModel>
