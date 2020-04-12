@@ -771,28 +771,35 @@ class TrnsysModel(Component):
             )
             return ExternalFileCollection.from_dict(ext_files_dict)
 
-    def _get_ordered_filtered_types(self, classe_, store):
-        """
+    def _get_ordered_filtered_types(self, class_name, store):
+        """Returns an ordered dict of :class:`TypeVariable` filtered by
+        *class_name* and ordered by their order number attribute.
+
         Args:
-            classe_:
-            store:
+            class_name: Name of TypeVariable to filer: Choices are :class:`Input`,
+                :class:`Output`, :class:`Parameter`, :class:`Derivative`.
+            store (str): Attribute name from :class:`MetaData`. Typically, this is
+                the "variables" attribute.
         """
         return collections.OrderedDict(
             (attr, self._meta[store][attr])
             for attr in sorted(
-                self._get_filtered_types(classe_, store),
+                self._get_filtered_types(class_name, store),
                 key=lambda key: self._meta[store][key].order,
             )
         )
 
-    def _get_filtered_types(self, classe_, store):
-        """
+    def _get_filtered_types(self, class_name, store):
+        """Returns a filter of TypeVariables from the self._meta[store] by *class_name*
+
         Args:
-            classe_:
-            store:
+            class_name: Name of TypeVariable to filer: Choices are :class:`Input`,
+                :class:`Output`, :class:`Parameter`, :class:`Derivative`.
+            store (str): Attribute name from :class:`MetaData`. Typically, this is
+                the "variables" attribute.
         """
         return filter(
-            lambda kv: isinstance(self._meta[store][kv], classe_), self._meta[store]
+            lambda kv: isinstance(self._meta[store][kv], class_name), self._meta[store]
         )
 
     def _resolve_cycles(self, type_, class_):
