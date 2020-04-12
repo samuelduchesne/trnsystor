@@ -7,6 +7,7 @@ import re
 import tempfile
 from abc import ABCMeta, abstractmethod
 
+import networkx as nx
 import numpy as np
 import tabulate
 from bs4 import BeautifulSoup, Tag
@@ -14,7 +15,7 @@ from matplotlib.colors import colorConverter
 from pandas import to_datetime
 from path import Path
 from pint.quantity import _Quantity
-from shapely.geometry import Point, LineString, MultiLineString, MultiPoint
+from shapely.geometry import Point, LineString, MultiLineString, MultiPoint, box
 from sympy import Symbol, Expr
 
 from pyTrnsysType.utils import (
@@ -326,11 +327,78 @@ class ComponentCollection(collections.UserList):
         return dict({item: item for item in self.data})
 
 
+class StudioCanvas:
+    # TODO: Document class
+    def __init__(self, width=150, height=150):
+        self._grid_valid = True
+        self._grid = None
+        self.width = width
+        self.height = height
+
+    @property
+    def bbox(self):
+        """The :class:`shapely.geometry.geo.box` representation of the studio canvas"""
+        return box(0, 0, self.width, self.height)
+
+    @property
+    def grid_is_valid(self):
+        if self._grid_valid:
+            return True
+        else:
+            return False
+
+    @property
+    def grid(self):
+        """The two-dimensional grid graph of the studio canvas"""
+        if self.grid_is_valid and self._grid is not None:
+            return self._grid
+        else:
+            self._grid = nx.grid_2d_graph(self.width, self.height)
+            return self._grid
+
+    def invalidate_grid(self):
+        self._grid_valid = False
+
+    def resize_canvas(self, width, height):
+        """Change the canvas size.
+
+        TODO: Handle grid when canvas size is changed (e.g used paths)
+
+        Args:
+            width (int): new width.
+            height (int): new height.
+        """
+        self.width = width
+        self.height = height
+        self.invalidate_grid()
+
+    def shortest_nocrossing(self, u, v, donotcross=True):
+        """
+
+        Args:
+            u (Point): The *from* Point geometry.
+            v (Point): The *to* Point geometry.
+            dotnotcross (bool): If true, this path will not be crossed by other paths.
+
+        Returns:
+            (LineString): The path from u to v along the studio graph
+        """
+        shortest_path = nx.shortest_path(self.grid, (u.x, u.y), (v.x, v.y))
+        if donotcross:
+            edges = self.grid.edges(shortest_path)
+            for edge in edges:
+                self.grid.remove_edges_from(edge)
+        # create linestring and simplify to unit and return
+        return LineString(shortest_path).simplify(1)
+
+
 class Component(metaclass=ABCMeta):
     """Base class for Trnsys elements that interact with the Studio.
     :class:`TrnsysModel`,  :class:`ConstantCollection` and
     :class:`EquationCollection` implement this class."""
+
     new_id = itertools.count(start=1)
+    studio_canvas = StudioCanvas()
 
     def __init__(self, name, meta):
         """Initialize a Component with the following parameters:
@@ -379,7 +447,13 @@ class Component(metaclass=ABCMeta):
             pt = Point(*pt)
         if trnsys_coords:
             pt = affine_transform(pt)
-        self.studio.position = pt
+        if pt.within(self.studio_canvas.bbox):
+            self.studio.position = pt
+        else:
+            raise ValueError(
+                "Can't set canvas position {} because it falls outside "
+                "the bounds of the studio canvas size".format(pt)
+            )
 
     def set_component_layer(self, layers):
         """Change the component's layer. Pass a list to change multiple layers
@@ -450,8 +524,7 @@ class Component(metaclass=ABCMeta):
         pass
 
     def set_link_style(
-            self, other, loc="best", color="#1f78b4", linestyle="-", linewidth=1,
-            path=None
+        self, other, loc="best", color="#1f78b4", linestyle="-", linewidth=1, path=None
     ):
         """Set outgoing link styles between self and other.
 
@@ -553,6 +626,7 @@ class Component(metaclass=ABCMeta):
                     raise ValueError(msg)
                 else:
                     other.inputs[to_other]._connected_to = self.outputs[from_self]
+                    self.outputs[from_self]._connected_to.append(other.inputs[to_other])
         self.set_link_style(other, **link_style)
 
 
@@ -620,10 +694,25 @@ class TrnsysModel(Component):
 
     def invalidate_connections(self):
         """iterate over inputs/outputs and force :attr:`_connected_to` to
-        None
+        None.
+
+        Todo: restore paths in self.studio_canvas.grid
         """
         for key in self.outputs:
-            self.outputs[key].__dict__["_connected_to"] = None
+            to = self.outputs[key].connected_to
+            # if connections, for each out connections
+            if to:
+                for i in to:
+                    # get the path (LineString)
+                    path = self.studio.link_styles[
+                        self.unit_number, i.model.unit_number
+                    ].path
+                    # list of edges sequence of path coordinates
+                    edges = zip(path.coords[0::1], path.coords[1::1])
+                    # add edges to graph
+                    self.studio_canvas.grid.add_edges_from(edges)
+                # set output connection to None
+                self.outputs[key].__dict__["_connected_to"] = None
         for key in self.inputs:
             self.inputs[key].__dict__["_connected_to"] = None
 
@@ -1074,7 +1163,6 @@ class TypeVariable(object):
         self.value = _parse_value(
             val, self.type, self.unit, (self.min, self.max), self.name
         )
-        self._connected_to = None
         self.model = model  # the TrnsysModel this TypeVariable belongs to.
 
     @classmethod
@@ -1295,6 +1383,7 @@ class Parameter(TypeVariable):
         """
         super().__init__(val, **kwargs)
 
+        self._connected_to = None
         self._parse_types()
 
     def __repr__(self):
@@ -1315,6 +1404,7 @@ class Input(TypeVariable):
         """
         super().__init__(val, **kwargs)
 
+        self._connected_to = None
         self._parse_types()
 
     def __repr__(self):
@@ -1335,6 +1425,7 @@ class InitialInputValue(TypeVariable):
         """
         super().__init__(val, **kwargs)
 
+        self._connected_to = None
         self._parse_types()
 
     def __repr__(self):
@@ -1355,6 +1446,7 @@ class Output(TypeVariable):
         """
         super().__init__(val, **kwargs)
 
+        self._connected_to = []
         self._parse_types()
 
     def __repr__(self):
@@ -1378,6 +1470,7 @@ class Derivative(TypeVariable):
         """
         super().__init__(val, **kwargs)
 
+        self._connected_to = None
         self._parse_types()
 
 
@@ -1782,7 +1875,15 @@ def _studio_to_linestyle(ls):
 
 class LinkStyle(object):
     def __init__(
-            self, u, v, loc, color="black", linestyle="-", linewidth=None, path=None
+        self,
+        u,
+        v,
+        loc,
+        color="black",
+        linestyle="-",
+        linewidth=None,
+        path=None,
+        autopath=True,
     ):
         """
         Args:
@@ -1826,8 +1927,11 @@ class LinkStyle(object):
         if path is None:
             u = AnchorPoint(self.u).anchor_points[self.u_anchor_name]
             v = AnchorPoint(self.v).anchor_points[self.v_anchor_name]
-            line = LineString([u, v])
-            self.path = redistribute_vertices(line, line.length / 3)
+            if autopath:
+                self.path = self.u.studio_canvas.shortest_nocrossing(u, v)
+            else:
+                line = LineString([u, v])
+                self.path = redistribute_vertices(line, line.length / 3)
         else:
             self.path = path
 
@@ -2058,7 +2162,14 @@ class Deck(object):
     """
 
     def __init__(
-            self, name, author=None, date_created=None, control_cards=None, models=None
+        self,
+        name,
+        author=None,
+        date_created=None,
+        control_cards=None,
+        models=None,
+        canvas_width=10000,
+        canvas_height=10000,
     ):
         """Initialize a Deck object with parameters:
 
