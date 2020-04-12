@@ -22,37 +22,40 @@ from pyTrnsysType.utils import (
     _parse_value,
     parse_type,
     standerdized_name,
-    redistribute_vertices, get_rgb_from_int, affine_transform, TypeVariableSymbol,
+    redistribute_vertices,
+    get_rgb_from_int,
+    affine_transform,
+    TypeVariableSymbol,
     print_my_latex,
 )
 
 
 class MetaData(object):
     def __init__(
-            self,
-            object=None,
-            author=None,
-            organization=None,
-            editor=None,
-            creationDate=None,
-            modifictionDate=None,
-            mode=None,
-            validation=None,
-            icon=None,
-            type=None,
-            maxInstance=None,
-            keywords=None,
-            details=None,
-            comment=None,
-            variables=None,
-            plugin=None,
-            variablesComment=None,
-            cycles=None,
-            source=None,
-            externalFiles=None,
-            compileCommand=None,
-            model=None,
-            **kwargs
+        self,
+        object=None,
+        author=None,
+        organization=None,
+        editor=None,
+        creationDate=None,
+        modifictionDate=None,
+        mode=None,
+        validation=None,
+        icon=None,
+        type=None,
+        maxInstance=None,
+        keywords=None,
+        details=None,
+        comment=None,
+        variables=None,
+        plugin=None,
+        variablesComment=None,
+        cycles=None,
+        source=None,
+        externalFiles=None,
+        compileCommand=None,
+        model=None,
+        **kwargs
     ):
         """General information that is associated with a :class:`TrnsysModel`.
         This information is contained in the General Tab of the Proforma.
@@ -286,7 +289,7 @@ class ExternalFileCollection(collections.UserDict):
         if self:
             head = "*** External files\n"
             v_ = (
-                ("ASSIGN", '"{}"'.format(ext_file.value), ext_file.logical_unit,)
+                ("ASSIGN", '"{}"'.format(ext_file.value), ext_file.logical_unit)
                 for ext_file in self.values()
             )
             core = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
@@ -882,11 +885,11 @@ class TrnsysModel(Component):
             [
                 output_dict.pop(key)
                 for key in dict(
-                filter(
-                    lambda kv: kv[1].role == type_ and kv[1]._iscycle,
-                    self._meta.variables.items(),
+                    filter(
+                        lambda kv: kv[1].role == type_ and kv[1]._iscycle,
+                        self._meta.variables.items(),
+                    )
                 )
-            )
             ]
             # make sure to cycle through all possible items
             items_list = list(
@@ -930,13 +933,13 @@ class TrnsysModel(Component):
         externals = self.external_files._to_deck() if self.external_files else ""
 
         return (
-                str(unit_type)
-                + str(studio)
-                + params._to_deck()
-                + inputs._to_deck()
-                + initial_input_values._to_deck()
-                + derivatives._to_deck()
-                + str(externals)
+            str(unit_type)
+            + str(studio)
+            + params._to_deck()
+            + inputs._to_deck()
+            + initial_input_values._to_deck()
+            + derivatives._to_deck()
+            + str(externals)
         )
 
     def update_meta(self, new_meta):
@@ -966,10 +969,10 @@ class TrnsysModel(Component):
                 {
                     id(ext): ext
                     for ext in {
-                    ExternalFile.from_tag(tag)
-                    for tag in tag
-                    if isinstance(tag, Tag)
-                }
+                        ExternalFile.from_tag(tag)
+                        for tag in tag
+                        if isinstance(tag, Tag)
+                    }
                 }
             )
 
@@ -994,21 +997,21 @@ class TypeVariable(object):
     """
 
     def __init__(
-            self,
-            val,
-            order=None,
-            name=None,
-            role=None,
-            dimension=None,
-            unit=None,
-            type=None,
-            min=None,
-            max=None,
-            boundaries=None,
-            default=None,
-            symbol=None,
-            definition=None,
-            model=None,
+        self,
+        val,
+        order=None,
+        name=None,
+        role=None,
+        dimension=None,
+        unit=None,
+        type=None,
+        min=None,
+        max=None,
+        boundaries=None,
+        default=None,
+        symbol=None,
+        definition=None,
+        model=None,
     ):
         """Initialize a TypeVariable with the following attributes:
 
@@ -1165,7 +1168,7 @@ class TypeVariable(object):
                     lambda kv: isinstance(
                         self.model._meta.variables[kv], self.__class__
                     )
-                               and self.model._meta.variables[kv]._iscyclebase == False,
+                    and self.model._meta.variables[kv]._iscyclebase == False,
                     self.model._meta.variables,
                 ),
                 key=lambda key: self.model._meta.variables[key].order,
@@ -1186,16 +1189,16 @@ class TypeVariable(object):
 
 class TypeCycle(object):
     def __init__(
-            self,
-            role=None,
-            firstRow=None,
-            lastRow=None,
-            cycles=None,
-            minSize=None,
-            maxSize=None,
-            paramName=None,
-            question=None,
-            **kwargs
+        self,
+        role=None,
+        firstRow=None,
+        lastRow=None,
+        cycles=None,
+        minSize=None,
+        maxSize=None,
+        paramName=None,
+        question=None,
+        **kwargs
     ):
         """
         Args:
@@ -1878,37 +1881,36 @@ class LinkStyle(object):
     def _to_deck(self):
         """0:20:40:20:1:0:0:0:1:513,441:471,441:471,430:447,430"""
         anchors = (
-                ":".join(
-                    [
-                        ":".join(
-                            map(
-                                str,
-                                AnchorPoint(self.u).studio_anchor_mapping[
-                                    self.u_anchor_name
-                                ],
-                            )
-                        ),
-                        ":".join(
-                            map(
-                                str,
-                                AnchorPoint(self.u).studio_anchor_mapping[
-                                    self.v_anchor_name
-                                ],
-                            )
-                        ),
-                    ]
-                )
-                + ":"
+            ":".join(
+                [
+                    ":".join(
+                        map(
+                            str,
+                            AnchorPoint(self.u).studio_anchor_mapping[
+                                self.u_anchor_name
+                            ],
+                        )
+                    ),
+                    ":".join(
+                        map(
+                            str,
+                            AnchorPoint(self.u).studio_anchor_mapping[
+                                self.v_anchor_name
+                            ],
+                        )
+                    ),
+                ]
+            )
+            + ":"
         )
 
         color = (
-                str(
-                    get_int_from_rgb(
-                        tuple(
-                            [u * 255 for u in colorConverter.to_rgb(self.get_color())])
-                    )
+            str(
+                get_int_from_rgb(
+                    tuple([u * 255 for u in colorConverter.to_rgb(self.get_color())])
                 )
-                + ":"
+            )
+            + ":"
         )
         path = ",".join(
             [":".join(map(str, n.astype(int).tolist())) for n in np.array(self.path)]
@@ -2635,22 +2637,22 @@ class ControlCards(object):
     """
 
     def __init__(
-            self,
-            version=None,
-            simulation=None,
-            tolerances=None,
-            limits=None,
-            nancheck=None,
-            overwritecheck=None,
-            timereport=None,
-            dfq=None,
-            width=None,
-            nocheck=None,
-            eqsolver=None,
-            solver=None,
-            nolist=None,
-            list=None,
-            map=None,
+        self,
+        version=None,
+        simulation=None,
+        tolerances=None,
+        limits=None,
+        nancheck=None,
+        overwritecheck=None,
+        timereport=None,
+        dfq=None,
+        width=None,
+        nocheck=None,
+        eqsolver=None,
+        solver=None,
+        nolist=None,
+        list=None,
+        map=None,
     ):
         """Each simulation must have SIMULATION and END statements. The other
         simulation control statements are optional. Default values are assumed
