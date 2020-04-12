@@ -116,8 +116,7 @@ def _parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
     except:
         if value == "STEP":
             value = 1
-            # Todo: figure out better logic when default value
-            #  is 'STEP
+            # Todo: figure out better logic when default value is 'STEP'
         elif value == "START":
             value = 1
         elif value == "STOP":
@@ -216,7 +215,7 @@ def redistribute_vertices(geom, distance):
             ]
         )
     else:
-        raise ValueError("unhandled geometry %s", (geom.geom_type,))
+        raise TypeError("unhandled geometry %s", (geom.geom_type,))
 
 
 ureg = UnitRegistry()
