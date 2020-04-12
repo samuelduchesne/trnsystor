@@ -567,7 +567,7 @@ class TrnsysModel(Component):
 
     def __repr__(self):
         """str: The String representation of this object."""
-        return "Type{}: {}".format(self.type_number, self.name)
+        return "[{}]Type{}: {}".format(self.unit_number, self.type_number, self.name)
 
     @classmethod
     def from_xml(cls, xml, **kwargs):
