@@ -3,9 +3,9 @@ lxml
 pint
 beautifulsoup4
 tabulate
-path.py
+path
 shapely
 numpy
 matplotlib
-sympy==1.4
 pandas
+sympy
