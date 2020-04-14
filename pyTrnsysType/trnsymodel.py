@@ -372,8 +372,9 @@ class StudioCanvas:
         self.height = height
         self.invalidate_grid()
 
-    def shortest_nocrossing(self, u, v, donotcross=True):
-        """
+    def shortest_path(self, u, v, donotcross=True):
+        """Returns the shortest path on the canvas grid. If dotnotcross=True,
+        the edges along the path will be removed from the canvas grid graph in order
 
         Args:
             u (Point): The *from* Point geometry.
@@ -2006,7 +2007,7 @@ class LinkStyle(object):
             _u = AnchorPoint(self.u).anchor_points[u_anchor_name]
             _v = AnchorPoint(self.v).anchor_points[v_anchor_name]
             if self.autopath:
-                self._path = self.u.studio_canvas.shortest_nocrossing(_u, _v)
+                self._path = self.u.studio_canvas.shortest_path(_u, _v)
             else:
                 line = LineString([_u, _v])
                 self._path = redistribute_vertices(line, line.length / 3)
