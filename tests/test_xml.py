@@ -847,3 +847,20 @@ class TestComponentCollection:
         print(cc.loc.keys())
         print(cc.iloc.keys())
         [print(item) for item in cc]
+
+
+class TestStudioCanvas:
+    """TODO: complete tests for Canvas LinkStyles and path positioning"""
+    def test_shortest_path(self, tank_type: Component, pipe_type: Component):
+        pipe_type.set_canvas_position((1, 50))
+        tank_type.set_canvas_position((100, 50))
+        pipe_type.connect_to(tank_type, mapping={0: 0, 1: 1})
+
+        # create second set of Components
+        pipe_type2 = pipe_type.copy()
+        tank_type2 = tank_type.copy()
+        pipe_type2.set_canvas_position((50, 100))
+        tank_type2.set_canvas_position((50, 1))
+        pipe_type2.connect_to(tank_type2, mapping={0: 0, 1: 1})
+
+        print(pipe_type2.link_styles)
