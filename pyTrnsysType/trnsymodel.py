@@ -56,7 +56,7 @@ class MetaData(object):
         externalFiles=None,
         compileCommand=None,
         model=None,
-        **kwargs
+        **kwargs,
     ):
         """General information that is associated with a :class:`TrnsysModel`.
         This information is contained in the General Tab of the Proforma.
@@ -389,7 +389,10 @@ class StudioCanvas:
             for edge in edges:
                 self.grid.remove_edges_from(edge)
         # create linestring and simplify to unit and return
-        return LineString(shortest_path).simplify(1)
+        try:
+            return LineString(shortest_path).simplify(1)
+        except ValueError:
+            return shortest_path
 
 
 class Component(metaclass=ABCMeta):
@@ -399,6 +402,7 @@ class Component(metaclass=ABCMeta):
 
     new_id = itertools.count(start=1)
     studio_canvas = StudioCanvas()
+    unit_graph = nx.MultiDiGraph()
 
     def __init__(self, name, meta):
         """Initialize a Component with the following parameters:
@@ -411,6 +415,10 @@ class Component(metaclass=ABCMeta):
         self.name = name
         self._meta = meta
         self.studio = StudioHeader.from_component(self)
+        self.unit_graph.add_node(self)
+
+    def __del__(self):
+        self.unit_graph.remove_node(self)
 
     def __hash__(self):
         return self.unit_number
@@ -420,6 +428,13 @@ class Component(metaclass=ABCMeta):
             return self.unit_number == other.unit_number
         else:
             return self.unit_number == other
+
+    @property
+    def link_styles(self):
+        return [
+            data["LinkStyle"]
+            for u, v, key, data in self.unit_graph.edges(keys=True, data=True)
+        ]
 
     def set_canvas_position(self, pt, trnsys_coords=False):
         """Set position of self in the canvas. Use cartesian coordinates: origin
@@ -554,16 +569,25 @@ class Component(metaclass=ABCMeta):
         if other is None:
             raise ValueError("Other is None")
 
-        style = LinkStyle(self, other, loc, path=path)
+        style = LinkStyle(
+            self,
+            other,
+            loc,
+            path=path,
+            color=color,
+            linestyle=linestyle,
+            linewidth=linewidth,
+        )
+        if self.unit_graph.has_edge(self, other):
+            for key in self.unit_graph[self][other]:
+                self.unit_graph[self][other][key]["LinkStyle"] = style
+        else:
+            raise KeyError(
+                "Trying to set a LinkStyle on a non-existent connection. "
+                f"Make sure to connect {self} using '.connect_to()'"
+            )
 
-        style.set_color(color)
-        style.set_linestyle(linestyle)
-        style.set_linewidth(linewidth)
-        u = self.unit_number
-        v = other.unit_number
-        self.studio.link_styles.update({(u, v): style})
-
-    def connect_to(self, other, mapping=None, link_style=None):
+    def connect_to(self, other, mapping=None, link_style_kwargs=None):
         """Connect the outputs of :attr:`self` to the inputs of :attr:`other`.
 
         Important:
@@ -587,18 +611,18 @@ class Component(metaclass=ABCMeta):
             >>> 'Inlet_Air_Humidity_Ratio'})
 
         Args:
-            other (TrnsysModel): The other object
-            mapping (dict): Mapping of inputs to outputs numbers
-            link_style (dict, optional):
+            other (Component): The other object
+            mapping (dict): Mapping of output to intput numbers (or names)
+            link_style_kwargs (dict, optional): dict of :class:`LinkStyle` parameters
 
         Raises:
             TypeError: A `TypeError is raised when trying to connect to anything
-                other than a :class:`TrnsysModel` .
+                other than a :class:`TrnsysModel`.
         """
-        if link_style is None:
-            link_style = {}
-        if not isinstance(other, TrnsysModel):
-            raise TypeError("Only `TrsnsysModel` objects can be connected " "together")
+        if link_style_kwargs is None:
+            link_style_kwargs = {}
+        if not isinstance(other, Component):
+            raise TypeError("Only `Component` objects can be connected together")
         if mapping is None:
             raise NotImplementedError(
                 "Automapping is not yet implemented. " "Please provide a mapping dict"
@@ -608,26 +632,52 @@ class Component(metaclass=ABCMeta):
             # loop over the mapping and assign :class:`TypeVariable` to
             # `_connected_to` attribute.
             for from_self, to_other in mapping.items():
-                if other.inputs[to_other].is_connected:
-                    input = other.inputs[to_other]
-                    output = other.inputs[to_other]._connected_to
+                u = self.outputs[from_self]
+                v = other.inputs[to_other]
+                if self.unit_graph.has_edge(self, other, (u, v)):
                     msg = (
                         'The output "{}: {}" of model "{}" is already '
-                        'connected to the input "{}: {}" of model '
-                        '"{}"'.format(
-                            output.idx,
-                            output.name,
-                            output.model.name,
-                            input.idx,
-                            input.name,
-                            input.model.name,
+                        'connected to the input "{}: {}" of model "{}"'.format(
+                            u.idx, u.name, u.model.name, v.idx, v.name, v.model.name,
                         )
                     )
                     raise ValueError(msg)
                 else:
-                    other.inputs[to_other]._connected_to = self.outputs[from_self]
-                    self.outputs[from_self]._connected_to.append(other.inputs[to_other])
-        self.set_link_style(other, **link_style)
+                    loc = link_style_kwargs.pop("loc", "best")
+                    self.unit_graph.add_edge(
+                        u_for_edge=self,
+                        v_for_edge=other,
+                        key=(u, v),
+                        LinkStyle=LinkStyle(self, other, loc=loc, **link_style_kwargs),
+                    )
+
+    @property
+    def successors(self):
+        """Other objects to which this TypeVariable is connected. successors"""
+        return self.unit_graph.successors(self)
+
+    @property
+    def predecessors(self):
+        """Other objects from which this TypeVariable is connected. Predecessors"""
+        return self.unit_graph.predecessors(self)
+
+    def invalidate_connections(self):
+        """iterate over inputs/outputs and force :attr:`_connected_to` to
+        None.
+
+        Todo: restore paths in self.studio_canvas.grid
+        """
+        edges = []
+        for nbr in self.unit_graph.successors(self):
+            edges.append((self, nbr))
+        for nbr in self.unit_graph.predecessors(self):
+            edges.append((nbr, self))
+        has_edge = True
+        while edges:
+            edge = edges.pop()
+            self.unit_graph.remove_edge(*edge)
+            if self.unit_graph.has_edge(*edge):
+                edges.append(edge)
 
 
 class TrnsysModel(Component):
@@ -684,6 +734,7 @@ class TrnsysModel(Component):
         """
         new = copy.deepcopy(self)
         new._unit = next(new.new_id)
+        new.unit_graph.add_node(new)
         if invalidate_connections:
             new.invalidate_connections()
         from shapely.affinity import translate
@@ -691,30 +742,6 @@ class TrnsysModel(Component):
         pt = translate(self.centroid, 50, 0)
         new.set_canvas_position(pt)
         return new
-
-    def invalidate_connections(self):
-        """iterate over inputs/outputs and force :attr:`_connected_to` to
-        None.
-
-        Todo: restore paths in self.studio_canvas.grid
-        """
-        for key in self.outputs:
-            to = self.outputs[key].connected_to
-            # if connections, for each out connections
-            if to:
-                for i in to:
-                    # get the path (LineString)
-                    path = self.studio.link_styles[
-                        self.unit_number, i.model.unit_number
-                    ].path
-                    # list of edges sequence of path coordinates
-                    edges = zip(path.coords[0::1], path.coords[1::1])
-                    # add edges to graph
-                    self.studio_canvas.grid.add_edges_from(edges)
-                # set output connection to None
-                self.outputs[key].__dict__["_connected_to"] = None
-        for key in self.inputs:
-            self.inputs[key].__dict__["_connected_to"] = None
 
     @property
     def derivatives(self):
@@ -1072,6 +1099,26 @@ class TrnsysModel(Component):
 
         # _meta = MetaData.from_tag([s for s in new_meta.author.parents][-1])
 
+    def plot(self):
+        import matplotlib.pyplot as plt
+
+        G = nx.DiGraph()
+        G.add_edges_from(("type", output.name) for output in self.outputs.values())
+        G.add_edges_from((input.name, "type") for input in self.inputs.values())
+        pos = nx.drawing.planar_layout(G, center=(50, 50))
+        ax = nx.draw_networkx(
+            G,
+            pos,
+            with_labels=True,
+            edge_labels={
+                ("type", output.name): output.name for output in self.outputs.values()
+            },
+            arrow=True,
+            width=4,
+        )
+        plt.show()
+        return ax
+
 
 class TypeVariable(object):
     """
@@ -1235,13 +1282,17 @@ class TypeVariable(object):
 
     @property
     def is_connected(self):
-        """Whether or not this TypeVariable is connected to another type"""
-        return self.connected_to is not None
-
-    @property
-    def connected_to(self):
-        """The TrnsysModel to which this component is connected"""
-        return self._connected_to
+        """Whether or not this TypeVariable is connected to another TypeVariable.
+        Checks if self is in any keys"""
+        # connected = 0
+        # for nbr in self.model.unit_graph[self.model]:
+        #     for key in self.model.unit_graph[self.model][nbr]:
+        #         if self in key:
+        #             connected += 1
+        if isinstance(self, Input):
+            return self.predecessor is not None
+        elif isinstance(self, Output):
+            return len(self.successors) > 0
 
     @property
     def idx(self):
@@ -1286,7 +1337,7 @@ class TypeCycle(object):
         maxSize=None,
         paramName=None,
         question=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Args:
@@ -1412,6 +1463,25 @@ class Input(TypeVariable):
             self.name, self.unit, self.value, self.definition
         )
 
+    @property
+    def predecessor(self):
+        """Other TypeVariable from which this Input TypeVariable is connected.
+        Predecessors
+        Todo: May have to return a list
+        """
+        predecessors = []
+        for pre in self.model.unit_graph.predecessors(self.model):
+            for key in self.model.unit_graph[pre][self.model]:
+                if self in key:
+                    u, v = key
+                    predecessors.append(u)
+        if len(predecessors) > 1:
+            raise Exception("An Input cannot have {predecessors} predecessors")
+        elif predecessors:
+            return next(iter(predecessors))
+        else:
+            return None
+
 
 class InitialInputValue(TypeVariable):
     """A subclass of :class:`TypeVariable` specific to Initial Input Values"""
@@ -1453,6 +1523,17 @@ class Output(TypeVariable):
         return "{}; units={}; value={:~P}\n{}".format(
             self.name, self.unit, self.value, self.definition
         )
+
+    @property
+    def successors(self):
+        """Other TypeVariables to which this TypeVariable is connected. Successors"""
+        successors = []
+        for suc in self.model.unit_graph.successors(self.model):
+            for key in self.model.unit_graph[self.model][suc]:
+                if self in key:
+                    u, v = key
+                    successors.append(v)
+        return successors
 
 
 class Derivative(TypeVariable):
@@ -1670,30 +1751,30 @@ class InputCollection(VariableCollection):
         _ins = []
         for input in self.values():
             if input.is_connected:
-                if isinstance(input.connected_to, TypeVariable):
+                if isinstance(input.predecessor, TypeVariable):
                     _ins.append(
                         (
                             "{},{}".format(
-                                input.connected_to.model.unit_number,
-                                input.connected_to.one_based_idx,
+                                input.predecessor.model.unit_number,
+                                input.predecessor.one_based_idx,
                             ),
                             "! {out_model_name}:{output_name} -> {in_model_name}:{"
                             "input_name}".format(
-                                out_model_name=input.connected_to.model.name,
-                                output_name=input.connected_to.name,
+                                out_model_name=input.predecessor.model.name,
+                                output_name=input.predecessor.name,
                                 in_model_name=input.model.name,
                                 input_name=input.name,
                             ),
                         )
                     )
-                elif isinstance(input.connected_to, (Equation, Constant)):
+                elif isinstance(input.predecessor, (Equation, Constant)):
                     _ins.append(
                         (
-                            input.connected_to.name,
+                            input.predecessor.name,
                             "! {out_model_name}:{output_name} -> {in_model_name}:{"
                             "input_name}".format(
-                                out_model_name=input.connected_to.model.name,
-                                output_name=input.connected_to.name,
+                                out_model_name=input.predecessor.model.name,
+                                output_name=input.predecessor.name,
                                 in_model_name=input.model.name,
                                 input_name=input.name,
                             ),
@@ -1803,7 +1884,6 @@ class StudioHeader(object):
         """
         if layer is None:
             layer = ["Main"]
-        self.link_styles = {}
         self.layer = layer
         self.position = position
         self.model = model
@@ -1887,8 +1967,8 @@ class LinkStyle(object):
     ):
         """
         Args:
-            u (TrnsysModel): from Model.
-            v (TrnsysModel): to Model.
+            u (Component): from Model.
+            v (Component): to Model.
             loc (str or tuple): loc (str): The location of the anchor. The
                 strings 'top-left', 'top-right', 'bottom-left', 'bottom-right'
                 place the anchor point at the corresponding corner of the
@@ -1910,30 +1990,40 @@ class LinkStyle(object):
             path (LineString or MultiLineString): The path the link should
                 follow.
         """
-        if isinstance(loc, tuple):
-            loc_u, loc_v = loc
-        else:
-            loc_u = loc
-            loc_v = loc
-        self.v = v
         self.u = u
-        self.u_anchor_name, self.v_anchor_name = AnchorPoint(self.u).studio_anchor(
-            self.v, (loc_u, loc_v)
-        )
+        self.v = v
+        self.loc = loc
         self._color = color
         self._linestyle = linestyle
         self._linewidth = linewidth
+        self.autopath = autopath
+        self._path = None
 
-        if path is None:
-            u = AnchorPoint(self.u).anchor_points[self.u_anchor_name]
-            v = AnchorPoint(self.v).anchor_points[self.v_anchor_name]
-            if autopath:
-                self.path = self.u.studio_canvas.shortest_nocrossing(u, v)
+    @property
+    def path(self):
+        if self._path is None:
+            u_anchor_name, v_anchor_name = self.anchor_ids
+            _u = AnchorPoint(self.u).anchor_points[u_anchor_name]
+            _v = AnchorPoint(self.v).anchor_points[v_anchor_name]
+            if self.autopath:
+                self._path = self.u.studio_canvas.shortest_nocrossing(_u, _v)
             else:
-                line = LineString([u, v])
-                self.path = redistribute_vertices(line, line.length / 3)
+                line = LineString([_u, _v])
+                self._path = redistribute_vertices(line, line.length / 3)
+        return self._path
+
+    @path.setter
+    def path(self, value):
+        self._path = value
+
+    @property
+    def anchor_ids(self):
+        if isinstance(self.loc, tuple):
+            loc_u, loc_v = self.loc
         else:
-            self.path = path
+            loc_u = self.loc
+            loc_v = self.loc
+        return AnchorPoint(self.u).studio_anchor(self.v, (loc_u, loc_v))
 
     def __repr__(self):
         return self._to_deck()
@@ -1984,23 +2074,20 @@ class LinkStyle(object):
 
     def _to_deck(self):
         """0:20:40:20:1:0:0:0:1:513,441:471,441:471,430:447,430"""
+        u_anchor_name, v_anchor_name = self.anchor_ids
         anchors = (
             ":".join(
                 [
                     ":".join(
                         map(
                             str,
-                            AnchorPoint(self.u).studio_anchor_mapping[
-                                self.u_anchor_name
-                            ],
+                            AnchorPoint(self.u).studio_anchor_mapping[u_anchor_name],
                         )
                     ),
                     ":".join(
                         map(
                             str,
-                            AnchorPoint(self.u).studio_anchor_mapping[
-                                self.v_anchor_name
-                            ],
+                            AnchorPoint(self.u).studio_anchor_mapping[v_anchor_name],
                         )
                     ),
                 ]
@@ -2033,7 +2120,7 @@ class AnchorPoint(object):
     def __init__(self, model, offset=20, height=40, width=40):
         """
         Args:
-            model (TrnsysModel): The TrnsysModel.
+            model (Component): The Component.
             offset (float): The offset to give the anchor points from the center
                 of the model position.
             height (float): The height of the component in points.
@@ -3515,6 +3602,7 @@ class ConstantCollection(collections.UserDict, Component):
         self.name = Name(name)
         self.studio = StudioHeader.from_component(self)
         self._unit = next(TrnsysModel.new_id)
+        self._connected_to = []
 
     def __getitem__(self, key):
         """
@@ -3645,7 +3733,7 @@ class Equation(Statement):
         self.doc = doc
         self.model = model  # the TrnsysModel this Equation belongs to.
 
-        self._connected_to = None
+        self._connected_to = []
 
     def __repr__(self):
         return " = ".join([self.name, self._to_deck()])
@@ -3795,6 +3883,14 @@ class Equation(Statement):
     def connected_to(self):
         """The TrnsysModel to which this component is connected"""
         return self._connected_to
+
+    @connected_to.setter
+    def connected_to(self, value):
+        if isinstance(value, Component):
+            # todo: if self._connected_to, restore existing paths from canvas grid
+            self._connected_to = value
+        else:
+            raise TypeError(f"can't set with type{type(value)}")
 
     def _to_deck(self):
         if isinstance(self.equals_to, TypeVariable):

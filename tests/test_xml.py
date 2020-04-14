@@ -6,6 +6,8 @@ from mock import patch
 from path import Path
 from shapely.geometry import Point, LineString
 
+from pyTrnsysType import TrnsysModel, Component
+
 
 @pytest.fixture(scope="class")
 def fan_type():
@@ -304,37 +306,37 @@ class TestTrnsysModel:
         [
             {0: 0, 1: 1},
             {
-                "Outlet_Air_Temperature": "Inlet_Air_Temperature",
-                "Outlet_Air_Humidity_Ratio": "Inlet_Air_Humidity_Ratio",
+                "Outlet_Fluid_Temperature_Pipe_1": "Hot_side_temperature",
+                "Outlet_Fluid_Flowrate_Pipe_1": "Hot_side_flowrate",
             },
             pytest.param(None, marks=pytest.mark.xfail(raises=NotImplementedError)),
         ],
         ids=["int_mapping", "str_mapping", "automapping"],
     )
-    def test_connect_to(self, fan_type, mapping):
-        fan_type.invalidate_connections()
-        fan_2 = fan_type.copy()
-        fan_type.connect_to(fan_2, mapping=mapping)
+    def test_connect_to(self, pipe_type: Component, tank_type: Component, mapping):
+        pipe_type.invalidate_connections()
+        pipe_type.connect_to(tank_type, mapping=mapping)
         for key, value in mapping.items():
-            if fan_type.outputs[key].is_connected:
-                assert fan_2.inputs[value] in fan_type.outputs[key].connected_to
+            if pipe_type.outputs[key].is_connected:
+                assert pipe_type.outputs[key] == tank_type.inputs[value].predecessor
+                assert tank_type.inputs[value] in pipe_type.outputs[key].successors
 
         # test that connecting to anything else than a TrnsysModel raises a
         # TypeError exception
         with pytest.raises(TypeError):
-            fan_type.connect_to(0)
+            pipe_type.connect_to(0)
 
         # connecting to objects already connected should raise an error
         with pytest.raises(ValueError):
-            fan_type.connect_to(fan_2, mapping=mapping)
+            pipe_type.connect_to(tank_type, mapping=mapping)
 
     def test_connect_eqcollection_to_type(self, fan_type, tank_type):
         from pyTrnsysType import EquationCollection
         from pyTrnsysType import Equation
 
         ec = EquationCollection(Equation.from_expression("my=b"))
-        ec.set_canvas_position((500, 500))
-        ec.connect_to(fan_type, mapping={0: 0}, link_style={})
+        ec.set_canvas_position((50, 50))
+        ec.connect_to(fan_type, mapping={0: 0}, link_style_kwargs={})
 
         print(fan_type._to_deck())
 
@@ -385,34 +387,49 @@ class TestTrnsysModel:
         assert dr._meta.compileCommand.text == r"df /c"
 
     def test_set_position(self, fan_type):
-        fan_type.set_canvas_position((500, 400))
-        assert fan_type.studio.position == Point(500, 400)
+        fan_type.set_canvas_position((50, 40))
+        assert fan_type.studio.position == Point(50, 40)
+
+    def test_set_link_style_to_itself_error(self, fan_type):
+        """Setting a link style on an non-existent connection should raise KeyError"""
+        fan_type.invalidate_connections()
+        with pytest.raises(KeyError):
+            fan_type.set_link_style(fan_type)
 
     def test_set_link_style_to_itself(self, fan_type):
+        """"""
+        fan_type.connect_to(fan_type, mapping={0: 0})
         fan_type.set_link_style(fan_type)
+
+    def test_plot(self, fan_type: TrnsysModel):
+        fan_type.plot()
 
     def test_set_link_style(self, fan_type):
         fan2 = fan_type.copy()
         fan2.set_canvas_position((100, 100))
+        fan_type.connect_to(fan2, mapping={0: 0, 1: 1})
         fan_type.set_link_style(fan2, loc=("top-left", "top-right"))
-        [print(stl) for stl in fan_type.studio.link_styles.values()]
+        [print(stl) for stl in fan_type.link_styles]
 
         with pytest.raises(ValueError):
             # In case None is passed, should raise Value Error
             fan_type.set_link_style(None, loc=("top-left", "top-right"))
 
-    def test_set_link_path(self, fan_type):
+    def test_set_link_path(self, fan_type: Component):
         fan2 = fan_type.copy()
-        fan_type.set_canvas_position((200, 200))
-        fan2.set_canvas_position((100, 100))
-        path = LineString([(200, 200), (150, 150), (100, 100)])
-        fan_type.set_link_style(fan2, loc="best", path=path)
+        fan_type.set_canvas_position((80, 80))
+        fan2.set_canvas_position((10, 10))
+        path = LineString([(80, 80), (15, 80), (10, 10)])
+        fan_type.connect_to(
+            fan2, mapping={0: 0, 1: 1}, link_style_kwargs={"loc": "best", "path": path}
+        )
 
     def test_set_link_style_best(self, fan_type):
         fan2 = fan_type.copy()
         fan2.set_canvas_position((100, 50))
+        fan_type.connect_to(fan2, mapping={0:0,1:1})
         fan_type.set_link_style(fan2, loc="best")
-        [print(stl) for stl in fan_type.studio.link_styles.values()]
+        [print(stl) for stl in fan_type.link_styles]
 
     @pytest.mark.xfail()
     def test_set_anchor_point(self, pipe_type):
