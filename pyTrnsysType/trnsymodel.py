@@ -390,7 +390,7 @@ class StudioCanvas:
                 self.grid.remove_edges_from(edge)
         # create linestring and simplify to unit and return
         try:
-            LineString(shortest_path).simplify(1)
+            return LineString(shortest_path).simplify(1)
         except ValueError:
             return shortest_path
 
@@ -429,6 +429,13 @@ class Component(metaclass=ABCMeta):
         else:
             return self.unit_number == other
 
+    @property
+    def link_styles(self):
+        return [
+            data["LinkStyle"]
+            for u, v, key, data in self.unit_graph.edges(keys=True, data=True)
+        ]
+
     def set_canvas_position(self, pt, trnsys_coords=False):
         """Set position of self in the canvas. Use cartesian coordinates: origin
         0,0 is at bottom-left.
@@ -458,12 +465,10 @@ class Component(metaclass=ABCMeta):
         if pt.within(self.studio_canvas.bbox):
             self.studio.position = pt
         else:
-            self.studio.position = pt
-        # else:
-        #     raise ValueError(
-        #         "Can't set canvas position {} because it falls outside "
-        #         "the bounds of the studio canvas size".format(pt)
-        #     )
+            raise ValueError(
+                "Can't set canvas position {} because it falls outside "
+                "the bounds of the studio canvas size".format(pt)
+            )
 
     def set_component_layer(self, layers):
         """Change the component's layer. Pass a list to change multiple layers
@@ -564,16 +569,25 @@ class Component(metaclass=ABCMeta):
         if other is None:
             raise ValueError("Other is None")
 
-        style = LinkStyle(self, other, loc, path=path)
+        style = LinkStyle(
+            self,
+            other,
+            loc,
+            path=path,
+            color=color,
+            linestyle=linestyle,
+            linewidth=linewidth,
+        )
+        if self.unit_graph.has_edge(self, other):
+            for key in self.unit_graph[self][other]:
+                self.unit_graph[self][other][key]["LinkStyle"] = style
+        else:
+            raise KeyError(
+                "Trying to set a LinkStyle on a non-existent connection. "
+                f"Make sure to connect {self} using '.connect_to()'"
+            )
 
-        style.set_color(color)
-        style.set_linestyle(linestyle)
-        style.set_linewidth(linewidth)
-        u = self.unit_number
-        v = other.unit_number
-        self.studio.link_styles.update({(u, v): style})
-
-    def connect_to(self, other, mapping=None, link_style=None):
+    def connect_to(self, other, mapping=None, link_style_kwargs=None):
         """Connect the outputs of :attr:`self` to the inputs of :attr:`other`.
 
         Important:
@@ -599,14 +613,14 @@ class Component(metaclass=ABCMeta):
         Args:
             other (Component): The other object
             mapping (dict): Mapping of output to intput numbers (or names)
-            link_style (dict, optional):
+            link_style_kwargs (dict, optional): dict of :class:`LinkStyle` parameters
 
         Raises:
             TypeError: A `TypeError is raised when trying to connect to anything
                 other than a :class:`TrnsysModel`.
         """
-        if link_style is None:
-            link_style = {}
+        if link_style_kwargs is None:
+            link_style_kwargs = {}
         if not isinstance(other, Component):
             raise TypeError("Only `Component` objects can be connected together")
         if mapping is None:
@@ -629,11 +643,12 @@ class Component(metaclass=ABCMeta):
                     )
                     raise ValueError(msg)
                 else:
+                    loc = link_style_kwargs.pop("loc", "best")
                     self.unit_graph.add_edge(
                         u_for_edge=self,
                         v_for_edge=other,
                         key=(u, v),
-                        link=LinkStyle(self, other, loc="best", **link_style),
+                        LinkStyle=LinkStyle(self, other, loc=loc, **link_style_kwargs),
                     )
 
     @property
@@ -1275,7 +1290,7 @@ class TypeVariable(object):
         #         if self in key:
         #             connected += 1
         if isinstance(self, Input):
-            return self.predecessors is not None
+            return self.predecessor is not None
         elif isinstance(self, Output):
             return len(self.successors) > 0
 
@@ -1449,9 +1464,11 @@ class Input(TypeVariable):
         )
 
     @property
-    def predecessors(self):
+    def predecessor(self):
         """Other TypeVariable from which this Input TypeVariable is connected.
-        Predecessors"""
+        Predecessors
+        Todo: May have to return a list
+        """
         predecessors = []
         for pre in self.model.unit_graph.predecessors(self.model):
             for key in self.model.unit_graph[pre][self.model]:
@@ -1734,30 +1751,30 @@ class InputCollection(VariableCollection):
         _ins = []
         for input in self.values():
             if input.is_connected:
-                if isinstance(input.predecessors, TypeVariable):
+                if isinstance(input.predecessor, TypeVariable):
                     _ins.append(
                         (
                             "{},{}".format(
-                                input.predecessors.model.unit_number,
-                                input.predecessors.one_based_idx,
+                                input.predecessor.model.unit_number,
+                                input.predecessor.one_based_idx,
                             ),
                             "! {out_model_name}:{output_name} -> {in_model_name}:{"
                             "input_name}".format(
-                                out_model_name=input.predecessors.model.name,
-                                output_name=input.predecessors.name,
+                                out_model_name=input.predecessor.model.name,
+                                output_name=input.predecessor.name,
                                 in_model_name=input.model.name,
                                 input_name=input.name,
                             ),
                         )
                     )
-                elif isinstance(input.predecessors, (Equation, Constant)):
+                elif isinstance(input.predecessor, (Equation, Constant)):
                     _ins.append(
                         (
-                            input.predecessors.name,
+                            input.predecessor.name,
                             "! {out_model_name}:{output_name} -> {in_model_name}:{"
                             "input_name}".format(
-                                out_model_name=input.predecessors.model.name,
-                                output_name=input.predecessors.name,
+                                out_model_name=input.predecessor.model.name,
+                                output_name=input.predecessor.name,
                                 in_model_name=input.model.name,
                                 input_name=input.name,
                             ),
@@ -1867,7 +1884,6 @@ class StudioHeader(object):
         """
         if layer is None:
             layer = ["Main"]
-        self.link_styles = {}
         self.layer = layer
         self.position = position
         self.model = model
@@ -1974,26 +1990,40 @@ class LinkStyle(object):
             path (LineString or MultiLineString): The path the link should
                 follow.
         """
-        if isinstance(loc, tuple):
-            loc_u, loc_v = loc
-        else:
-            loc_u = loc
-            loc_v = loc
-        u_anchor_name, v_anchor_name = AnchorPoint(u).studio_anchor(v, (loc_u, loc_v))
+        self.u = u
+        self.v = v
+        self.loc = loc
         self._color = color
         self._linestyle = linestyle
         self._linewidth = linewidth
+        self.autopath = autopath
+        self._path = None
 
-        if path is None:
-            _u = AnchorPoint(u).anchor_points[u_anchor_name]
-            _v = AnchorPoint(v).anchor_points[v_anchor_name]
-            if autopath:
-                self.path = u.studio_canvas.shortest_nocrossing(_u, _v)
+    @property
+    def path(self):
+        if self._path is None:
+            u_anchor_name, v_anchor_name = self.anchor_ids
+            _u = AnchorPoint(self.u).anchor_points[u_anchor_name]
+            _v = AnchorPoint(self.v).anchor_points[v_anchor_name]
+            if self.autopath:
+                self._path = self.u.studio_canvas.shortest_nocrossing(_u, _v)
             else:
                 line = LineString([_u, _v])
-                self.path = redistribute_vertices(line, line.length / 3)
+                self._path = redistribute_vertices(line, line.length / 3)
+        return self._path
+
+    @path.setter
+    def path(self, value):
+        self._path = value
+
+    @property
+    def anchor_ids(self):
+        if isinstance(self.loc, tuple):
+            loc_u, loc_v = self.loc
         else:
-            self.path = path
+            loc_u = self.loc
+            loc_v = self.loc
+        return AnchorPoint(self.u).studio_anchor(self.v, (loc_u, loc_v))
 
     def __repr__(self):
         return self._to_deck()
@@ -2044,23 +2074,20 @@ class LinkStyle(object):
 
     def _to_deck(self):
         """0:20:40:20:1:0:0:0:1:513,441:471,441:471,430:447,430"""
+        u_anchor_name, v_anchor_name = self.anchor_ids
         anchors = (
             ":".join(
                 [
                     ":".join(
                         map(
                             str,
-                            AnchorPoint(self.u).studio_anchor_mapping[
-                                self.u_anchor_name
-                            ],
+                            AnchorPoint(self.u).studio_anchor_mapping[u_anchor_name],
                         )
                     ),
                     ":".join(
                         map(
                             str,
-                            AnchorPoint(self.u).studio_anchor_mapping[
-                                self.v_anchor_name
-                            ],
+                            AnchorPoint(self.u).studio_anchor_mapping[v_anchor_name],
                         )
                     ),
                 ]
