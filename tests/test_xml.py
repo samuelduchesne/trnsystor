@@ -427,7 +427,7 @@ class TestTrnsysModel:
     def test_set_link_style_best(self, fan_type):
         fan2 = fan_type.copy()
         fan2.set_canvas_position((100, 50))
-        fan_type.connect_to(fan2, mapping={0:0,1:1})
+        fan_type.connect_to(fan2, mapping={0: 0, 1: 1})
         fan_type.set_link_style(fan2, loc="best")
         [print(stl) for stl in fan_type.link_styles]
 
@@ -504,7 +504,7 @@ class TestStatements:
         fan_type.copy()
         fan_type._unit = 1  # we need to force the id to one here
         no_check = NoCheck(inputs=list(fan_type.inputs.values()))
-        assert no_check._to_deck() == "NOCHECK 7\n1, 1	1, 2	1, 3	1, " "4	1, 5	1, 6	1, 7"
+        assert no_check._to_deck() == "NOCHECK 7\n1, 1	1, 2	1, 3	1, 4	1, 5	1, 6	1, 7"
 
         with pytest.raises(ValueError):
             # check exceeding input limits. Multiply list by 10.
@@ -695,9 +695,7 @@ class TestConstantsAndEquations:
         equa1 = Equation("T_out", fan_type.outputs[0])
         equa_block = EquationCollection([equa1])
         assert str(equa1) == "T_out = [1, 1]"
-        assert (
-            str(equa_block) == '* EQUATIONS "None"\n\nEQUATIONS ' "1\nT_out  =  [1, 1]"
-        )
+        assert str(equa_block) == '* EQUATIONS "None"\n\nEQUATIONS 1\nT_out  =  [1, 1]'
 
     def test_two_unnamed_equationcollection(self, fan_type):
         """make sure objects with same name=None can be created"""
