@@ -680,6 +680,25 @@ class Component(metaclass=ABCMeta):
             if self.unit_graph.has_edge(*edge):
                 edges.append(edge)
 
+    def copy(self, invalidate_connections=True):
+        """Returns a copy of the Component. The copy will be translated 10 units to
+        the right.
+
+        Args:
+            invalidate_connections (bool): If True, connections to other Components
+                will be reset.
+        """
+        new = copy.deepcopy(self)
+        new._unit = next(new.new_id)
+        new.unit_graph.add_node(new)
+        if invalidate_connections:
+            new.invalidate_connections()
+        from shapely.affinity import translate
+
+        pt = translate(self.centroid, 10, 0)
+        new.set_canvas_position(pt)
+        return new
+
 
 class TrnsysModel(Component):
     def __init__(self, meta, name):
@@ -725,24 +744,6 @@ class TrnsysModel(Component):
                 t.studio = StudioHeader.from_component(t)
                 all_types.append(t)
             return all_types[0]
-
-    def copy(self, invalidate_connections=True):
-        """copy object
-
-        Args:
-            invalidate_connections (bool): If True, connections to other models
-                will be reset.
-        """
-        new = copy.deepcopy(self)
-        new._unit = next(new.new_id)
-        new.unit_graph.add_node(new)
-        if invalidate_connections:
-            new.invalidate_connections()
-        from shapely.affinity import translate
-
-        pt = translate(self.centroid, 50, 0)
-        new.set_canvas_position(pt)
-        return new
 
     @property
     def derivatives(self):
@@ -928,8 +929,8 @@ class TrnsysModel(Component):
         creation each time the linked parameters are changed.
 
         Args:
-            type_:
-            class_:
+            type_ (str): The name of the TypeVariable.
+            class_ (TypeVariable):
         """
         output_dict = self._get_ordered_filtered_types(class_, "variables")
         cycles = {
