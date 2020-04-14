@@ -6,6 +6,8 @@ from mock import patch
 from path import Path
 from shapely.geometry import Point, LineString
 
+from pyTrnsysType import TrnsysModel, Component
+
 
 @pytest.fixture(scope="class")
 def fan_type():
@@ -304,29 +306,29 @@ class TestTrnsysModel:
         [
             {0: 0, 1: 1},
             {
-                "Outlet_Air_Temperature": "Inlet_Air_Temperature",
-                "Outlet_Air_Humidity_Ratio": "Inlet_Air_Humidity_Ratio",
+                "Outlet_Fluid_Temperature_Pipe_1": "Hot_side_temperature",
+                "Outlet_Fluid_Flowrate_Pipe_1": "Hot_side_flowrate",
             },
             pytest.param(None, marks=pytest.mark.xfail(raises=NotImplementedError)),
         ],
         ids=["int_mapping", "str_mapping", "automapping"],
     )
-    def test_connect_to(self, fan_type, mapping):
-        fan_type.invalidate_connections()
-        fan_2 = fan_type.copy()
-        fan_type.connect_to(fan_2, mapping=mapping)
+    def test_connect_to(self, pipe_type: Component, tank_type: Component, mapping):
+        pipe_type.invalidate_connections()
+        pipe_type.connect_to(tank_type, mapping=mapping)
         for key, value in mapping.items():
-            if fan_type.outputs[key].is_connected:
-                assert fan_2.inputs[value] in fan_type.outputs[key].connected_to
+            if pipe_type.outputs[key].is_connected:
+                assert pipe_type.outputs[key] == tank_type.inputs[value].predecessors
+                assert tank_type.inputs[value] in pipe_type.outputs[key].successors
 
         # test that connecting to anything else than a TrnsysModel raises a
         # TypeError exception
         with pytest.raises(TypeError):
-            fan_type.connect_to(0)
+            pipe_type.connect_to(0)
 
         # connecting to objects already connected should raise an error
         with pytest.raises(ValueError):
-            fan_type.connect_to(fan_2, mapping=mapping)
+            pipe_type.connect_to(tank_type, mapping=mapping)
 
     def test_connect_eqcollection_to_type(self, fan_type, tank_type):
         from pyTrnsysType import EquationCollection
@@ -390,6 +392,9 @@ class TestTrnsysModel:
 
     def test_set_link_style_to_itself(self, fan_type):
         fan_type.set_link_style(fan_type)
+
+    def test_plot(self, fan_type: TrnsysModel):
+        fan_type.plot()
 
     def test_set_link_style(self, fan_type):
         fan2 = fan_type.copy()
