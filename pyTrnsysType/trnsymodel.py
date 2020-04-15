@@ -401,7 +401,7 @@ class Component(metaclass=ABCMeta):
     :class:`TrnsysModel`,  :class:`ConstantCollection` and
     :class:`EquationCollection` implement this class."""
 
-    new_id = itertools.count(start=1)
+    initial_unit_number = itertools.count(start=1)
     studio_canvas = StudioCanvas()
     unit_graph = nx.MultiDiGraph()
 
@@ -412,7 +412,7 @@ class Component(metaclass=ABCMeta):
             name (str): Name of the component.
             meta (MetaData): MetaData associated with this component.
         """
-        self._unit = next(TrnsysModel.new_id)
+        self._unit = next(TrnsysModel.initial_unit_number)
         self.name = name
         self._meta = meta
         self.studio = StudioHeader.from_component(self)
@@ -689,7 +689,7 @@ class Component(metaclass=ABCMeta):
                 will be reset.
         """
         new = copy.deepcopy(self)
-        new._unit = next(new.new_id)
+        new._unit = next(new.initial_unit_number)
         new.unit_graph.add_node(new)
         if invalidate_connections:
             new.invalidate_connections()
@@ -2478,7 +2478,7 @@ class Deck(object):
             line:
             proforma_root:
         """
-        global model, ec, i
+        global component, i
         while line:
             key, match = dck._parse_line(line)
             if key == "end":
@@ -2552,28 +2552,31 @@ class Deck(object):
                     value = head.strip()
                     # create equation
                     list_eq.append(Equation.from_expression(value))
-                ec = EquationCollection(list_eq, name=Name("block"))
-                dck.remove_models(ec)
-                ec._unit = ec.new_id
-                dck.update_models(ec)
+                component = EquationCollection(list_eq, name=Name("block"))
+                dck.remove_models(component)
+                component._unit = component.initial_unit_number
+                dck.update_models(component)
                 # append the dictionary to the data list
             if key == "userconstantend":
-                dck.update_models(ec)
+                try:
+                    dck.update_models(component)
+                except NameError:
+                    print("Empty UserConstants block")
             # read studio markup
             if key == "unitnumber":
-                dck.remove_models(ec)
+                dck.remove_models(component)
                 unit_number = match.group(key)
-                ec._unit = int(unit_number)
-                dck.update_models(ec)
+                component._unit = int(unit_number)
+                dck.update_models(component)
             if key == "unitname":
                 unit_name = match.group(key)
-                ec.name = unit_name
+                component.name = unit_name
             if key == "layer":
                 layer = match.group(key)
-                ec.set_component_layer(layer)
+                component.set_component_layer(layer)
             if key == "position":
                 pos = match.group(key)
-                ec.set_canvas_position(map(float, pos.strip().split()), False)
+                component.set_canvas_position(map(float, pos.strip().split()), False)
             # identify a unit (TrnsysModel)
             if key == "unit":
                 # extract unit_number, type_number and name
@@ -2581,17 +2584,16 @@ class Deck(object):
                 t = match.group("typenumber").strip()
                 n = match.group("name").strip()
 
+                xml = Path(proforma_root).glob(f"Type{t}*.xml")
                 try:
-                    xml = Path("tests/input_files").glob("Type{}*.xml".format(t))
-                    model = TrnsysModel.from_xml(next(iter(xml)), name=n)
-                except:
-                    _meta = MetaData(type=t)
-                    model = TrnsysModel(_meta, name=n)
+                    component = TrnsysModel.from_xml(next(iter(xml)), name=n)
+                except StopIteration:
+                    raise ValueError(f"Could not find proforma for Type{t}")
                 else:
-                    model._unit = int(u)
-                    dck.update_models(model)
+                    component._unit = int(u)
+                    dck.update_models(component)
             if key == "parameters" or key == "inputs":
-                if model._meta.variables:
+                if component._meta.variables:
                     n_vars = int(match.group(key).strip())
                     i = -1
                     while line:
@@ -2605,7 +2607,7 @@ class Deck(object):
                             if varkey == "typevariable":
                                 tvar = match.group("typevariable").strip()
                                 try:
-                                    cls.set_typevariable(dck, i, model, tvar, key)
+                                    cls.set_typevariable(dck, i, component, tvar, key)
                                 except KeyError:
                                     line = cls._parse_logic(
                                         cc, dck, dcklines, line, proforma_root
@@ -2677,15 +2679,12 @@ class Deck(object):
                     xmls = proforma_root.glob("*.xml")
                     xml = next((x for x in xmls if x.basename() == xml_basename), None)
                     if not xml:
-                        msg = (
-                            "The proforma {} could not be found "
-                            "at"
-                            ' "{}"'.format(xml_basename, proforma_root)
+                        raise ValueError(
+                            f"The proforma {xml_basename} could not be found "
+                            f"at {proforma_root}"
                         )
-                        lg.warning(msg)
-                        continue
                     meta = MetaData.from_xml(xml)
-                model.update_meta(meta)
+                component.update_meta(meta)
 
             line = dcklines.readline()
         return line
@@ -3603,7 +3602,7 @@ class ConstantCollection(collections.UserDict, Component):
         super().__init__(_dict)
         self.name = Name(name)
         self.studio = StudioHeader.from_component(self)
-        self._unit = next(TrnsysModel.new_id)
+        self._unit = next(TrnsysModel.initial_unit_number)
         self._connected_to = []
 
     def __getitem__(self, key):
@@ -3941,7 +3940,7 @@ class EquationCollection(collections.UserDict, Component):
             _dict = mutable
         super().__init__(_dict)
         self.name = Name(name)
-        self._unit = next(TrnsysModel.new_id)
+        self._unit = next(TrnsysModel.initial_unit_number)
         self.studio = StudioHeader.from_component(self)
 
     def __getitem__(self, key):
