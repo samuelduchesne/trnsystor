@@ -329,7 +329,7 @@ class ComponentCollection(collections.UserList):
 
 class StudioCanvas:
     # TODO: Document class
-    def __init__(self, width=150, height=150):
+    def __init__(self, width=2000, height=1000):
         self._grid_valid = True
         self._grid = None
         self.width = width
