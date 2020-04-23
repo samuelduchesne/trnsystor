@@ -7,7 +7,6 @@ import re
 import tempfile
 from io import StringIO
 from abc import ABCMeta, abstractmethod
-from typing import IO, Union
 
 import networkx as nx
 import numpy as np
@@ -331,7 +330,9 @@ class ComponentCollection(collections.UserList):
 
 
 class StudioCanvas:
-    # TODO: Document class
+    """Properties and settings related to the virtual canvas onto which components
+    can be positioned. A StudioCanvas object is initialised and shared by all
+    :class:`Component` instances."""
     def __init__(self, width=2000, height=1000):
         self._grid_valid = True
         self._grid = None
@@ -345,6 +346,9 @@ class StudioCanvas:
 
     @property
     def grid_is_valid(self):
+        """Returns the validity of the grid. For instance, when a :class:`Component`
+        is removed, the grid is invalidated to trigger a recalculation of the paths
+        between components"""
         if self._grid_valid:
             return True
         else:
@@ -360,12 +364,18 @@ class StudioCanvas:
             return self._grid
 
     def invalidate_grid(self):
+        """Invalidate the grid. See also :meth:`grid_is_valid`"""
         self._grid_valid = False
 
     def resize_canvas(self, width, height):
         """Change the canvas size.
 
-        TODO: Handle grid when canvas size is changed (e.g used paths)
+        TODO:
+            * Handle grid when canvas size is changed (e.g used paths)
+            * Check that all Components position don't fall outside the grid after
+              the resizing.
+            * Implement Proportional Resize where component positions are scalled to
+              keep the same arrangement.
 
         Args:
             width (int): new width.
@@ -708,6 +718,11 @@ class Component(metaclass=ABCMeta):
         pt = translate(self.centroid, 10, 0)
         new.set_canvas_position(pt)
         return new
+
+    @abstractmethod
+    def _to_deck(self):
+        """print the Input File (.dck) representation of this TrnsysModel"""
+        pass
 
 
 class TrnsysModel(Component):
@@ -2299,8 +2314,8 @@ class Deck(object):
         date_created=None,
         control_cards=None,
         models=None,
-        canvas_width=10000,
-        canvas_height=10000,
+        canvas_width=1200,
+        canvas_height=1000,
     ):
         """Initialize a Deck object with parameters:
 

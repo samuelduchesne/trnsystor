@@ -7,5 +7,5 @@ path
 shapely
 numpy
 matplotlib
-pandas
+pandas>1.0.0
 sympy
