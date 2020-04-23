@@ -1,5 +1,5 @@
 import os
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, TemporaryFile
 
 import pytest
 from mock import patch
@@ -338,7 +338,7 @@ class TestTrnsysModel:
         ec.set_canvas_position((50, 50))
         ec.connect_to(fan_type, mapping={0: 0}, link_style_kwargs={})
 
-        print(fan_type._to_deck())
+        assert ec.predecessors
 
     def test_to_deck_with_connected(self, fan_type):
         fan_2 = fan_type.copy()
@@ -647,7 +647,7 @@ class TestConstantsAndEquations:
         from pyTrnsysType import Equation
 
         equa_col_2 = EquationCollection(
-            [equa for equa in equation_block.values()], name="test"
+            [equa for equa in equation_block.values()], name="test2"
         )
 
         assert equation_block.name != equa_col_2.name
@@ -765,7 +765,7 @@ class TestDeck:
 
         file = "tests/input_files/Case600h10.dck"
         with patch("builtins.input", return_value="y"):
-            dck = Deck.read_file(file)
+            dck = Deck.read_file(file, proforma_root="tests/input_files")
             yield dck
 
     @pytest.fixture(scope="class")
@@ -826,7 +826,7 @@ class TestDeck:
         print(self, pvt_deck)
 
     def test_save(self, pvt_deck):
-        pvt_deck.save("test.dck")
+        pvt_deck.to_file("test.dck", None, "w")
 
 
 class TestComponent:
@@ -851,6 +851,7 @@ class TestComponentCollection:
 
 class TestStudioCanvas:
     """TODO: complete tests for Canvas LinkStyles and path positioning"""
+
     def test_shortest_path(self, tank_type: Component, pipe_type: Component):
         pipe_type.set_canvas_position((1, 50))
         tank_type.set_canvas_position((100, 50))
@@ -864,3 +865,56 @@ class TestStudioCanvas:
         pipe_type2.connect_to(tank_type2, mapping={0: 0, 1: 1})
 
         print(pipe_type2.link_styles)
+
+
+class TestDeckFormatter:
+    @pytest.fixture()
+    def deck(self):
+        from pyTrnsysType import Deck, ControlCards
+
+        cc = ControlCards.basic_template()
+        yield Deck("Simple Deck", control_cards=cc)
+
+    def test_type951(self, deck):
+        from pyTrnsysType.trnsymodel import TrnsysModel
+
+        model = TrnsysModel.from_xml(Path("tests\input_files\Type951.xml"))
+        deck.update_models(model)
+
+        with TemporaryFile("w") as deck_file:
+            deck.to_file(deck_file, None, "w")
+
+        with open("test_deck.txt", "w") as deck_file:
+            deck.to_file(deck_file, None, "w")
+
+        deck.to_file("test_deck.txt")
+
+
+class TestCommonTypes:
+    @pytest.fixture()
+    def deck(self, tmp_path):
+        from pyTrnsysType import Deck, ControlCards
+
+        cc = ControlCards.basic_template()
+        deck = Deck("Simple Deck", control_cards=cc)
+        yield deck
+
+    def test_type951(self, deck, tmp_path):
+        from pyTrnsysType.trnsymodel import TrnsysModel, Deck
+
+        d = tmp_path / "sub"
+        d.mkdir()
+        p = d / "deck_type951.txt"
+
+        model = TrnsysModel.from_xml(Path("tests\input_files\Type951.xml"))
+        deck.update_models(model)
+        deck.to_file(p)
+        readdeck = Deck.read_file(p, proforma_root="tests/input_files")
+        actual = Deck.read_file(
+            "tests/input_files/tpfs/Type951.dck", proforma_root="tests/input_files"
+        )
+        actual_model = actual.models.iloc[2]
+        read_model = readdeck.models.iloc[1]
+        assert model._to_deck()
+        assert read_model._to_deck()
+        assert actual_model._to_deck()

@@ -5,7 +5,9 @@ import itertools
 import logging as lg
 import re
 import tempfile
+from io import StringIO
 from abc import ABCMeta, abstractmethod
+from typing import IO, Union
 
 import networkx as nx
 import numpy as np
@@ -13,6 +15,7 @@ import tabulate
 from bs4 import BeautifulSoup, Tag
 from matplotlib.colors import colorConverter
 from pandas import to_datetime
+from pandas.io.common import get_filepath_or_buffer, get_handle
 from path import Path
 from pint.quantity import _Quantity
 from shapely.geometry import Point, LineString, MultiLineString, MultiPoint, box
@@ -405,16 +408,17 @@ class Component(metaclass=ABCMeta):
     studio_canvas = StudioCanvas()
     unit_graph = nx.MultiDiGraph()
 
-    def __init__(self, name, meta):
+    def __init__(self, *args, **kwargs):
         """Initialize a Component with the following parameters:
 
         Args:
             name (str): Name of the component.
             meta (MetaData): MetaData associated with this component.
         """
+        super().__init__(*args)
         self._unit = next(TrnsysModel.initial_unit_number)
-        self.name = name
-        self._meta = meta
+        self.name = kwargs.pop("name")
+        self._meta = kwargs.pop("meta", None)
         self.studio = StudioHeader.from_component(self)
         self.unit_graph.add_node(self)
 
@@ -653,6 +657,12 @@ class Component(metaclass=ABCMeta):
                     )
 
     @property
+    def is_connected(self):
+        """Whether or not this Component is connected to another TypeVariable.
+        Connected to or connected by."""
+        return any([len(list(self.predecessors)) > 0, len(list(self.successors)) > 0])
+
+    @property
     def successors(self):
         """Other objects to which this TypeVariable is connected. successors"""
         return self.unit_graph.successors(self)
@@ -710,7 +720,7 @@ class TrnsysModel(Component):
             meta (MetaData): A class containing the model's metadata.
             name (str): A user-defined name for this model.
         """
-        super().__init__(name, meta)
+        super().__init__(name=name, meta=meta)
 
     def __repr__(self):
         """str: The String representation of this object."""
@@ -1286,11 +1296,6 @@ class TypeVariable(object):
     def is_connected(self):
         """Whether or not this TypeVariable is connected to another TypeVariable.
         Checks if self is in any keys"""
-        # connected = 0
-        # for nbr in self.model.unit_graph[self.model]:
-        #     for key in self.model.unit_graph[self.model][nbr]:
-        #         if self in key:
-        #             connected += 1
         if isinstance(self, Input):
             return self.predecessor is not None
         elif isinstance(self, Output):
@@ -1890,6 +1895,7 @@ class StudioHeader(object):
         self.position = position
         self.model = model
         self.unit_name = unit_name
+        self.link_styles = {}
 
     def __str__(self):
         return self._to_deck()
@@ -2243,6 +2249,42 @@ class AnchorPoint(object):
         return self.model.studio.position
 
 
+class DeckFormatter:
+    """Class for handling the formatting of deck files"""
+
+    def __init__(self, obj, path_or_buf, encoding=None, mode="w"):
+
+        if path_or_buf is None:
+            path_or_buf = StringIO()
+        self.path_or_buf, _, _, _ = get_filepath_or_buffer(
+            path_or_buf, encoding=encoding, compression=None, mode=mode
+        )
+        self.obj = obj
+        self.mode = mode
+        if encoding is None:
+            encoding = "utf-8"
+        self.encoding = encoding
+
+    def save(self):
+        """Create the writer & save."""
+        if hasattr(self.path_or_buf, "write"):
+            f = self.path_or_buf
+            close = False
+        else:
+            f, handles = get_handle(
+                self.path_or_buf, self.mode, encoding=self.encoding, compression=None,
+            )
+            close = True
+        try:
+            deck_str = str(self.obj)
+            f.write(deck_str)
+        finally:
+            if close:
+                f.close()
+                for _fh in handles:
+                    _fh.close()
+
+
 class Deck(object):
     """The Deck class holds :class:`TrnsysModel` objects, the
     :class:`ControlCards` and specifies the name of the project. This class
@@ -2358,7 +2400,7 @@ class Deck(object):
             for output, typevar in component.inputs.items():
                 if typevar.is_connected:
                     v = component
-                    u = typevar.connected_to.model
+                    u = typevar.predecessor.model
                     G.add_edge(
                         u.unit_number,
                         v.unit_number,
@@ -2387,64 +2429,68 @@ class Deck(object):
                 "ASSIGNED paths are unique unless this is desired."
             )
 
-    def update_models(self, model):
+    def update_models(self, amodel):
         """Update the Deck.models attribute with a :class:`TrnsysModel` or a
         list of :class:`TrnsysModel`.
 
         Args:
-            model (Component or list of Component):
+            amodel (Component or list of Component):
 
         Returns:
             None.
         """
-        if isinstance(model, Component):
-            model = [model]
-        for model in model:
+        if isinstance(amodel, Component):
+            amodel = [amodel]
+        for amodel in amodel:
             # iterate over models and try to pop the existing one
-            if model.unit_number in [mod.unit_number for mod in self.models]:
+            if amodel.unit_number in [mod.unit_number for mod in self.models]:
                 for i, item in enumerate(self.models):
-                    if item.unit_number == model.unit_number:
+                    if item.unit_number == amodel.unit_number:
                         self.models.pop(i)
                         break
             # in any case, add new one
-            self.models.append(model)
+            self.models.append(amodel)
 
-    def remove_models(self, model):
+    def remove_models(self, amodel):
         """
         Args:
-            model:
+            amodel:
         """
-        if isinstance(model, Component):
-            model = [model]
-        for model in model:
+        if isinstance(amodel, Component):
+            amodel = [amodel]
+        for amodel in amodel:
             # iterate over models and try to pop the existing one
-            if model.unit_number in [mod.unit_number for mod in self.models]:
+            if amodel.unit_number in [mod.unit_number for mod in self.models]:
                 for i, item in enumerate(self.models):
-                    if item.unit_number == model.unit_number:
+                    if item.unit_number == amodel.unit_number:
                         self.models.pop(i)
                         break
 
-    def save(self, filename):
+    def to_file(self, path_or_buf, encoding=None, mode="w"):
         """Saves the Deck object to file
 
         Examples:
 
             >>> from pyTrnsysType import Deck
-            >>> deck = Deck()
-            >>> deck.save("my_project.dck")
+            >>> deck = Deck("Unnamed")
+            >>> deck.to_file("my_project.dck",None,"w")
 
         Args:
-            filename (str): The name of the file (with the extension).
+            path_or_buf (Union[str, Path, IO[AnyStr]]): str or file handle, default None
+                File path or object, if None is provided the result is returned as
+                a string.  If a file object is passed it should be opened with
+                `newline=''`, disabling universal newlines.
         """
         self.check_deck_integrity()
 
-        file = Path(filename)
-        dir = file.dirname()
-        if dir != "" and not dir.exists():
-            file.dirname().makedirs_p()
-        with open(file, "w+") as _file:
-            deck_str = str(self)
-            _file.write(deck_str)
+        formatter = DeckFormatter(self, path_or_buf, encoding=encoding, mode=mode)
+
+        formatter.save()
+
+        if path_or_buf is None:
+            return formatter.path_or_buf.getvalue()
+
+        return None
 
     def _to_string(self):
         end = self.control_cards.__dict__.pop("end", End())
@@ -2453,20 +2499,24 @@ class Deck(object):
         models = "\n\n".join([model._to_deck() for model in self.models])
 
         model: Component
-        styles = "*!LINK_STYLE\n" + "".join(
-            map(
-                str,
-                list(
-                    itertools.chain.from_iterable(
-                        [model.studio.link_styles.values() for model in self.models]
-                    )
-                ),
+        styles = (
+            "\n*!LINK_STYLE\n"
+            + "".join(
+                map(
+                    str,
+                    list(
+                        itertools.chain.from_iterable(
+                            [model.studio.link_styles.values() for model in self.models]
+                        )
+                    ),
+                )
             )
+            + "*!LINK_STYLE_END"
         )
 
         end = end._to_deck()
 
-        return "\n\n".join([cc, models, end, styles])
+        return "\n".join([cc, models, end]) + styles
 
     @classmethod
     def _parse_logic(cls, cc, dck, dcklines, line, proforma_root):
@@ -3877,21 +3927,31 @@ class Equation(Statement):
 
     @property
     def is_connected(self):
-        """Whether or not this TypeVariable is connected to another type"""
-        return self.connected_to is not None
+        """Whether or not this TypeVariable is connected to another TypeVariable.
+        Checks if self is in any keys"""
+        if isinstance(self, Input):
+            return self.predecessor is not None
+        elif isinstance(self, Output):
+            return len(self.successors) > 0
 
     @property
-    def connected_to(self):
-        """The TrnsysModel to which this component is connected"""
-        return self._connected_to
-
-    @connected_to.setter
-    def connected_to(self, value):
-        if isinstance(value, Component):
-            # todo: if self._connected_to, restore existing paths from canvas grid
-            self._connected_to = value
+    def predecessor(self):
+        """Other TypeVariable from which this Input TypeVariable is connected.
+        Predecessors
+        Todo: May have to return a list
+        """
+        predecessors = []
+        for pre in self.model.unit_graph.predecessors(self.model):
+            for key in self.model.unit_graph[pre][self.model]:
+                if self in key:
+                    u, v = key
+                    predecessors.append(u)
+        if len(predecessors) > 1:
+            raise Exception("An Input cannot have {predecessors} predecessors")
+        elif predecessors:
+            return next(iter(predecessors))
         else:
-            raise TypeError(f"can't set with type{type(value)}")
+            return None
 
     def _to_deck(self):
         if isinstance(self.equals_to, TypeVariable):
@@ -3905,7 +3965,7 @@ class Equation(Statement):
             return self.equals_to
 
 
-class EquationCollection(collections.UserDict, Component):
+class EquationCollection(Component, collections.UserDict):
     """A class that behaves like a dict and that collects one or more
     :class:`Equations`. This class behaves a little bit like the equation
     component in the TRNSYS Studio, meaning that you can list equation in a
@@ -3920,7 +3980,7 @@ class EquationCollection(collections.UserDict, Component):
         :class:`Equation` class for more details.
     """
 
-    def __init__(self, mutable=None, name=None):
+    def __init__(self, mutable=None, name=None, **kwargs):
         """Initialize a new EquationCollection.
 
         Example:
@@ -3938,10 +3998,7 @@ class EquationCollection(collections.UserDict, Component):
             _dict = {f.name: f for f in mutable}
         else:
             _dict = mutable
-        super().__init__(_dict)
-        self.name = Name(name)
-        self._unit = next(TrnsysModel.initial_unit_number)
-        self.studio = StudioHeader.from_component(self)
+        super(EquationCollection, self).__init__(_dict, meta=None, name=name, **kwargs)
 
     def __getitem__(self, key):
         """
