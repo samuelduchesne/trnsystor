@@ -238,32 +238,32 @@ class TestTrnsysModel:
         for _, a in tank_type.inputs.items():
             assert float(a) == 45.0
             assert (
-                repr(a) == "Hot-side temperature; units=C; value=45.0 °C\nThe"
-                " temperature of the fluid flowing into the tank from "
-                "the heat source. The inlet location for this hot-side "
-                "fluid is one element below the upper auxiliary heating"
-                " element."
+                    repr(a) == "Hot-side temperature; units=C; value=45.0 °C\nThe"
+                               " temperature of the fluid flowing into the tank from "
+                               "the heat source. The inlet location for this hot-side "
+                               "fluid is one element below the upper auxiliary heating"
+                               " element."
             )
             break
         for _, a in tank_type.outputs.items():
             assert float(a) == 0.0
             assert (
-                repr(a) == "Temperature to heat source; units=C; value=0.0 "
-                "°C\nThe temperature of the fluid flowing from the"
-                " bottom of the storage tank and returning to the heat "
-                "source (the temperature of the bottom node)."
+                    repr(a) == "Temperature to heat source; units=C; value=0.0 "
+                               "°C\nThe temperature of the fluid flowing from the"
+                               " bottom of the storage tank and returning to the heat "
+                               "source (the temperature of the bottom node)."
             )
             break
         for _, a in tank_type.parameters.items():
             assert int(a) == 1
             assert (
-                repr(a) == "Fixed inlet positions; units=-; value=1\nThe auxiliary"
-                " storage tank may operate in one of three modes in "
-                "determining the inlet positions of the flow streams. "
-                "Mode 1 indicates that the heat source flow enters the "
-                "tank in the node located just below the top auxiliary "
-                "heating element. The cold source flow enters at the "
-                "bottom of the tank. Do not change this parameter."
+                    repr(a) == "Fixed inlet positions; units=-; value=1\nThe auxiliary"
+                               " storage tank may operate in one of three modes in "
+                               "determining the inlet positions of the flow streams. "
+                               "Mode 1 indicates that the heat source flow enters the "
+                               "tank in the node located just below the top auxiliary "
+                               "heating element. The cold source flow enters at the "
+                               "bottom of the tank. Do not change this parameter."
             )
             break
 
@@ -504,7 +504,8 @@ class TestStatements:
         fan_type.copy()
         fan_type._unit = 1  # we need to force the id to one here
         no_check = NoCheck(inputs=list(fan_type.inputs.values()))
-        assert no_check._to_deck() == "NOCHECK 7\n1, 1	1, 2	1, 3	1, 4	1, 5	1, 6	1, 7"
+        assert no_check._to_deck() == "NOCHECK 7\n1, 1	1, 2	1, 3	1, 4	1, " \
+                                      "5	1, 6	1, 7"
 
         with pytest.raises(ValueError):
             # check exceeding input limits. Multiply list by 10.
@@ -878,7 +879,7 @@ class TestDeckFormatter:
     def test_type951(self, deck):
         from pyTrnsysType.trnsymodel import TrnsysModel
 
-        model = TrnsysModel.from_xml(Path("tests\input_files\Type951.xml"))
+        model = TrnsysModel.from_xml("tests/input_files/Type951.xml")
         deck.update_models(model)
 
         with TemporaryFile("w") as deck_file:
@@ -906,7 +907,7 @@ class TestCommonTypes:
         d.mkdir()
         p = d / "deck_type951.txt"
 
-        model = TrnsysModel.from_xml(Path("tests\input_files\Type951.xml"))
+        model = TrnsysModel.from_xml("tests/input_files/Type951.xml")
         deck.update_models(model)
         deck.to_file(p)
         readdeck = Deck.read_file(p, proforma_root="tests/input_files")
