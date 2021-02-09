@@ -4,22 +4,24 @@ from pyTrnsysType import redistribute_vertices
 
 
 class TestRedistributeVertices:
-
     @pytest.fixture
     def line(self):
         from shapely.geometry.polygon import LineString
-        line = LineString([(0, 0), (1, 1), (2,2)])
+
+        line = LineString([(0, 0), (1, 1), (2, 2)])
         yield line
 
     @pytest.fixture
     def ring(self):
         from shapely.geometry.polygon import LinearRing
+
         ring = LinearRing([(0, 0), (1, 1), (1, 0)])
         yield ring
 
     @pytest.fixture
     def zero_geom(self):
         from shapely.geometry.polygon import LineString
+
         line = LineString([(1, 1), (1, 1)])
         yield line
 

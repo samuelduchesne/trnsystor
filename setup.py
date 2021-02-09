@@ -2,9 +2,9 @@
 import codecs
 import os
 import re
-
 from os import path
-from setuptools import setup
+
+from setuptools import setup, find_packages
 
 here = os.getcwd()
 
@@ -38,7 +38,7 @@ package = "pyTrnsysType"
 setup(
     name=package,
     version=find_version(package, "__init__.py"),
-    packages=[package],
+    packages=find_packages(),
     url="https://github.com/samuelduchesne/{}".format(package),
     license="MIT",
     author="Samuel Letellier-Duchesne",

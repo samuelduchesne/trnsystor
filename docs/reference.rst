@@ -24,7 +24,7 @@ Main Classes
 Trnsys Statements
 -----------------
 
-.. currentmodule:: pyTrnsysType
+.. currentmodule:: pyTrnsysType.statement
 .. autosummary::
     :template: autosummary.rst
     :nosignatures:
@@ -69,7 +69,7 @@ Helper Classes
 Collections
 -----------
 
-.. currentmodule:: pyTrnsysType
+.. currentmodule:: pyTrnsysType.collections
 .. autosummary::
     :template: autosummary.rst
     :nosignatures:
