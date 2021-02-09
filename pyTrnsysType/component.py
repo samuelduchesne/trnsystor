@@ -20,20 +20,21 @@ class Component(metaclass=ABCMeta):
     :class:`TrnsysModel`,  :class:`ConstantCollection` and
     :class:`EquationCollection` implement this class."""
 
-    NEW_ID = itertools.count(start=1)
+    INIT_UNIT_NUMBER = itertools.count(start=1)
     STUDIO_CANVAS = StudioCanvas()
     UNIT_GRAPH = nx.MultiDiGraph()
 
-    def __init__(self, name, meta):
+    def __init__(self, *args, **kwargs):
         """Initialize a Component with the following parameters:
 
         Args:
             name (str): Name of the component.
             meta (MetaData): MetaData associated with this component.
         """
-        self._unit = next(Component.NEW_ID)
-        self.name = name
-        self._meta = meta
+        super().__init__(*args)
+        self._unit = next(Component.INIT_UNIT_NUMBER)
+        self.name = kwargs.pop("name")
+        self._meta = kwargs.pop("meta", None)
         self.studio = StudioHeader.from_component(self)
         self.UNIT_GRAPH.add_node(self)
 
@@ -280,6 +281,12 @@ class Component(metaclass=ABCMeta):
     def successors(self):
         """Other objects to which this TypeVariable is connected. successors"""
         return self.UNIT_GRAPH.successors(self)
+
+    @property
+    def is_connected(self):
+        """Whether or not this Component is connected to another TypeVariable.
+        Connected to or connected by."""
+        return any([len(list(self.predecessors)) > 0, len(list(self.successors)) > 0])
 
     @property
     def predecessors(self):

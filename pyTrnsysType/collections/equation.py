@@ -12,7 +12,7 @@ from pyTrnsysType.statement import Equation
 from pyTrnsysType.studio import StudioHeader
 
 
-class EquationCollection(collections.UserDict, Component):
+class EquationCollection(Component, collections.UserDict):
     """A class that behaves like a dict and that collects one or more
     :class:`Equations`. This class behaves a little bit like the equation
     component in the TRNSYS Studio, meaning that you can list equation in a
@@ -27,7 +27,7 @@ class EquationCollection(collections.UserDict, Component):
         :class:`Equation` class for more details.
     """
 
-    def __init__(self, mutable=None, name=None):
+    def __init__(self, mutable=None, name=None, **kwargs):
         """Initialize a new EquationCollection.
 
         Example:
@@ -45,10 +45,7 @@ class EquationCollection(collections.UserDict, Component):
             _dict = {f.name: f for f in mutable}
         else:
             _dict = mutable
-        super().__init__(_dict)
-        self.name = Name(name)
-        self._unit = next(Component.NEW_ID)
-        self.studio = StudioHeader.from_component(self)
+        super(EquationCollection, self).__init__(_dict, meta=None, name=name, **kwargs)
 
     def __getitem__(self, key):
         """
@@ -61,8 +58,8 @@ class EquationCollection(collections.UserDict, Component):
             value = super().__getitem__(key)
         return value
 
-    # def __hash__(self):
-    #     return self.unit_number
+    def __hash__(self):
+        return self.unit_number
 
     def __repr__(self):
         return self._to_deck()
@@ -71,9 +68,6 @@ class EquationCollection(collections.UserDict, Component):
         # optional processing here
         value.model = self
         super().__setitem__(key, value)
-
-    def __hash__(self):
-        return self._unit
 
     def update(self, E=None, **F):
         """D.update([E, ]**F). Update D from a dict/list/iterable E and F.

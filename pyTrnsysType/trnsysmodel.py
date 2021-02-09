@@ -200,7 +200,7 @@ class TrnsysModel(Component):
             meta (MetaData): A class containing the model's metadata.
             name (str): A user-defined name for this model.
         """
-        super().__init__(name, meta)
+        super().__init__(name=name, meta=meta)
 
     def __repr__(self):
         """str: The String representation of this object."""
@@ -243,7 +243,7 @@ class TrnsysModel(Component):
                 will be reset.
         """
         new = copy.deepcopy(self)
-        new._unit = next(new.NEW_ID)
+        new._unit = next(new.INIT_UNIT_NUMBER)
         new.UNIT_GRAPH.add_node(new)
         if invalidate_connections:
             new.invalidate_connections()

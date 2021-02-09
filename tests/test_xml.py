@@ -339,7 +339,7 @@ class TestTrnsysModel:
         ec.set_canvas_position((50, 50))
         ec.connect_to(fan_type, mapping={0: 0}, link_style_kwargs={})
 
-        print(fan_type._to_deck())
+        assert ec.predecessors
 
     def test_to_deck_with_connected(self, fan_type):
         fan_2 = fan_type.copy()
@@ -649,7 +649,7 @@ class TestConstantsAndEquations:
         from pyTrnsysType.statement.equation import Equation
 
         equa_col_2 = EquationCollection(
-            [equa for equa in equation_block.values()], name="test"
+            [equa for equa in equation_block.values()], name="test2"
         )
 
         assert equation_block.name != equa_col_2.name
@@ -796,7 +796,7 @@ class TestDeck:
 
         file = "tests/input_files/Case600h10.dck"
         with patch("builtins.input", return_value="y"):
-            dck = Deck.read_file(file)
+            dck = Deck.read_file(file, proforma_root="tests/input_files")
             yield dck
 
     @pytest.fixture(scope="class")
@@ -892,7 +892,7 @@ class TestDeckFormatter:
     def test_type951(self, deck):
         from pyTrnsysType.trnsysmodel import TrnsysModel
 
-        model = TrnsysModel.from_xml(Path("tests\input_files\Type951.xml"))
+        model = TrnsysModel.from_xml("tests/input_files/Type951.xml")
         deck.update_models(model)
 
         with TemporaryFile("w") as deck_file:
@@ -922,9 +922,27 @@ class TestCommonTypes:
         d.mkdir()
         p = d / "deck_type951.txt"
 
-        model = TrnsysModel.from_xml(Path("tests\input_files\Type951.xml"))
+        model = TrnsysModel.from_xml("tests/input_files/Type951.xml")
         deck.update_models(model)
         deck.to_file(p)
         readdeck = Deck.read_file(p)
         readdeck.models.iloc[2]
         assert p.read_text() == model._to_deck()
+
+
+class TestStudioCanvas:
+    """TODO: complete tests for Canvas LinkStyles and path positioning"""
+
+    def test_shortest_path(self, tank_type: Component, pipe_type: Component):
+        pipe_type.set_canvas_position((1, 50))
+        tank_type.set_canvas_position((100, 50))
+        pipe_type.connect_to(tank_type, mapping={0: 0, 1: 1})
+
+        # create second set of Components
+        pipe_type2 = pipe_type.copy()
+        tank_type2 = tank_type.copy()
+        pipe_type2.set_canvas_position((50, 100))
+        tank_type2.set_canvas_position((50, 1))
+        pipe_type2.connect_to(tank_type2, mapping={0: 0, 1: 1})
+
+        print(pipe_type2.link_styles)

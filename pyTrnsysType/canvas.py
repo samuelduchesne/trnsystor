@@ -7,7 +7,7 @@ from shapely.geometry import box, LineString
 
 class StudioCanvas:
     # TODO: Document class
-    def __init__(self, width=1200, height=1000):
+    def __init__(self, width=2000, height=1000):
         self._grid_valid = True
         self._grid = None
         self.width = width
@@ -50,7 +50,7 @@ class StudioCanvas:
         self.height = height
         self.invalidate_grid()
 
-    def shortest_nocrossing(self, u, v, donotcross=True):
+    def shortest_path(self, u, v, donotcross=True):
         """
 
         Args:

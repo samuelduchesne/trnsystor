@@ -12,7 +12,7 @@ from pyTrnsysType.statement import Constant
 from pyTrnsysType.studio import StudioHeader
 
 
-class ConstantCollection(collections.UserDict, Component):
+class ConstantCollection(Component, collections.UserDict):
     """A class that behaves like a dict and that collects one or more
     :class:`Constants`.
 
@@ -20,7 +20,7 @@ class ConstantCollection(collections.UserDict, Component):
     the latter, the :attr:`Equation.name` attribute will be used as a key.
     """
 
-    def __init__(self, mutable=None, name=None):
+    def __init__(self, mutable=None, name=None, **kwargs):
         """Initialize a new ConstantCollection.
 
         Example:
@@ -38,24 +38,29 @@ class ConstantCollection(collections.UserDict, Component):
             _dict = {f.name: f for f in mutable}
         else:
             _dict = mutable
-        super().__init__(_dict)
-        self.name = Name(name)
-        self.studio = StudioHeader.from_component(self)
-        self._unit = next(Component.NEW_ID)
+        super(ConstantCollection, self).__init__(_dict, meta=None, name=name, **kwargs)
 
     def __getitem__(self, key):
         """
         Args:
             key:
         """
-        value = super().__getitem__(key)
+        if isinstance(key, int):
+            value = list(self.data.values())[key]
+        else:
+            value = super().__getitem__(key)
         return value
+
+    def __setitem__(self, key, value):
+        # optional processing here
+        value.model = self
+        super().__setitem__(key, value)
 
     def __repr__(self):
         return self._to_deck()
 
     def __hash__(self):
-        return hash(str(self))
+        return self.unit_number
 
     def __eq__(self, other):
         return hash(self) == hash(other)
