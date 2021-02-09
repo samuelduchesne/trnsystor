@@ -7,13 +7,13 @@ from path import Path
 from pyTrnsysType.component import Component
 from shapely.geometry import Point, LineString
 
-from pyTrnsysType.trnsymodel import TrnsysModel
+from pyTrnsysType.trnsysmodel import TrnsysModel
 
 
 @pytest.fixture(scope="class")
 def fan_type():
     """Fixture to create a TrnsysModel from xml"""
-    from pyTrnsysType.trnsymodel import TrnsysModel
+    from pyTrnsysType.trnsysmodel import TrnsysModel
 
     fan1 = TrnsysModel.from_xml(Path("tests/input_files/Type146.xml"))
     yield fan1
@@ -22,7 +22,7 @@ def fan_type():
 @pytest.fixture(scope="class")
 def pipe_type():
     """Fixture to create a TrnsysModel from xml. Also tests using a Path"""
-    from pyTrnsysType.trnsymodel import TrnsysModel
+    from pyTrnsysType.trnsysmodel import TrnsysModel
 
     pipe = TrnsysModel.from_xml("tests/input_files/Type951.xml")
     yield pipe
@@ -30,7 +30,7 @@ def pipe_type():
 
 @pytest.fixture(scope="class")
 def tank_type():
-    from pyTrnsysType.trnsymodel import TrnsysModel
+    from pyTrnsysType.trnsysmodel import TrnsysModel
 
     with patch("builtins.input", return_value="y"):
         tank = TrnsysModel.from_xml("tests/input_files/Type4a.xml")
@@ -39,7 +39,7 @@ def tank_type():
 
 @pytest.fixture(scope="class")
 def weather_type():
-    from pyTrnsysType.trnsymodel import TrnsysModel
+    from pyTrnsysType.trnsysmodel import TrnsysModel
 
     with patch("builtins.input", return_value="y"):
         weather = TrnsysModel.from_xml("tests/input_files/Type15-3.xml")
@@ -51,7 +51,7 @@ class TestTrnsysModel:
     def test_chiller_type(self, input):
         """Fixture to create a TrnsysModel from xml from an xml that contains
         unknown tags. Should prompt user. Passes when input == 'y'"""
-        from pyTrnsysType.trnsymodel import TrnsysModel
+        from pyTrnsysType.trnsysmodel import TrnsysModel
 
         fan1 = TrnsysModel.from_xml("tests/input_files/Type107-simplified.xml")
         return fan1
@@ -100,7 +100,7 @@ class TestTrnsysModel:
 
     def test_cycles_issue14(self):
         """https://github.com/samuelduchesne/pyTrnsysType/issues/14"""
-        from pyTrnsysType.trnsymodel import TrnsysModel
+        from pyTrnsysType.trnsysmodel import TrnsysModel
 
         valve = TrnsysModel.from_xml("tests/input_files/Type647.xml")
         assert valve.parameters["Number_of_Outlet_Ports"].value == 2
@@ -111,7 +111,7 @@ class TestTrnsysModel:
             assert valve.outputs["Outlet_Flowrate"]
 
     def test_cycles_order(self):
-        from pyTrnsysType.trnsymodel import TrnsysModel
+        from pyTrnsysType.trnsysmodel import TrnsysModel
 
         weather_type = TrnsysModel.from_xml("tests/input_files/Type15-3.xml")
 
@@ -122,7 +122,7 @@ class TestTrnsysModel:
         assert weather_type.outputs[26].name == "Beam radiation for surface-2"
 
     def test_cancel_missing_tag(self, tank_type):
-        from pyTrnsysType.trnsymodel import TrnsysModel
+        from pyTrnsysType.trnsysmodel import TrnsysModel
         from bs4 import BeautifulSoup
 
         with pytest.raises(NotImplementedError):
@@ -357,7 +357,7 @@ class TestTrnsysModel:
         print(weather_type._to_deck())
 
     def test_get_external_file(self, weather_type):
-        from pyTrnsysType.external_file import ExternalFile
+        from pyTrnsysType.externalfile import ExternalFile
 
         assert isinstance(weather_type.external_files[0], ExternalFile)
         assert isinstance(
@@ -382,7 +382,7 @@ class TestTrnsysModel:
             weather_type.external_files[0] = 1
 
     def test_datareader(self):
-        from pyTrnsysType.trnsymodel import TrnsysModel
+        from pyTrnsysType.trnsysmodel import TrnsysModel
 
         dr = TrnsysModel.from_xml("tests/input_files/Type9c.xml")
         assert dr._meta.compileCommand.text == r"df /c"
@@ -862,7 +862,7 @@ class TestDeckFormatter:
         yield Deck("Simple Deck", control_cards=cc)
 
     def test_type951(self, deck):
-        from pyTrnsysType.trnsymodel import TrnsysModel
+        from pyTrnsysType.trnsysmodel import TrnsysModel
 
         model = TrnsysModel.from_xml(Path("tests\input_files\Type951.xml"))
         deck.update_models(model)
@@ -887,7 +887,7 @@ class TestCommonTypes:
         yield deck
 
     def test_type951(self, deck, tmp_path):
-        from pyTrnsysType.trnsymodel import TrnsysModel
+        from pyTrnsysType.trnsysmodel import TrnsysModel
         from pyTrnsysType.deck import Deck
 
         d = tmp_path / "sub"

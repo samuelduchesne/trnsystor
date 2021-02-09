@@ -126,7 +126,7 @@ class Equation(Statement):
             4. finally, we create the Equation. Note that vars is passed with
             the '*' declaration to unpack the tuple.
 
-            >>> from pyTrnsysType.trnsymodel import Equation
+            >>> from pyTrnsysType.statement import Equation
             >>> eq = Equation.from_symbolic_expression(name, exp, *vars)
             >>> print(eq)
             [1, 1]/12 + log([1, 2])

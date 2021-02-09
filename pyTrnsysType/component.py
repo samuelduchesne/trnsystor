@@ -9,7 +9,7 @@ from bs4 import Tag
 from shapely.geometry import Point
 
 from pyTrnsysType.canvas import StudioCanvas
-from pyTrnsysType.link_style import LinkStyle
+from pyTrnsysType.linkstyle import LinkStyle
 from pyTrnsysType.studio import StudioHeader
 from pyTrnsysType.utils import affine_transform
 

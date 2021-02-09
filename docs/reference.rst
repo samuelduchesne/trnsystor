@@ -12,14 +12,15 @@ Main Classes
     :nosignatures:
     :toctree: reference/
 
-    Constant
-    Equation
-    ControlCards
-    Deck
+    statement.Constant
+    statement.Equation
+    controlcards.ControlCards
+    deck.Deck
     TrnsysModel
-    Parameter
-    Input
-    Output
+    typevariable.Parameter
+    typevariable.Input
+    typevariable.Output
+    typevariable.Derivative
 
 Trnsys Statements
 -----------------
@@ -56,15 +57,14 @@ Helper Classes
     :nosignatures:
     :toctree: reference/
 
-    MetaData
-    Component
-    ExternalFile
-    TypeVariable
-    TypeCycle
-    Derivative
-    StudioHeader
-    LinkStyle
-    AnchorPoint
+    trnsysmodel.MetaData
+    component.Component
+    externalfile.ExternalFile
+    typevariable.TypeVariable
+    typecycle.TypeCycle
+    studio.StudioHeader
+    linkstyle.LinkStyle
+    anchorpoint.AnchorPoint
 
 Collections
 -----------

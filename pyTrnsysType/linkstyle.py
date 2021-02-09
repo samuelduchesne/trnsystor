@@ -5,7 +5,7 @@ import numpy as np
 from matplotlib.colors import colorConverter
 from shapely.geometry import LineString
 
-from pyTrnsysType.anchor_point import AnchorPoint
+from pyTrnsysType.anchorpoint import AnchorPoint
 from pyTrnsysType.utils import redistribute_vertices, get_int_from_rgb
 
 
@@ -109,7 +109,7 @@ class LinkStyle(object):
     def get_linestyle(self):
         """Return the linestyle.
 
-        See also :meth:`~pyTrnsysType.trnsymodel.LinkStyle.set_linestyle`.
+        See also :meth:`~pyTrnsysType.trnsysmodel.LinkStyle.set_linestyle`.
         """
         return self._linestyle
 
@@ -124,7 +124,7 @@ class LinkStyle(object):
     def get_linewidth(self):
         """Return the linewidth.
 
-        See also :meth:`~pyTrnsysType.trnsymodel.LinkStyle.set_linewidth`.
+        See also :meth:`~pyTrnsysType.trnsysmodel.LinkStyle.set_linewidth`.
         """
         return self._linewidth
 

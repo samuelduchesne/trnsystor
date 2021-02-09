@@ -7,14 +7,15 @@ from bs4 import BeautifulSoup, Tag
 from path import Path
 from pyTrnsysType.component import Component
 
-from pyTrnsysType.anchor_point import AnchorPoint
+from pyTrnsysType.anchorpoint import AnchorPoint
 from pyTrnsysType.collections.cycle import CycleCollection
 from pyTrnsysType.collections.derivatives import DerivativesCollection
 from pyTrnsysType.collections.initialinputvalues import InitialInputValuesCollection
 from pyTrnsysType.collections.input import InputCollection
 from pyTrnsysType.collections.output import OutputCollection
 from pyTrnsysType.collections.parameter import ParameterCollection
-from pyTrnsysType.external_file import ExternalFile, ExternalFileCollection
+from pyTrnsysType.externalfile import ExternalFile
+from pyTrnsysType.collections.externalfile import ExternalFileCollection
 from pyTrnsysType.studio import StudioHeader
 from pyTrnsysType.typecycle import TypeCycle
 from pyTrnsysType.typevariable import TypeVariable, Parameter, Input, Output, Derivative

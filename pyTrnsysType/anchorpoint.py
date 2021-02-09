@@ -102,8 +102,8 @@ class AnchorPoint(object):
         These points are equally dispersed at the four corners and 4 edges of
         the center, at distance = :attr:`offset`
 
-        See :func:`~trnsymodel.TrnsysType.set_link_style` or
-        :class:`trnsymodel.LinkStyle` for more details.
+        See :func:`~trnsysmodel.TrnsysType.set_link_style` or
+        :class:`trnsysmodel.LinkStyle` for more details.
 
         Args:
             offset (float): The offset around the center point of :attr:`self`.

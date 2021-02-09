@@ -16,12 +16,12 @@ from pyTrnsysType.component import Component
 from shapely.geometry import Point, LineString
 
 from pyTrnsysType import TrnsysModel, get_rgb_from_int
-from pyTrnsysType.anchor_point import AnchorPoint
+from pyTrnsysType.anchorpoint import AnchorPoint
 from pyTrnsysType.collections.components import ComponentCollection
 from pyTrnsysType.collections.constant import ConstantCollection
 from pyTrnsysType.collections.equation import EquationCollection
 from pyTrnsysType.controlcards import ControlCards
-from pyTrnsysType.link_style import _studio_to_linestyle
+from pyTrnsysType.linkstyle import _studio_to_linestyle
 from pyTrnsysType.name import Name
 from pyTrnsysType.statement import (
     End,
@@ -40,7 +40,7 @@ from pyTrnsysType.statement import (
     EqSolver,
     Equation,
 )
-from pyTrnsysType.trnsymodel import (
+from pyTrnsysType.trnsysmodel import (
     MetaData,
 )
 

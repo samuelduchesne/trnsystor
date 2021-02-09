@@ -13,6 +13,7 @@ __all__ = [
     "OutputCollection",
     "ParameterCollection",
     "VariableCollection",
+    "ExternalFileCollection",
 ]
 
 from pyTrnsysType.collections.components import ComponentCollection
@@ -20,6 +21,7 @@ from pyTrnsysType.collections.constant import ConstantCollection
 from pyTrnsysType.collections.cycle import CycleCollection
 from pyTrnsysType.collections.derivatives import DerivativesCollection
 from pyTrnsysType.collections.equation import EquationCollection
+from pyTrnsysType.collections.externalfile import ExternalFileCollection
 from pyTrnsysType.collections.initialinputvalues import InitialInputValuesCollection
 from pyTrnsysType.collections.input import InputCollection
 from pyTrnsysType.collections.output import OutputCollection

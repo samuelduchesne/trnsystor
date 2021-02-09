@@ -7,4 +7,6 @@ from outdated import warn_if_outdated
 warn_if_outdated("pyTrnsysType", __version__)
 
 from .utils import *
-from .trnsymodel import TrnsysModel
+from .trnsysmodel import TrnsysModel
+from .deck import Deck
+from .controlcards import ControlCards
