@@ -16,9 +16,7 @@ def affine_transform(geom, matrix=None):
     Hint:
         visit affine_matrix_ for other affine transformation matrices.
 
-    .. _affine_matrix: https://en.wikipedia.org/wiki/Affine_transformation
-
-    #/media/ File:2D_affine_transformation_matrix.svg
+    .. _affine_matrix: https://en.wikipedia.org/wiki/Affine_transformation#/media/File:2D_affine_transformation_matrix.svg
 
     Args:
         geom (BaseGeometry): The geometry.

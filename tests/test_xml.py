@@ -505,7 +505,9 @@ class TestStatements:
         fan_type.copy()
         fan_type._unit = 1  # we need to force the id to one here
         no_check = NoCheck(inputs=list(fan_type.inputs.values()))
-        assert no_check._to_deck() == "NOCHECK 7\n1, 1	1, 2	1, 3	1, " "4	1, 5	1, 6	1, 7"
+        assert (
+            no_check._to_deck() == "NOCHECK 7\n1, 1	1, 2	1, 3	1, " "4	1, " "5	1, 6	1, 7"
+        )
 
         with pytest.raises(ValueError):
             # check exceeding input limits. Multiply list by 10.
@@ -559,7 +561,6 @@ class TestConstantsAndEquations:
 
         equa1 = Equation()
 
-        assert equa1.eq_number > 1
         yield equa1
 
     @pytest.fixture()
@@ -697,7 +698,9 @@ class TestConstantsAndEquations:
         equa_block = EquationCollection([equa1])
         assert str(equa1) == "T_out = [1, 1]"
         assert (
-            str(equa_block) == '* EQUATIONS "None"\n\nEQUATIONS ' "1\nT_out  =  [1, 1]"
+            str(equa_block) == '* EQUATIONS "None"\n\nEQUATIONS '
+            "1\nT_out  =  ["
+            "1, 1]"
         )
 
     def test_two_unnamed_equationcollection(self, fan_type):
@@ -749,6 +752,31 @@ class TestConstantsAndEquations:
 
         # update with more than one dicts.
         cc.update(list_constants, F=list_constants)
+
+    def test_eq_number(self, equation):
+        assert equation.eq_number > 1
+
+    def test_eq_idx(self, equation_block):
+        for equation in equation_block.values():
+            assert equation.idx >= 0
+
+    def test_eq_one_based_idx(self, equation_block):
+        for equation in equation_block.values():
+            assert equation.one_based_idx >= 1
+
+    def test_eq_unit_number(self, equation_block):
+        for equation in equation_block.values():
+            assert equation.unit_number > 1
+
+    def test_eq_is_connected(self, equation_block):
+        for equation in equation_block.values():
+            assert equation.is_connected is False
+
+        # connect and assert again; they should be connected
+        equation_block.connect_to(equation_block, mapping={0: 0, 1: 1, 2: 2, 3: 3})
+        for i, equation in enumerate(equation_block.values()):
+            assert equation.is_connected is True
+            assert equation.predecessor == equation_block[i]
 
 
 class TestDeck:

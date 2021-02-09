@@ -111,14 +111,13 @@ class Deck(object):
             control_cards (ControlCards, optional): The ControlCards. See
                 :class:`ControlCards` for more details.
             models (list or pyTrnsysType.collections.components.ComponentCollection):
-            A list of
-            Components (
-                :class:`TrnsysModel`, :class:`EquationCollection`, etc.). If a
-                list is passed, it is converted to a :class:`ComponentCollection`.
-                name (str): A name for this deck. Could be the name of the project.
+                A list of Components (:class:`TrnsysModel`,
+                :class:`EquationCollection`, etc.). If a list is passed,
+                it is converted to a :class:`ComponentCollection`. name (str): A name
+                for this deck. Could be the name of the project.
 
         Returns:
-            (Deck): The Deck object.
+            Deck: The Deck object.
         """
         if not models:
             self.models = ComponentCollection()
@@ -197,18 +196,7 @@ class Deck(object):
 
         G = nx.MultiDiGraph()
         for component in self.models:
-            G.add_node(component.unit_number, model=component, pos=component.centroid)
-            for output, typevar in component.inputs.items():
-                if typevar.is_connected:
-                    v = component
-                    u = typevar.connected_to.model
-                    G.add_edge(
-                        u.unit_number,
-                        v.unit_number,
-                        key=output,
-                        from_model=u,
-                        to_model=v,
-                    )
+            G = nx.compose(G, component.UNIT_GRAPH)
         return G
 
     def check_deck_integrity(self):
@@ -292,6 +280,13 @@ class Deck(object):
             return formatter.path_or_buf.getvalue()
 
         return None
+
+    def save(self, path_or_buf, encoding=None, mode="w"):
+        """Save Deck to file.
+
+        See :meth:`to_file`
+        """
+        return self.to_file(path_or_buf, encoding=encoding, mode=mode)
 
     def _to_string(self):
         end = self.control_cards.__dict__.pop("end", End())
@@ -405,7 +400,7 @@ class Deck(object):
                     list_eq.append(Equation.from_expression(value))
                 ec = EquationCollection(list_eq, name=Name("block"))
                 dck.remove_models(ec)
-                ec._unit = ec.NEW_ID
+                ec._unit = next(ec.NEW_ID)
                 dck.update_models(ec)
                 # append the dictionary to the data list
             if key == "userconstantend":
@@ -578,8 +573,8 @@ class Deck(object):
                 if any((tvar in n.outputs) for n in dck.models):
                     # one Equation or Constant has this tvar
                     other = next((n for n in dck.models if (tvar in n.outputs)), None)
-                    getattr(model, key)[i] = other[tvar]
-                    getattr(model, key)[i]._connected_to = other[tvar]
+                    other[tvar].connect_to(getattr(model, key)[i])
+
         else:
             # simply set the new value
             getattr(model, key)[i] = tvar

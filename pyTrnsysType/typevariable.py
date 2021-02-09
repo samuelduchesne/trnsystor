@@ -8,6 +8,7 @@ import re
 from bs4 import Tag
 
 from pyTrnsysType import parse_type, standerdized_name
+from pyTrnsysType.linkstyle import LinkStyle
 from pyTrnsysType.utils import _parse_value
 
 
@@ -174,16 +175,30 @@ class TypeVariable(object):
     @property
     def is_connected(self):
         """Whether or not this TypeVariable is connected to another TypeVariable.
+
         Checks if self is in any keys"""
-        # connected = 0
-        # for nbr in self.model.unit_graph[self.model]:
-        #     for key in self.model.unit_graph[self.model][nbr]:
-        #         if self in key:
-        #             connected += 1
-        if isinstance(self, Input):
-            return self.predecessor is not None
-        elif isinstance(self, Output):
-            return len(self.successors) > 0
+        return self.predecessor is not None
+
+    @property
+    def predecessor(self):
+        """Other TypeVariable from which this Input TypeVariable is connected.
+
+        Predecessors
+        """
+        if len(self.model.UNIT_GRAPH) == 0:
+            return None
+        predecessors = []
+        for pre in self.model.UNIT_GRAPH.predecessors(self.model):
+            for key in self.model.UNIT_GRAPH[pre][self.model]:
+                if self in key:
+                    u, v = key
+                    predecessors.append(u)
+        if len(predecessors) > 1:
+            raise Exception(f"An Input cannot have {predecessors} predecessors")
+        elif predecessors:
+            return next(iter(predecessors))
+        else:
+            return None
 
     @property
     def idx(self):
@@ -216,6 +231,54 @@ class TypeVariable(object):
     def one_based_idx(self):
         return self.idx + 1
 
+    def connect_to(self, other, link_style_kwargs=None):
+        """Connect a single TypeVariable to TypeVariable `other`.
+
+        Important:
+            Keep in mind that since python traditionally uses 0-based indexing,
+            the same logic is used in this package even though TRNSYS uses
+            traditionally 1-based indexing. The package will internally handle
+            the 1-based index in the output *.dck* file.
+
+        Examples:
+            Connect two :class:`TypeVariable` objects together
+
+            >>> pipe_1.outputs['Outlet_Air_Temperature'].connect_to(
+            >>>     other=pipe2.intputs['Inlet_Air_Temperature']
+            >>> )
+
+        Args:
+            other (TypeVariable): The other object.
+
+        Raises:
+            TypeError: When trying to connect to anything other than a
+                :class:`TrnsysModel`.
+        """
+        if link_style_kwargs is None:
+            link_style_kwargs = {}
+        if not isinstance(other, TypeVariable):
+            raise TypeError("Only `TypeVariable` objects can be connected together")
+
+        u = self
+        v = other
+
+        loc = link_style_kwargs.pop("loc", "best")
+        self.model.UNIT_GRAPH.add_edge(
+            u_for_edge=self,
+            v_for_edge=other,
+            key=(u, v),
+            LinkStyle=LinkStyle(self.model, other.model, loc=loc, **link_style_kwargs),
+        )
+
+    def __repr__(self):
+        try:
+            return f"{self.name}; units={self.unit}; value={self.value:~P}\n{self.definition}"
+        except Exception:
+            return (
+                f"{self.name}; units={self.unit}; value={self.value}\n"
+                f"{self.definition}"
+            )
+
 
 class Parameter(TypeVariable):
     """A subclass of :class:`TypeVariable` specific to parameters"""
@@ -229,13 +292,7 @@ class Parameter(TypeVariable):
         """
         super().__init__(val, **kwargs)
 
-        self._connected_to = None
         self._parse_types()
-
-    def __repr__(self):
-        return "{}; units={}; value={:~P}\n{}".format(
-            self.name, self.unit, self.value, self.definition
-        )
 
 
 class Input(TypeVariable):
@@ -250,32 +307,7 @@ class Input(TypeVariable):
         """
         super().__init__(val, **kwargs)
 
-        self._connected_to = None
         self._parse_types()
-
-    def __repr__(self):
-        return "{}; units={}; value={:~P}\n{}".format(
-            self.name, self.unit, self.value, self.definition
-        )
-
-    @property
-    def predecessor(self):
-        """Other TypeVariable from which this Input TypeVariable is connected.
-        Predecessors
-        Todo: May have to return a list
-        """
-        predecessors = []
-        for pre in self.model.UNIT_GRAPH.predecessors(self.model):
-            for key in self.model.UNIT_GRAPH[pre][self.model]:
-                if self in key:
-                    u, v = key
-                    predecessors.append(u)
-        if len(predecessors) > 1:
-            raise Exception("An Input cannot have {predecessors} predecessors")
-        elif predecessors:
-            return next(iter(predecessors))
-        else:
-            return None
 
 
 class InitialInputValue(TypeVariable):
@@ -290,13 +322,7 @@ class InitialInputValue(TypeVariable):
         """
         super().__init__(val, **kwargs)
 
-        self._connected_to = None
         self._parse_types()
-
-    def __repr__(self):
-        return "{}; units={}; value={:~P}\n{}".format(
-            self.name, self.unit, self.default, self.definition
-        )
 
 
 class Output(TypeVariable):
@@ -311,13 +337,11 @@ class Output(TypeVariable):
         """
         super().__init__(val, **kwargs)
 
-        self._connected_to = []
         self._parse_types()
 
-    def __repr__(self):
-        return "{}; units={}; value={:~P}\n{}".format(
-            self.name, self.unit, self.value, self.definition
-        )
+    @property
+    def is_connected(self):
+        return len(self.successors) > 0
 
     @property
     def successors(self):
@@ -346,5 +370,4 @@ class Derivative(TypeVariable):
         """
         super().__init__(val, **kwargs)
 
-        self._connected_to = None
         self._parse_types()

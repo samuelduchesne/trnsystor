@@ -6,6 +6,7 @@ from abc import ABCMeta, abstractmethod
 
 import networkx as nx
 from bs4 import Tag
+from networkx import MultiDiGraph
 from shapely.geometry import Point
 
 from pyTrnsysType.canvas import StudioCanvas
@@ -37,7 +38,8 @@ class Component(metaclass=ABCMeta):
         self.UNIT_GRAPH.add_node(self)
 
     def __del__(self):
-        self.UNIT_GRAPH.remove_node(self)
+        if self in self.UNIT_GRAPH:
+            self.UNIT_GRAPH.remove_node(self)
 
     def __hash__(self):
         return self.unit_number
@@ -102,7 +104,7 @@ class Component(metaclass=ABCMeta):
     @property
     def unit_number(self):
         """int: Returns the model's unit number (unique)"""
-        return int(self._unit)
+        return self._unit
 
     @property
     def type_number(self):
@@ -248,8 +250,7 @@ class Component(metaclass=ABCMeta):
             )
             # Todo: Implement automapping logic here
         else:
-            # loop over the mapping and assign :class:`TypeVariable` to
-            # `_connected_to` attribute.
+            # loop over the mapping and add edge to UNIT_GRAPH.
             for from_self, to_other in mapping.items():
                 u = self.outputs[from_self]
                 v = other.inputs[to_other]
@@ -286,8 +287,7 @@ class Component(metaclass=ABCMeta):
         return self.UNIT_GRAPH.predecessors(self)
 
     def invalidate_connections(self):
-        """iterate over inputs/outputs and force :attr:`_connected_to` to
-        None.
+        """iterate over successors and predecessors and remove the edges.
 
         Todo: restore paths in self.studio_canvas.grid
         """

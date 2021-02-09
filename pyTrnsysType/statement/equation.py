@@ -9,7 +9,7 @@ from pyTrnsysType.statement.statement import Statement
 from pyTrnsysType.typevariable import TypeVariable
 
 
-class Equation(Statement):
+class Equation(Statement, TypeVariable):
     """The EQUATIONS statement allows variables to be defined as algebraic
     functions of constants, previously defined variables, and outputs from
     TRNSYS components. These variables can then be used in place of numbers in
@@ -42,8 +42,6 @@ class Equation(Statement):
         self.equals_to = equals_to
         self.doc = doc
         self.model = model  # the TrnsysModel this Equation belongs to.
-
-        self._connected_to = []
 
     def __repr__(self):
         return " = ".join([self.name, self._to_deck()])
@@ -176,31 +174,8 @@ class Equation(Statement):
         return ns[self.name]
 
     @property
-    def one_based_idx(self):
-        """The 1-based index of the Equation"""
-        return self.idx + 1
-
-    @property
     def unit_number(self):
         return self.model.unit_number
-
-    @property
-    def is_connected(self):
-        """Whether or not this TypeVariable is connected to another type"""
-        return self.connected_to is not None
-
-    @property
-    def connected_to(self):
-        """The TrnsysModel to which this component is connected"""
-        return self._connected_to
-
-    @connected_to.setter
-    def connected_to(self, value):
-        if isinstance(value, Component):
-            # todo: if self._connected_to, restore existing paths from canvas grid
-            self._connected_to = value
-        else:
-            raise TypeError(f"can't set with type{type(value)}")
 
     def _to_deck(self):
         if isinstance(self.equals_to, TypeVariable):
