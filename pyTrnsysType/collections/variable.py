@@ -64,6 +64,7 @@ class VariableCollection(collections.UserDict):
         for key in dictionary:
             named_key = standerdized_name(dictionary[key].name)
             item.__setitem__(named_key, dictionary[key])
+            setattr(item, named_key, dictionary[key])
         return item
 
     @property

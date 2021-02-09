@@ -41,7 +41,7 @@ class ConstantCollection(collections.UserDict, Component):
         super().__init__(_dict)
         self.name = Name(name)
         self.studio = StudioHeader.from_component(self)
-        self._unit = next(Component.new_id)
+        self._unit = next(Component.NEW_ID)
         self._connected_to = []
 
     def __getitem__(self, key):

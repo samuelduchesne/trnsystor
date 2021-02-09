@@ -242,8 +242,8 @@ class TrnsysModel(Component):
                 will be reset.
         """
         new = copy.deepcopy(self)
-        new._unit = next(new.new_id)
-        new.unit_graph.add_node(new)
+        new._unit = next(new.NEW_ID)
+        new.UNIT_GRAPH.add_node(new)
         if invalidate_connections:
             new.invalidate_connections()
         from shapely.affinity import translate
@@ -344,8 +344,9 @@ class TrnsysModel(Component):
             return InitialInputValuesCollection()
 
     def _get_inputs(self):
-        """inputs getter. Sorts by order number and resolves cycles each time it
-        is called
+        """Get inputs.
+
+        Sorts by order number and resolves cycles each time it is called.
         """
         try:
             self._resolve_cycles("input", Input)

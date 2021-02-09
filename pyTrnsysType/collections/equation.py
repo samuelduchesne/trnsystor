@@ -47,7 +47,7 @@ class EquationCollection(collections.UserDict, Component):
             _dict = mutable
         super().__init__(_dict)
         self.name = Name(name)
-        self._unit = next(Component.new_id)
+        self._unit = next(Component.NEW_ID)
         self.studio = StudioHeader.from_component(self)
 
     def __getitem__(self, key):

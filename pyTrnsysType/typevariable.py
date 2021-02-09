@@ -265,8 +265,8 @@ class Input(TypeVariable):
         Todo: May have to return a list
         """
         predecessors = []
-        for pre in self.model.unit_graph.predecessors(self.model):
-            for key in self.model.unit_graph[pre][self.model]:
+        for pre in self.model.UNIT_GRAPH.predecessors(self.model):
+            for key in self.model.UNIT_GRAPH[pre][self.model]:
                 if self in key:
                     u, v = key
                     predecessors.append(u)
@@ -323,8 +323,8 @@ class Output(TypeVariable):
     def successors(self):
         """Other TypeVariables to which this TypeVariable is connected. Successors"""
         successors = []
-        for suc in self.model.unit_graph.successors(self.model):
-            for key in self.model.unit_graph[self.model][suc]:
+        for suc in self.model.UNIT_GRAPH.successors(self.model):
+            for key in self.model.UNIT_GRAPH[self.model][suc]:
                 if self in key:
                     u, v = key
                     successors.append(v)

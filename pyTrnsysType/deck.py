@@ -405,7 +405,7 @@ class Deck(object):
                     list_eq.append(Equation.from_expression(value))
                 ec = EquationCollection(list_eq, name=Name("block"))
                 dck.remove_models(ec)
-                ec._unit = ec.new_id
+                ec._unit = ec.NEW_ID
                 dck.update_models(ec)
                 # append the dictionary to the data list
             if key == "userconstantend":

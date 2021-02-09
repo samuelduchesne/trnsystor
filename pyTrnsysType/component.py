@@ -19,9 +19,9 @@ class Component(metaclass=ABCMeta):
     :class:`TrnsysModel`,  :class:`ConstantCollection` and
     :class:`EquationCollection` implement this class."""
 
-    new_id = itertools.count(start=1)
-    studio_canvas = StudioCanvas()
-    unit_graph = nx.MultiDiGraph()
+    NEW_ID = itertools.count(start=1)
+    STUDIO_CANVAS = StudioCanvas()
+    UNIT_GRAPH = nx.MultiDiGraph()
 
     def __init__(self, name, meta):
         """Initialize a Component with the following parameters:
@@ -30,14 +30,14 @@ class Component(metaclass=ABCMeta):
             name (str): Name of the component.
             meta (MetaData): MetaData associated with this component.
         """
-        self._unit = next(Component.new_id)
+        self._unit = next(Component.NEW_ID)
         self.name = name
         self._meta = meta
         self.studio = StudioHeader.from_component(self)
-        self.unit_graph.add_node(self)
+        self.UNIT_GRAPH.add_node(self)
 
     def __del__(self):
-        self.unit_graph.remove_node(self)
+        self.UNIT_GRAPH.remove_node(self)
 
     def __hash__(self):
         return self.unit_number
@@ -52,7 +52,7 @@ class Component(metaclass=ABCMeta):
     def link_styles(self):
         return [
             data["LinkStyle"]
-            for u, v, key, data in self.unit_graph.edges(keys=True, data=True)
+            for u, v, key, data in self.UNIT_GRAPH.edges(keys=True, data=True)
         ]
 
     def set_canvas_position(self, pt, trnsys_coords=False):
@@ -81,7 +81,7 @@ class Component(metaclass=ABCMeta):
             pt = Point(*pt)
         if trnsys_coords:
             pt = affine_transform(pt)
-        if pt.within(self.studio_canvas.bbox):
+        if pt.within(self.STUDIO_CANVAS.bbox):
             self.studio.position = pt
         else:
             raise ValueError(
@@ -197,9 +197,9 @@ class Component(metaclass=ABCMeta):
             linestyle=linestyle,
             linewidth=linewidth,
         )
-        if self.unit_graph.has_edge(self, other):
-            for key in self.unit_graph[self][other]:
-                self.unit_graph[self][other][key]["LinkStyle"] = style
+        if self.UNIT_GRAPH.has_edge(self, other):
+            for key in self.UNIT_GRAPH[self][other]:
+                self.UNIT_GRAPH[self][other][key]["LinkStyle"] = style
         else:
             raise KeyError(
                 "Trying to set a LinkStyle on a non-existent connection. "
@@ -253,7 +253,7 @@ class Component(metaclass=ABCMeta):
             for from_self, to_other in mapping.items():
                 u = self.outputs[from_self]
                 v = other.inputs[to_other]
-                if self.unit_graph.has_edge(self, other, (u, v)):
+                if self.UNIT_GRAPH.has_edge(self, other, (u, v)):
                     msg = (
                         'The output "{}: {}" of model "{}" is already '
                         'connected to the input "{}: {}" of model "{}"'.format(
@@ -268,7 +268,7 @@ class Component(metaclass=ABCMeta):
                     raise ValueError(msg)
                 else:
                     loc = link_style_kwargs.pop("loc", "best")
-                    self.unit_graph.add_edge(
+                    self.UNIT_GRAPH.add_edge(
                         u_for_edge=self,
                         v_for_edge=other,
                         key=(u, v),
@@ -278,12 +278,12 @@ class Component(metaclass=ABCMeta):
     @property
     def successors(self):
         """Other objects to which this TypeVariable is connected. successors"""
-        return self.unit_graph.successors(self)
+        return self.UNIT_GRAPH.successors(self)
 
     @property
     def predecessors(self):
         """Other objects from which this TypeVariable is connected. Predecessors"""
-        return self.unit_graph.predecessors(self)
+        return self.UNIT_GRAPH.predecessors(self)
 
     def invalidate_connections(self):
         """iterate over inputs/outputs and force :attr:`_connected_to` to
@@ -292,13 +292,13 @@ class Component(metaclass=ABCMeta):
         Todo: restore paths in self.studio_canvas.grid
         """
         edges = []
-        for nbr in self.unit_graph.successors(self):
+        for nbr in self.UNIT_GRAPH.successors(self):
             edges.append((self, nbr))
-        for nbr in self.unit_graph.predecessors(self):
+        for nbr in self.UNIT_GRAPH.predecessors(self):
             edges.append((nbr, self))
         has_edge = True
         while edges:
             edge = edges.pop()
-            self.unit_graph.remove_edge(*edge)
-            if self.unit_graph.has_edge(*edge):
+            self.UNIT_GRAPH.remove_edge(*edge)
+            if self.UNIT_GRAPH.has_edge(*edge):
                 edges.append(edge)

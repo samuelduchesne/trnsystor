@@ -62,7 +62,7 @@ class LinkStyle(object):
             _u = AnchorPoint(self.u).anchor_points[u_anchor_name]
             _v = AnchorPoint(self.v).anchor_points[v_anchor_name]
             if self.autopath:
-                self._path = self.u.studio_canvas.shortest_nocrossing(_u, _v)
+                self._path = self.u.STUDIO_CANVAS.shortest_nocrossing(_u, _v)
             else:
                 line = LineString([_u, _v])
                 self._path = redistribute_vertices(line, line.length / 3)
