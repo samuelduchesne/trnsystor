@@ -433,9 +433,11 @@ class TrnsysModel(Component):
         )
 
     def _resolve_cycles(self, type_, class_):
-        """Cycle resolver. Proformas can contain parameters, inputs and ouputs
-        that have a variable number of entries. This will deal with their
-        creation each time the linked parameters are changed.
+        """Cycle resolver.
+
+        Proformas can contain parameters, inputs and outputs that have a variable
+        number of entries. This will deal with their creation each time the linked
+        parameters are changed.
 
         Args:
             type_:
