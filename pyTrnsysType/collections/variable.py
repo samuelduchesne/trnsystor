@@ -54,6 +54,12 @@ class VariableCollection(collections.UserDict):
                 "VariableCollection".format(type(value))
             )
 
+    def __str__(self):
+        return self._to_deck()
+
+    def _to_deck(self):
+        pass
+
     @classmethod
     def from_dict(cls, dictionary):
         """

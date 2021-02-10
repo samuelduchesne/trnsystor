@@ -37,6 +37,12 @@ def tank_type():
         yield tank
 
 
+@pytest.fixture()
+def plotter():
+    plot = TrnsysModel.from_xml("tests/input_files/Type65d.xml")
+    yield plot
+
+
 @pytest.fixture(scope="class")
 def weather_type():
     from pyTrnsysType.trnsysmodel import TrnsysModel
@@ -185,6 +191,11 @@ class TestTrnsysModel:
         attr_name = "Initial_temperature_of_node_1"
         tank_type.derivatives[attr_name] = 60
         assert tank_type.derivatives[attr_name].value.m == 60.0
+
+    def test_get_attr_specialCards(self, plotter: TrnsysModel):
+        assert plotter.special_cards
+        assert plotter.special_cards[0].name == "LABELS"
+        print(plotter.special_cards)
 
     def test_set_attr_cycle_parameters(self, pipe_type):
         """Test setter for class TypeVariable"""

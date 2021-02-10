@@ -5,20 +5,28 @@ import itertools
 import networkx as nx
 from bs4 import BeautifulSoup, Tag
 from path import Path
-from pyTrnsysType.component import Component
 
 from pyTrnsysType.anchorpoint import AnchorPoint
 from pyTrnsysType.collections.cycle import CycleCollection
 from pyTrnsysType.collections.derivatives import DerivativesCollection
+from pyTrnsysType.collections.externalfile import ExternalFileCollection
 from pyTrnsysType.collections.initialinputvalues import InitialInputValuesCollection
 from pyTrnsysType.collections.input import InputCollection
 from pyTrnsysType.collections.output import OutputCollection
 from pyTrnsysType.collections.parameter import ParameterCollection
+from pyTrnsysType.collections.specialcards import SpecialCardsCollection
+from pyTrnsysType.component import Component
 from pyTrnsysType.externalfile import ExternalFile
-from pyTrnsysType.collections.externalfile import ExternalFileCollection
 from pyTrnsysType.studio import StudioHeader
 from pyTrnsysType.typecycle import TypeCycle
-from pyTrnsysType.typevariable import TypeVariable, Parameter, Input, Output, Derivative
+from pyTrnsysType.typevariable import (
+    Derivative,
+    Input,
+    Output,
+    Parameter,
+    TypeVariable,
+)
+from pyTrnsysType.specialcard import SpecialCard
 
 
 class MetaData(object):
@@ -48,6 +56,7 @@ class MetaData(object):
         externalFiles=None,
         compileCommand=None,
         model=None,
+        specialCards=None,
         **kwargs,
     ):
         """Initialize object with arguments.
@@ -120,6 +129,7 @@ class MetaData(object):
 
         self.variables = variables
         self.external_files = externalFiles
+        self.special_cards = specialCards
 
         self.check_extra_tags(kwargs)
 
@@ -259,6 +269,11 @@ class TrnsysModel(Component):
         return self._get_derivatives()
 
     @property
+    def special_cards(self):
+        """VariableCollection: returns the model's special cards"""
+        return self._get_special_cards()
+
+    @property
     def initial_input_values(self):
         """VariableCollection: returns the model's initial input values."""
         return self._get_initial_input_values()
@@ -311,6 +326,18 @@ class TrnsysModel(Component):
         )
         model._meta.variables = {id(var): var for var in type_vars}
         model._meta.cycles = type_cycles
+        special_cards = (
+            [
+                SpecialCard.from_tag(tag)
+                for tag in tag.find("specialCards").children
+                if isinstance(tag, Tag)
+            ]
+            if tag.find("specialCards")
+            else None
+        )
+        model._meta.special_cards = (
+            {id(var): var for var in special_cards} if special_cards else None
+        )
         file_vars = (
             [
                 ExternalFile.from_tag(tag)
@@ -392,6 +419,14 @@ class TrnsysModel(Component):
         # filter out cyclebases
         deriv_dict = {k: v for k, v in deriv_dict.items() if v._iscyclebase == False}
         return DerivativesCollection.from_dict(deriv_dict)
+
+    def _get_special_cards(self):
+        if self._meta.special_cards:
+            special_cards_list = list(
+                self._meta["special_cards"][attr]
+                for attr in self._get_filtered_types(SpecialCard, "special_cards")
+            )
+            return SpecialCardsCollection(special_cards_list)
 
     def _get_external_files(self):
         if self._meta.external_files:
@@ -558,16 +593,18 @@ class TrnsysModel(Component):
         params = self.parameters
         inputs = self.inputs
         initial_input_values = self.initial_input_values
+        special_cards = self.special_cards
         derivatives = self.derivatives
-        externals = self.external_files._to_deck() if self.external_files else ""
+        externals = self.external_files
 
         return (
             str(unit_type)
             + str(studio)
-            + params._to_deck()
-            + inputs._to_deck()
-            + initial_input_values._to_deck()
-            + derivatives._to_deck()
+            + str(params)
+            + str(inputs)
+            + str(initial_input_values)
+            + str(special_cards)
+            + str(derivatives)
             + str(externals)
         )
 
