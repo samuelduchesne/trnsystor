@@ -131,7 +131,12 @@ class ControlCards(object):
 
         self.end = End()
 
+    def __str__(self):
+        """Return str(self)."""
+        return self.__repr__()
+
     def __repr__(self):
+        """Return Deck representation of self."""
         return self._to_deck()
 
     @classmethod

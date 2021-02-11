@@ -54,7 +54,7 @@ class StudioHeader(object):
             (str): The string representation of the StudioHeader.
         """
         unit_name = "*$UNIT_NAME {}".format(self.unit_name)
-        model = "*$MODEL {}".format(self.model)
+        model = "*$MODEL {}".format(self.model.expand())
         position = "*$POSITION {} {}".format(self.position.x, self.position.y)
         layer = "*$LAYER {}".format(" ".join(self.layer))
         return "\n".join([unit_name, model, position, layer]) + "\n"

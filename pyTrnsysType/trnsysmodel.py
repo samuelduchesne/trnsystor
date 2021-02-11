@@ -212,6 +212,10 @@ class TrnsysModel(Component):
         """
         super().__init__(name=name, meta=meta)
 
+    def __str__(self):
+        """Return Deck representation of self."""
+        return self._to_deck()
+
     def __repr__(self):
         """str: The String representation of this object."""
         return "[{}]Type{}: {}".format(self.unit_number, self.type_number, self.name)
@@ -586,9 +590,7 @@ class TrnsysModel(Component):
 
     def _to_deck(self):
         """print the Input File (.dck) representation of this TrnsysModel"""
-        unit_type = "UNIT {n} TYPE {m} {name}\n".format(
-            n=self.unit_number, m=self.type_number, name=self.name
-        )
+        unit_type = f"UNIT {self.unit_number} TYPE  {self.type_number} {self.name}\n"
         studio = self.studio
         params = self.parameters
         inputs = self.inputs

@@ -236,7 +236,7 @@ class TestTrnsysModel:
 
     def test_trnsysmodel_repr(self, tank_type):
         """test the __repr__ for :class:`TrnsysModel`"""
-        assert str(tank_type) == "[5]Type4: Storage Tank; Fixed Inlets, Uniform Losses"
+        assert str(tank_type)[3:] == "Type4: Storage Tank; Fixed Inlets, Uniform Losses"
 
     def test_typecycle_repr(self, tank_type):
         assert repr(tank_type._meta.cycles[0]) == "output 1 to 13"
@@ -936,9 +936,8 @@ class TestCommonTypes:
         model = TrnsysModel.from_xml("tests/input_files/Type951.xml")
         deck.update_models(model)
         deck.to_file(p)
-        readdeck = Deck.read_file(p)
-        readdeck.models.iloc[2]
-        assert p.read_text() == model._to_deck()
+        read_deck = Deck.read_file(p, proforma_root="tests/input_files")
+        assert p.read_text() == str(read_deck)
 
 
 class TestStudioCanvas:

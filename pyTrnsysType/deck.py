@@ -152,7 +152,7 @@ class Deck(object):
         """Returns a Deck from a file
 
         Args:
-            file (str): Either the absolute or relative path to the file to be
+            file (str or Path): Either the absolute or relative path to the file to be
                 opened.
             author (str): The author of the project.
             date_created (str): The creation date. If None, defaults to
@@ -288,6 +288,8 @@ class Deck(object):
             >>> deck.to_file("my_project.dck",None,"w")
 
         Args:
+            encoding:
+            mode:
             path_or_buf (Union[str, Path, IO[AnyStr]]): str or file handle, default None
                 File path or object, if None is provided the result is returned as
                 a string.  If a file object is passed it should be opened with
@@ -313,9 +315,9 @@ class Deck(object):
 
     def _to_string(self):
         end = self.control_cards.__dict__.pop("end", End())
-        cc = self.control_cards._to_deck()
+        cc = str(self.control_cards)
 
-        models = "\n\n".join([model._to_deck() for model in self.models])
+        models = "\n\n".join([str(model) for model in self.models])
 
         model: Component
         styles = (
@@ -347,6 +349,10 @@ class Deck(object):
             line:
             proforma_root:
         """
+        if proforma_root is None:
+            proforma_root = Path.getcwd()
+        else:
+            proforma_root = Path(proforma_root)
         global component, i
         while line:
             key, match = dck._parse_line(line)
@@ -438,10 +444,10 @@ class Deck(object):
                 component._unit = int(unit_number)
                 dck.update_models(component)
             if key == "unitname":
-                unit_name = match.group(key)
+                unit_name = match.group(key).strip()
                 component.name = unit_name
             if key == "layer":
-                layer = match.group(key)
+                layer = match.group(key).strip()
                 component.set_component_layer(layer)
             if key == "position":
                 pos = match.group(key)
@@ -534,7 +540,7 @@ class Deck(object):
                     except:
                         pass
             if key == "model":
-                _mod = match.group("model")
+                _mod = match.group("model").strip()
                 tmf = Path(_mod.replace("\\", "/"))
                 tmf_basename = tmf.basename()
                 try:
@@ -542,9 +548,6 @@ class Deck(object):
                 except:
                     # replace extension with ".xml" and retry
                     xml_basename = tmf_basename.stripext() + ".xml"
-                    proforma_root = Path(proforma_root)
-                    if proforma_root is None:
-                        proforma_root = Path.getcwd()
                     xmls = proforma_root.glob("*.xml")
                     xml = next((x for x in xmls if x.basename() == xml_basename), None)
                     if not xml:
@@ -672,7 +675,7 @@ class Deck(object):
                 r"(?i)(?P<key>^\*\$position)(?P<position>.*?)(?=(?:!|$))"
             ),
             "unit": re.compile(
-                r"(?i)unit (?P<unitnumber>.*?)type (?P<typenumber>\d*?\s)(?P<name>.*$)"
+                r"(?i)unit\s*(?P<unitnumber>.*?)\s*type\s*(?P<typenumber>\d*?\s)\s*(?P<name>.*$)"
             ),
             "model": re.compile(
                 r"(?i)(?P<key>^\*\$model)(?P<model>.*?)(?=(" r"?:!|$))"
