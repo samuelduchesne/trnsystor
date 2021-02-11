@@ -52,9 +52,10 @@ class DeckFormatter:
 
         if path_or_buf is None:
             path_or_buf = StringIO()
-        self.path_or_buf, _, _, _ = _get_filepath_or_buffer(
+        io_args = _get_filepath_or_buffer(
             path_or_buf, encoding=encoding, compression=None, mode=mode
         )
+        self.path_or_buf = io_args.filepath_or_buffer
         self.obj = obj
         self.mode = mode
         if encoding is None:
@@ -67,12 +68,14 @@ class DeckFormatter:
             f = self.path_or_buf
             close = False
         else:
-            f, handles = get_handle(
+            io_handles = get_handle(
                 self.path_or_buf,
                 self.mode,
                 encoding=self.encoding,
                 compression=None,
             )
+            f = io_handles.handle
+            handles = io_handles.created_handles
             close = True
         try:
             deck_str = str(self.obj)
