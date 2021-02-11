@@ -56,3 +56,8 @@ class ParameterCollection(VariableCollection):
                     )
         params_str = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
         return head + params_str + "\n"
+
+    @property
+    def size(self):
+        """The number of parameters"""
+        return len([p for p in self if not self[p]._is_question])
