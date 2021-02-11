@@ -7,7 +7,7 @@ import collections
 from pint.quantity import _Quantity
 
 from pyTrnsysType import standerdized_name
-from pyTrnsysType.statement import Equation, Constant
+from pyTrnsysType.statement import Constant, Equation
 from pyTrnsysType.typevariable import TypeVariable
 from pyTrnsysType.utils import _parse_value
 
@@ -16,24 +16,31 @@ class VariableCollection(collections.UserDict):
     """A collection of :class:`VariableType` as a dict. Handles getting and
     setting variable values.
     """
-
-    def __getitem__(self, key):
-        """
-        Args:
-            key:
-        """
+    def __getattr__(self, key):
+        """Get attribute."""
         if isinstance(key, int):
             value = list(self.data.values())[key]
         else:
             value = super(VariableCollection, self).__getitem__(key)
         return value
 
+    def __getitem__(self, key):
+        """Get item."""
+        if isinstance(key, int):
+            value = list(self.data.values())[key]
+        else:
+            value = super(VariableCollection, self).__getitem__(key)
+        return value
+
+    def __setattr__(self, key, value):
+        """Set attribute."""
+        if isinstance(value, dict):
+            super(VariableCollection, self).__setattr__(key, value)
+        else:
+            self.__setitem__(key, value)
+
     def __setitem__(self, key, value):
-        """
-        Args:
-            key:
-            value:
-        """
+        """Set item."""
 
         if isinstance(value, TypeVariable):
             """if a TypeVariable is given, simply set it"""
@@ -55,6 +62,7 @@ class VariableCollection(collections.UserDict):
             )
 
     def __str__(self):
+        """Return Deck representation."""
         return self._to_deck()
 
     def _to_deck(self):
