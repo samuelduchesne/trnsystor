@@ -236,9 +236,10 @@ class TestTrnsysModel:
 
     def test_trnsysmodel_repr(self, tank_type):
         """test the __repr__ for :class:`TrnsysModel`"""
-        assert str(tank_type)[3:] == "Type4: Storage Tank; Fixed Inlets, Uniform Losses"
+        assert repr(tank_type)[3:] == "Type4: Storage Tank; Fixed Inlets, Uniform Losses"
 
     def test_typecycle_repr(self, tank_type):
+        """test the __repr__ for :class:`TypeCycle`"""
         assert repr(tank_type._meta.cycles[0]) == "output 1 to 13"
 
     def test_collections_repr(self, tank_type):
