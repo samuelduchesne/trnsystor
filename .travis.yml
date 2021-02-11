@@ -14,12 +14,12 @@ before_install:
   - conda info -a
 
 install:
-  - conda create -q -n pyTrnsysType python=3
-  - source activate pyTrnsysType
+  - conda create -q -n pytrnsys python=3
+  - source activate pytrnsys
   - pip install --no-cache-dir .[dev]
 
 script:
-  - pytest --cov=pyTrnsysType --verbose tests/
+  - pytest --cov=pytrnsys --verbose tests/
 
 after_success:
   - coverage report -m

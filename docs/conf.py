@@ -14,18 +14,18 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath("."))
-sys.path.insert(0, os.path.abspath("pyTrnsysType"))
+sys.path.insert(0, os.path.abspath("pytrnsys"))
 
 # -- Project information -----------------------------------------------------
 
-project = "pyTrnsysType"
+project = "pytrnsys"
 copyright = "2019, Samuel Letellier-Duchesne"
 author = "Samuel Letellier-Duchesne"
 
 # The full version, including alpha/beta/rc tags
-import pyTrnsysType
+import pytrnsys
 
-version = release = pyTrnsysType.__version__
+version = release = pytrnsys.__version__
 
 # -- General configuration ---------------------------------------------------
 

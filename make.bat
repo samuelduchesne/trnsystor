@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=./docs
 set BUILDDIR=_build
-set SPHINXPROJ=pyTrnsysType
+set SPHINXPROJ=pytrnsys
 
 if "%1" == "" goto help
 

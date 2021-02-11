@@ -34,7 +34,7 @@ with open(path.join(here, "requirements-dev.txt")) as f:
     requirements_lines = f.readlines()
 dev_requires = [r.strip() for r in requirements_lines]
 
-package = "pyTrnsysType"
+package = "pytrnsys"
 setup(
     name=package,
     version=find_version(package, "__init__.py"),
