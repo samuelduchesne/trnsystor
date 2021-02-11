@@ -10,7 +10,7 @@ import tempfile
 from io import StringIO
 
 from pandas import to_datetime
-from pandas.io.common import get_filepath_or_buffer, get_handle
+from pandas.io.common import _get_filepath_or_buffer, get_handle
 from path import Path
 from pyTrnsysType.component import Component
 from shapely.geometry import Point, LineString
@@ -52,7 +52,7 @@ class DeckFormatter:
 
         if path_or_buf is None:
             path_or_buf = StringIO()
-        self.path_or_buf, _, _, _ = get_filepath_or_buffer(
+        self.path_or_buf, _, _, _ = _get_filepath_or_buffer(
             path_or_buf, encoding=encoding, compression=None, mode=mode
         )
         self.obj = obj
