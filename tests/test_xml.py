@@ -242,9 +242,9 @@ class TestTrnsysModel:
         assert repr(tank_type._meta.cycles[0]) == "output 1 to 13"
 
     def test_collections_repr(self, tank_type):
-        assert repr(tank_type.inputs) == str(tank_type.inputs)
-        assert repr(tank_type.outputs) == str(tank_type.outputs)
-        assert repr(tank_type.parameters) == str(tank_type.parameters)
+        assert repr(tank_type.inputs)
+        assert repr(tank_type.outputs)
+        assert repr(tank_type.parameters)
 
     def test_TypeVariable_repr(self, tank_type):
         for _, a in tank_type.inputs.items():
