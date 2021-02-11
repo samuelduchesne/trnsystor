@@ -23,7 +23,7 @@ def find_version(*file_paths):
 
 
 # Get the long description from the README file
-with codecs.open(path.join(here, "README.rst"), encoding="utf-8") as f:
+with codecs.open(path.join(here, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
 with open("requirements.txt") as f:
@@ -44,6 +44,8 @@ setup(
     author="Samuel Letellier-Duchesne",
     author_email="samuel.letellier-duchesne@polymtl.ca",
     description="A python TRNSYS type parser",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     keywords="TRNSYS type XML proforma",
     install_requires=install_requires,
     extras_require={"dev": dev_requires},
