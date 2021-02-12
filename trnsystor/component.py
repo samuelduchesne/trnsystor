@@ -298,7 +298,7 @@ class Component(metaclass=ABCMeta):
         return self.UNIT_GRAPH.predecessors(self)
 
     def invalidate_connections(self):
-        """iterate over successors and predecessors and remove the edges.
+        """Iterate over successors and predecessors and remove the edges.
 
         Todo: restore paths in self.studio_canvas.grid
         """

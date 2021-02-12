@@ -251,9 +251,9 @@ class TypeVariableSymbol(Symbol):
     """
 
     def __new__(cls, type_variable, **assumptions):
-        """TypeVariableSymbol are identified by TypeVariable and assumptions.
+        """:class:`TypeVariableSymbol` are identified by TypeVariable and assumptions.
 
-        >>> from trnsystor import TypeVariableSymbol
+        >>> from trnsystor.utils import TypeVariableSymbol
         >>> TypeVariableSymbol("x") == TypeVariableSymbol("x")
         True
         >>> TypeVariableSymbol("x", real=True) == TypeVariableSymbol("x",

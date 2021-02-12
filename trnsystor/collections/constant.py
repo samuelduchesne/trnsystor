@@ -54,7 +54,7 @@ class ConstantCollection(Component, collections.UserDict):
         return self._to_deck()
 
     def __hash__(self):
-        """return hash(self)."""
+        """Return hash(self)."""
         return self.unit_number
 
     def __eq__(self, other):
@@ -133,5 +133,5 @@ class ConstantCollection(Component, collections.UserDict):
         return self
 
     def _get_outputs(self):
-        """outputs getter. Since self is already a  dict, return self."""
+        """Return outputs. Since self is already a  dict, return self."""
         return self

@@ -162,7 +162,7 @@ class EquationCollection(Component, collections.UserDict):
         return self
 
     def _get_outputs(self):
-        """outputs getter. Since self is already a  dict, return self."""
+        """Return outputs. Since self is already a dict, return self."""
         return self
 
     def _get_ordered_filtered_types(self, classe_, store):
