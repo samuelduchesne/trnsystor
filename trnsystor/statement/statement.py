@@ -10,6 +10,7 @@ class Statement(object):
     """
 
     def __init__(self):
+        """Initialize object."""
         self.doc = ""
 
     def __repr__(self):

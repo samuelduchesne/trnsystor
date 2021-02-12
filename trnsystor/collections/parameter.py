@@ -10,10 +10,6 @@ from trnsystor.typevariable import TypeVariable
 class ParameterCollection(VariableCollection):
     """Subclass of :class:`VariableCollection` specific to Parameters."""
 
-    def __init__(self):
-        super().__init__()
-        pass
-
     def __repr__(self):
         """Return repr(self)."""
         num_inputs = "{} Parameters:\n".format(self.size)

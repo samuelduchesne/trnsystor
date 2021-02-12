@@ -22,10 +22,6 @@ class InitialInputValuesCollection(VariableCollection):
         the question will not be returned in the iterator; only regular inputs will.
     """
 
-    def __init__(self):
-        super().__init__()
-        pass
-
     def __repr__(self):
         """Return repr(self)."""
         num_inputs = "{} Initial Input Values:\n".format(self.size)

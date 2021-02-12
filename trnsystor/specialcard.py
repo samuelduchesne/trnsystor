@@ -14,6 +14,7 @@ class SpecialCard(object):
     """
 
     def __init__(self, name=None, question=None, default=None, answers=None):
+        """Initialize object."""
         if answers is None:
             answers = []
         self.name = name

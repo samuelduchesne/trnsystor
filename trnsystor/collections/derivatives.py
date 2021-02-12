@@ -9,10 +9,6 @@ from trnsystor.typevariable import TypeVariable
 class DerivativesCollection(VariableCollection):
     """Subclass of :class:`VariableCollection` specific to Derivatives."""
 
-    def __init__(self):
-        super().__init__()
-        pass
-
     def __repr__(self):
         """Return repr(self)."""
         num_inputs = "{} Inputs:\n".format(self.size)

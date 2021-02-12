@@ -11,6 +11,7 @@ class End(Statement):
     """
 
     def __init__(self):
+        """Initialize object."""
         super().__init__()
         self.doc = "The END Statement"
 

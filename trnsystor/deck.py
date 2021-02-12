@@ -45,7 +45,7 @@ class DeckFormatter:
     """Class for handling the formatting of deck files."""
 
     def __init__(self, obj, path_or_buf, encoding=None, mode="w"):
-
+        """Initialize object."""
         if path_or_buf is None:
             path_or_buf = StringIO()
         io_args = _get_filepath_or_buffer(

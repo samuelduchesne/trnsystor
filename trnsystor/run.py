@@ -10,4 +10,5 @@ class Run:
     """
 
     def __init__(self):
+        """Initialize object."""
         pass

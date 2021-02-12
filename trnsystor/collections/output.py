@@ -5,10 +5,6 @@ from trnsystor.collections.variable import VariableCollection
 class OutputCollection(VariableCollection):
     """Subclass of :class:`VariableCollection` specific to Outputs."""
 
-    def __init__(self):
-        super().__init__()
-        pass
-
     def __repr__(self):
         """Return repr(self)."""
         num_inputs = "{} Outputs:\n".format(self.size)

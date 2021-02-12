@@ -18,10 +18,6 @@ class InputCollection(VariableCollection):
         will not be returned in the iterator; only regular inputs will.
     """
 
-    def __init__(self):
-        super().__init__()
-        pass
-
     def __repr__(self):
         """Return Deck representation of self."""
         num_inputs = "{} Inputs:\n".format(self.size)
