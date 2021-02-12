@@ -8,7 +8,7 @@ from trnsystor.typevariable import TypeVariable
 
 
 class ParameterCollection(VariableCollection):
-    """Subclass of :class:`VariableCollection` specific to Parameters"""
+    """Subclass of :class:`VariableCollection` specific to Parameters."""
 
     def __init__(self):
         super().__init__()
@@ -22,8 +22,7 @@ class ParameterCollection(VariableCollection):
         return num_inputs + inputs
 
     def _to_deck(self):
-        """Returns the string representation for the Input File (.dck)"""
-
+        """Return deck representation of self."""
         head = "PARAMETERS {}\n".format(self.size)
         # loop through parameters and print the (value, name) tuples.
         v_ = []

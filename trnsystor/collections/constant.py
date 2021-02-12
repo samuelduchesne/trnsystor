@@ -9,8 +9,7 @@ from trnsystor.statement import Constant
 
 
 class ConstantCollection(Component, collections.UserDict):
-    """A class that behaves like a dict and that collects one or more
-    :class:`Constants`.
+    """A class that behaves like a dict and collects one or more :class:`Constants`.
 
     You can pass a dict of Equation or you can pass a list of Equation. In
     the latter, the :attr:`Equation.name` attribute will be used as a key.
@@ -37,10 +36,7 @@ class ConstantCollection(Component, collections.UserDict):
         super(ConstantCollection, self).__init__(_dict, meta=None, name=name, **kwargs)
 
     def __getitem__(self, key):
-        """
-        Args:
-            key:
-        """
+        """Get item."""
         if isinstance(key, int):
             value = list(self.data.values())[key]
         else:
@@ -110,7 +106,7 @@ class ConstantCollection(Component, collections.UserDict):
         return self._unit * -1
 
     def _to_deck(self):
-        """To deck representation
+        """Return deck representation of self.
 
         Examples::
 
@@ -129,7 +125,7 @@ class ConstantCollection(Component, collections.UserDict):
         return str(header_comment) + str(head) + str(core)
 
     def _get_inputs(self):
-        """inputs getter. Sorts by order number each time it is called"""
+        """Sort by order number each time it is called."""
         return self
 
     def _get_outputs(self):

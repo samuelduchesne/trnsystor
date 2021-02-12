@@ -7,7 +7,7 @@ from trnsystor.typevariable import TypeVariable
 
 
 class DerivativesCollection(VariableCollection):
-    """Subclass of :class:`VariableCollection` specific to Derivatives"""
+    """Subclass of :class:`VariableCollection` specific to Derivatives."""
 
     def __init__(self):
         super().__init__()
@@ -21,7 +21,7 @@ class DerivativesCollection(VariableCollection):
         return num_inputs + inputs
 
     def _to_deck(self):
-        """Returns the string representation for the Input File (.dck)"""
+        """Return deck representation of self."""
 
         if self.size == 0:
             # Don't need to print empty inputs

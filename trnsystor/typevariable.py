@@ -10,7 +10,8 @@ from trnsystor.utils import _parse_value, parse_type, standerdized_name
 
 
 class TypeVariable(object):
-    """
+    """TypeVariable class.
+
     :class:`TypeVariable` is the main object class that handles storage of
     TRNSYS component parameters, inputs, outputs and derivatives. Parameters,
     Inputs, Outputs and Derivatives are all subclasses of TypeVariable.
@@ -38,7 +39,7 @@ class TypeVariable(object):
         definition=None,
         model=None,
     ):
-        """Initialize a TypeVariable with the following attributes:
+        """Initialize a TypeVariable with the following attributes.
 
         Args:
             val (int, float, _Quantity): The actual value hold by this object.
@@ -164,7 +165,7 @@ class TypeVariable(object):
                 self.__setattr__(attr, int(value))
 
     def copy(self):
-        """TypeVariable: Make a copy of :attr:`self`"""
+        """TypeVariable: Make a copy of :attr:`self`."""
         new_self = copy.copy(self)
         return new_self
 
@@ -198,7 +199,7 @@ class TypeVariable(object):
 
     @property
     def idx(self):
-        """The 0-based index of the TypeVariable"""
+        """The 0-based index of the TypeVariable."""
         ordered_dict = collections.OrderedDict(
             (
                 standerdized_name(self.model._meta.variables[attr].name),
@@ -280,7 +281,7 @@ class TypeVariable(object):
 
 
 class Parameter(TypeVariable):
-    """A subclass of :class:`TypeVariable` specific to parameters"""
+    """A subclass of :class:`TypeVariable` specific to parameters."""
 
     def __init__(self, val, **kwargs):
         """A subclass of :class:`TypeVariable` specific to parameters.
@@ -295,7 +296,7 @@ class Parameter(TypeVariable):
 
 
 class Input(TypeVariable):
-    """A subclass of :class:`TypeVariable` specific to inputs"""
+    """A subclass of :class:`TypeVariable` specific to inputs."""
 
     def __init__(self, val, **kwargs):
         """A subclass of :class:`TypeVariable` specific to inputs.
@@ -310,7 +311,7 @@ class Input(TypeVariable):
 
 
 class InitialInputValue(TypeVariable):
-    """A subclass of :class:`TypeVariable` specific to Initial Input Values"""
+    """A subclass of :class:`TypeVariable` specific to Initial Input Values."""
 
     def __init__(self, val, **kwargs):
         """A subclass of :class:`TypeVariable` specific to inputs.
@@ -325,7 +326,7 @@ class InitialInputValue(TypeVariable):
 
 
 class Output(TypeVariable):
-    """A subclass of :class:`TypeVariable` specific to outputs"""
+    """A subclass of :class:`TypeVariable` specific to outputs."""
 
     def __init__(self, val, **kwargs):
         """A subclass of :class:`TypeVariable` specific to outputs.
@@ -344,7 +345,7 @@ class Output(TypeVariable):
 
     @property
     def successors(self):
-        """Other TypeVariables to which this TypeVariable is connected. Successors"""
+        """Other TypeVariables to which this TypeVariable is connected. Successors."""
         successors = []
         for suc in self.model.UNIT_GRAPH.successors(self.model):
             for key in self.model.UNIT_GRAPH[self.model][suc]:
@@ -355,7 +356,9 @@ class Output(TypeVariable):
 
 
 class Derivative(TypeVariable):
-    """the DERIVATIVES for a given :class:`TrnsysModel` specify initial values,
+    """Derivatives class.
+
+    the DERIVATIVES for a given :class:`TrnsysModel` specify initial values,
     such as the initial temperatures of various nodes in a thermal storage tank
     or the initial zone temperatures in a multi zone building.
     """

@@ -45,8 +45,7 @@ class InputCollection(VariableCollection):
         return iter({k: v for k, v in self.data.items() if not v._is_question})
 
     def _to_deck(self):
-        """Returns the string representation for the Input File (.dck)"""
-
+        """Return deck representation of self."""
         if self.size == 0:
             # Don't need to print empty inputs
             return ""

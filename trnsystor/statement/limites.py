@@ -3,14 +3,17 @@ from trnsystor.statement.statement import Statement
 
 
 class Limits(Statement):
-    """The LIMITS statement is an optional control statement used to set limits
+    """LIMITS Statement.
+
+    The LIMITS statement is an optional control statement used to set limits
     on the number of iterations that will be performed by TRNSYS during a time
     step before it is determined that the differential equations and/or
     algebraic equations are not converging.
     """
 
     def __init__(self, m=25, n=10, p=None):
-        """
+        """Initialize object.
+
         Args:
             m (int): is the maximum number of iterations which can be performed
                 during a time-step before a WARNING message is printed out.
@@ -28,6 +31,9 @@ class Limits(Statement):
         self.doc = "Max iterations\tMax warnings\tTrace limit"
 
     def _to_deck(self):
-        """TOLERANCES 0.001 0.001"""
+        """Return deck representation of self.
+
+        Examples:
+            TOLERANCES 0.001 0.001"""
         head = "LIMITS {} {} {}".format(self.m, self.n, self.p)
         return str(head)

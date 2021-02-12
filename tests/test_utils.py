@@ -31,7 +31,7 @@ class TestRedistributeVertices:
         assert newline.length == line.length
 
     def test_redistribute_vertices_wrongtype(self, ring):
-        """Tests unsupported geometry"""
+        """Tests unsupported geometry."""
         with pytest.raises(TypeError):
             assert redistribute_vertices(ring, 10)
 

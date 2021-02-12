@@ -3,12 +3,15 @@ from shapely.geometry import Point
 
 
 class StudioHeader(object):
-    """Each TrnsysModel has a StudioHeader which handles the studio comments
+    """StudioHeader class.
+
+    Each TrnsysModel has a StudioHeader which handles the studio comments
     such as position, UNIT_NAME, model, POSITION, LAYER, LINK_STYLE
     """
 
     def __init__(self, unit_name, model, position, layer=None):
-        """
+        """Initialize object.
+
         Args:
             unit_name (str): The unit_name, eg.: "Type104".
             model (Path): The path of the tmf/xml file.
@@ -30,16 +33,13 @@ class StudioHeader(object):
 
     @classmethod
     def from_component(cls, model):
-        """
-        Args:
-            model (Component):
-        """
         position = Point(50, 50)
         layer = ["Main"]
         return cls(model.name, model.model, position, layer)
 
     def _to_deck(self):
-        """
+        """Return deck representation of self.
+
         Examples:
             >>>
             *$UNIT_NAME Boulder, CO

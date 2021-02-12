@@ -4,7 +4,9 @@ from trnsystor.statement.statement import Statement
 
 
 class TimeReport(Statement):
-    """The statement TIME_REPORT turns on or off the internal calculation of the
+    """TIME_REPORT Statement.
+
+    The statement TIME_REPORT turns on or off the internal calculation of the
     time spent on each unit. If this feature is desired, the listing file will
     contain this information at the end of the file.
     """
@@ -21,4 +23,5 @@ class TimeReport(Statement):
         self.doc = "The TIME_REPORT Statement"
 
     def _to_deck(self):
+        """Return deck representation of self."""
         return "TIME_REPORT {n}".format(n=self.n)

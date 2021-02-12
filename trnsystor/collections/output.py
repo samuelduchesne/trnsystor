@@ -3,7 +3,7 @@ from trnsystor.collections.variable import VariableCollection
 
 
 class OutputCollection(VariableCollection):
-    """Subclass of :class:`VariableCollection` specific to Outputs"""
+    """Subclass of :class:`VariableCollection` specific to Outputs."""
 
     def __init__(self):
         super().__init__()

@@ -13,16 +13,19 @@ from trnsystor.utils import affine_transform
 
 
 class Component(metaclass=ABCMeta):
-    """Base class for Trnsys elements that interact with the Studio.
+    """Component class.
+
+    Base class for Trnsys elements that interact with the Studio.
     :class:`TrnsysModel`,  :class:`ConstantCollection` and
-    :class:`EquationCollection` implement this class."""
+    :class:`EquationCollection` implement this class.
+    """
 
     INIT_UNIT_NUMBER = itertools.count(start=1)
     STUDIO_CANVAS = StudioCanvas()
     UNIT_GRAPH = nx.MultiDiGraph()
 
     def __init__(self, *args, **kwargs):
-        """Initialize a Component with the following parameters:
+        """Initialize class.
 
         Args:
             name (str): Name of the component.
@@ -59,8 +62,9 @@ class Component(metaclass=ABCMeta):
         ]
 
     def set_canvas_position(self, pt, trnsys_coords=False):
-        """Set position of self in the canvas. Use cartesian coordinates: origin
-        0,0 is at bottom-left.
+        """Set position of self in the canvas.
+
+        Use cartesian coordinates: origin 0,0 is at bottom-left.
 
         Hint:
             The Studio Canvas origin corresponds to the top-left of the canvas.
@@ -93,23 +97,23 @@ class Component(metaclass=ABCMeta):
             )
 
     def set_component_layer(self, layers):
-        """Change the component's layer. Pass a list to change multiple layers
+        """Change the layer of self. Pass a list to change multiple layers.
 
         Args:
-            layers (str or list):
+            layers (str or list of str):
         """
         if isinstance(layers, str):
             layers = [layers]
         self.studio.layer = layers
 
     @property
-    def unit_number(self):
-        """int: Returns the model's unit number (unique)"""
+    def unit_number(self) -> int:
+        """Return the model's unit number (unique)."""
         return self._unit
 
     @property
-    def type_number(self):
-        """int: Returns the model's type number, eg.: 104 for Type104"""
+    def type_number(self) -> int:
+        """Return the model's type number, eg.: ``104`` for Type104."""
         return int(
             self._meta.type
             if not isinstance(self._meta.type, Tag)
@@ -117,13 +121,13 @@ class Component(metaclass=ABCMeta):
         )
 
     @property
-    def unit_name(self):
-        """str: Returns the model's unit name, eg.: 'Type104'"""
+    def unit_name(self) -> str:
+        """Return the model's unit name, eg.: 'Type104'."""
         return "Type{}".format(self.type_number)
 
     @property
-    def model(self):
-        """str: The path of this model's proforma"""
+    def model(self) -> str:
+        """Return the path of this model's proforma."""
         try:
             model = self._meta.model
         except AttributeError:
@@ -148,16 +152,12 @@ class Component(metaclass=ABCMeta):
 
     @abstractmethod
     def _get_inputs(self):
-        """inputs getter. Sorts by order number and resolves cycles each time it
-        is called
-        """
+        """Sorts by order number and resolves cycles each time it is called."""
         pass
 
     @abstractmethod
     def _get_outputs(self):
-        """outputs getter. Sorts by order number and resolves cycles each time
-        it is called
-        """
+        """Sorts by order number and resolves cycles each time it is called."""
         pass
 
     def set_link_style(
@@ -279,7 +279,7 @@ class Component(metaclass=ABCMeta):
 
     @property
     def successors(self):
-        """Other objects to which this TypeVariable is connected. successors"""
+        """Other objects to which this TypeVariable is connected. Successors."""
         return self.UNIT_GRAPH.successors(self)
 
     @property
@@ -290,7 +290,7 @@ class Component(metaclass=ABCMeta):
 
     @property
     def predecessors(self):
-        """Other objects from which this TypeVariable is connected. Predecessors"""
+        """Other objects from which this TypeVariable is connected. Predecessors."""
         return self.UNIT_GRAPH.predecessors(self)
 
     def invalidate_connections(self):
@@ -310,4 +310,5 @@ class Component(metaclass=ABCMeta):
                 edges.append(edge)
 
     def _to_deck(self):
+        """Return deck representation of self."""
         pass

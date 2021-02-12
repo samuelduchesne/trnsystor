@@ -14,7 +14,7 @@ from trnsystor.trnsysmodel import TrnsysModel
 
 @pytest.fixture(scope="class")
 def fan_type():
-    """Fixture to create a TrnsysModel from xml"""
+    """Fixture to create a TrnsysModel from xml."""
     from trnsystor.trnsysmodel import TrnsysModel
 
     fan1 = TrnsysModel.from_xml(Path("tests/input_files/Type146.xml"))
@@ -23,7 +23,7 @@ def fan_type():
 
 @pytest.fixture(scope="class")
 def pipe_type():
-    """Fixture to create a TrnsysModel from xml. Also tests using a Path"""
+    """Fixture to create a TrnsysModel from xml. Also tests using a Path."""
     from trnsystor.trnsysmodel import TrnsysModel
 
     pipe = TrnsysModel.from_xml("tests/input_files/Type951.xml")
@@ -57,8 +57,10 @@ def weather_type():
 class TestTrnsysModel:
     @patch("builtins.input", return_value="y")
     def test_chiller_type(self, input):
-        """Fixture to create a TrnsysModel from xml from an xml that contains
-        unknown tags. Should prompt user. Passes when input == 'y'"""
+        """Fixture to create a TrnsysModel from xml that contains unknown tags.
+
+        Should prompt user. Passes when input == 'y'
+        """
         from trnsystor.trnsysmodel import TrnsysModel
 
         fan1 = TrnsysModel.from_xml("tests/input_files/Type107-simplified.xml")
@@ -80,9 +82,10 @@ class TestTrnsysModel:
         assert actual == n_nodes
 
     def test_cycles_2(self, pipe_type):
-        """changing number of fluid nodes from 100 to 20 should create 20 outputs
-        for pipe 2 and 20 outputs for pipe 1"""
+        """changing number of fluid nodes from 100 to 20 should create 20 outputs.
 
+        for pipe 2 and 20 outputs for pipe 1
+        """
         outputs = pipe_type.outputs
         mylist = list(outputs.keys())
         sub_1 = "Average_Fluid_Temperature_Pipe_1_"
@@ -107,7 +110,7 @@ class TestTrnsysModel:
         assert n_nodes == expected_2
 
     def test_cycles_issue14(self):
-        """https://github.com/samuelduchesne/trnsystor/issues/14"""
+        """https://github.com/samuelduchesne/trnsystor/issues/14."""
         from trnsystor.trnsysmodel import TrnsysModel
 
         valve = TrnsysModel.from_xml("tests/input_files/Type647.xml")
@@ -148,17 +151,17 @@ class TestTrnsysModel:
                     os.unlink(tmp.name)
 
     def test_out_of_bounds(self, pipe_type):
-        """should trigger ValueError because out of bounds"""
+        """Trigger ValueError because out of bounds."""
         with pytest.raises(ValueError):
             pipe_type.parameters["Number_of_Radial_Soil_Nodes"] = 21
 
     def test_get_attr(self, fan_type):
-        """Test getter for class TypeVariable"""
+        """Test getter for class TypeVariable."""
         in_air_temp = fan_type.inputs["Inlet_Air_Temperature"]
         assert in_air_temp
 
     def test_set_attr(self, fan_type):
-        """Test setter for class TypeVariable"""
+        """Test setter for class TypeVariable."""
         new_value = 12
         attr_name = "Inlet_Air_Temperature"
         fan_type.inputs[attr_name] = new_value
@@ -167,8 +170,10 @@ class TestTrnsysModel:
         assert fan_type.inputs[attr_name].value == Q_.__class__(new_value, Q_.units)
 
     def test_set_attr_quantity(self, fan_type):
-        """Test setter for class TypeVariable with type _Quantity. This tests
-        setting a value with different but equivalent units"""
+        """Test setter for class TypeVariable with type _Quantity.
+
+        This tests setting a value with different but equivalent units.
+        """
         attr_name = "Rated_Volumetric_Flow_Rate"
         new_value = fan_type.parameters[attr_name].value.to("m^3/s") * 10
         fan_type.parameters[attr_name] = new_value
@@ -185,12 +190,12 @@ class TestTrnsysModel:
         assert fan_type.initial_input_values[attr_name]
 
     def test_get_attr_derivative(self, tank_type):
-        """Test setter for class Derivative"""
+        """Test setter for class Derivative."""
         attr_name = "Initial_temperature_of_node_1"
         assert tank_type.derivatives[attr_name].value.m == 50.0
 
     def test_set_attr_derivative(self, tank_type):
-        """Test setter for class Derivative"""
+        """Test setter for class Derivative."""
         attr_name = "Initial_temperature_of_node_1"
         tank_type.derivatives[attr_name] = 60
         assert tank_type.derivatives[attr_name].value.m == 60.0
@@ -201,7 +206,7 @@ class TestTrnsysModel:
         print(plotter.special_cards)
 
     def test_set_attr_cycle_parameters(self, pipe_type):
-        """Test setter for class TypeVariable"""
+        """Test setter for class TypeVariable."""
         attr_name = "Radial_Distance_of_Node_1"
         new_value = 0.05
         pipe_type.parameters[attr_name] = new_value
@@ -212,11 +217,11 @@ class TestTrnsysModel:
         )
 
     def test_to_deck(self, fan_type):
-        """test to Input File representation of a TrnsysModel"""
+        """Test to Input File representation of a TrnsysModel."""
         print(fan_type._to_deck())
 
     def test_initial_input_values_to_deck(self, fan_type):
-        """test to Input File representation of a TrnsysModel"""
+        """Test to Input File representation of a TrnsysModel."""
         print(fan_type.initial_input_values._to_deck())
 
     def test_set_attr_cycle_question(self, tank_type):
@@ -238,13 +243,13 @@ class TestTrnsysModel:
         )
 
     def test_trnsysmodel_repr(self, tank_type):
-        """test the __repr__ for :class:`TrnsysModel`"""
+        """Test the __repr__ for :class:`TrnsysModel`."""
         assert (
             repr(tank_type)[3:] == "Type4: Storage Tank; Fixed Inlets, Uniform Losses"
         )
 
     def test_typecycle_repr(self, tank_type):
-        """test the __repr__ for :class:`TypeCycle`"""
+        """Test the __repr__ for :class:`TypeCycle`."""
         assert repr(tank_type._meta.cycles[0]) == "output 1 to 13"
 
     def test_collections_repr(self, tank_type):
@@ -286,7 +291,7 @@ class TestTrnsysModel:
             break
 
     def test_set_wrong_type(self, fan_type):
-        """try to assign a complexe number should raise a TypeError"""
+        """Try to assign a complex number should raise a TypeError."""
         with pytest.raises(TypeError):
             fan_type.parameters["Rated_Volumetric_Flow_Rate"] = 2 + 3j
 
@@ -297,7 +302,7 @@ class TestTrnsysModel:
             "integer",
             "real",
             pytest.param(
-                "complexe", marks=pytest.mark.xfail(raises=NotImplementedError)
+                "complex", marks=pytest.mark.xfail(raises=NotImplementedError)
             ),
         ],
     )
@@ -383,7 +388,7 @@ class TestTrnsysModel:
         )
 
     def test_set_external_file(self, weather_type):
-        """Test setting a different path for external files"""
+        """Test setting a different path for external files."""
         from path import Path
 
         # test set Path behavior
@@ -409,13 +414,12 @@ class TestTrnsysModel:
         assert fan_type.studio.position == Point(50, 40)
 
     def test_set_link_style_to_itself_error(self, fan_type):
-        """Setting a link style on an non-existent connection should raise KeyError"""
+        """Setting a link style on an non-existent connection should raise KeyError."""
         fan_type.invalidate_connections()
         with pytest.raises(KeyError):
             fan_type.set_link_style(fan_type)
 
     def test_set_link_style_to_itself(self, fan_type):
-        """"""
         fan_type.connect_to(fan_type, mapping={0: 0})
         fan_type.set_link_style(fan_type)
 
@@ -540,7 +544,7 @@ class TestStatements:
 
     @pytest.mark.parametrize("classmethod", ["all", "debug_template", "basic_template"])
     def test_control_cards(self, classmethod):
-        """Call different class methods on ControlCards"""
+        """Call different class methods on ControlCards."""
         from trnsystor.controlcards import ControlCards
 
         cc = getattr(ControlCards, classmethod)()
@@ -645,7 +649,7 @@ class TestConstantsAndEquations:
         print(eq)
 
     def test_malformed_symbolic_expression(self, tank_type, fan_type):
-        """passed only two args while expression asks for 3"""
+        """Pass only two args while expression asks for 3."""
         name = "var_a"
         exp = "log(a) + b / 12 - c"
         from trnsystor.statement.equation import Equation
@@ -677,7 +681,7 @@ class TestConstantsAndEquations:
             Equation.from_expression("TdbAmb : [011,001]")
 
     def test_update_equation_collection(self, equation_block):
-        """test different .update() recipes"""
+        """Test different .update() recipes."""
         from trnsystor.collections.equation import EquationCollection
         from trnsystor.statement.equation import Equation
 
@@ -720,7 +724,7 @@ class TestConstantsAndEquations:
         )
 
     def test_two_unnamed_equationcollection(self, fan_type):
-        """make sure objects with same name=None can be created"""
+        """Make sure objects with same name=None can be created."""
         from trnsystor.collections.equation import EquationCollection
         from trnsystor.statement.equation import Equation
 
@@ -741,7 +745,7 @@ class TestConstantsAndEquations:
         print(constant_block)
 
     def test_update_constant_collection(self, constant_block):
-        """test different .update() recipes"""
+        """Test different .update() recipes."""
         from trnsystor.collections.constant import ConstantCollection
         from trnsystor.statement.constant import Constant
 
@@ -884,7 +888,7 @@ class TestDeck:
 
 class TestComponent:
     def test_unique_hash(self, fan_type):
-        """copying a component should change its hash"""
+        """Copying a component should change its hash."""
         fan_type_2 = fan_type.copy()
         assert hash(fan_type) != hash(fan_type_2)
 
@@ -952,7 +956,7 @@ class TestCommonTypes:
 
 
 class TestStudioCanvas:
-    """TODO: complete tests for Canvas LinkStyles and path positioning"""
+    """TODO: complete tests for Canvas LinkStyles and path positioning."""
 
     @pytest.mark.skip("known bug when copying type brakes cycles.")
     def test_shortest_path(self, tank_type: TrnsysModel, pipe_type: TrnsysModel):

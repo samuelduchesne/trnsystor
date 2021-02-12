@@ -9,8 +9,7 @@ from trnsystor.statement import Equation
 
 
 class EquationCollection(Component, collections.UserDict):
-    """A class that behaves like a dict and that collects one or more
-    :class:`Equations`.
+    """Behaves like a dict and collects one or more :class:`Equations`.
 
     This class behaves a little bit like the equation component in the TRNSYS Studio,
     meaning that you can list equation in a block, give it a name, etc.
@@ -49,10 +48,7 @@ class EquationCollection(Component, collections.UserDict):
         super(EquationCollection, self).__init__(_dict, meta=None, name=name, **kwargs)
 
     def __getitem__(self, key):
-        """
-        Args:
-            key:
-        """
+        """Get item."""
         if isinstance(key, int):
             value = list(self.data.values())[key]
         else:
@@ -128,7 +124,9 @@ class EquationCollection(Component, collections.UserDict):
 
     @property
     def unit_name(self):
-        """This type does not have a unit_name. Return component name"""
+        """Return ``name`` of self.
+
+        This type does not have a unit_name."""
         return self.name
 
     @property
@@ -137,7 +135,7 @@ class EquationCollection(Component, collections.UserDict):
         return self.__class__.__name__
 
     def _to_deck(self):
-        """To deck representation
+        """Return deck representation of self.
 
         Examples::
 
@@ -156,7 +154,7 @@ class EquationCollection(Component, collections.UserDict):
         return str(header_comment) + str(head) + str(core)
 
     def _get_inputs(self):
-        """inputs getter. Sorts by order number each time it is called"""
+        """Sort by order number each time it is called."""
         return self
 
     def _get_outputs(self):
@@ -164,11 +162,6 @@ class EquationCollection(Component, collections.UserDict):
         return self
 
     def _get_ordered_filtered_types(self, classe_, store):
-        """
-        Args:
-            classe_:
-            store:
-        """
         return collections.OrderedDict(
             (attr, self._meta[store][attr])
             for attr in sorted(
@@ -178,11 +171,6 @@ class EquationCollection(Component, collections.UserDict):
         )
 
     def _get_filtered_types(self, classe_, store):
-        """
-        Args:
-            classe_:
-            store:
-        """
         return filter(
             lambda kv: isinstance(self._meta[store][kv], classe_), self._meta[store]
         )

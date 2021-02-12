@@ -23,7 +23,9 @@ from trnsystor.statement import (
 
 
 class ControlCards(object):
-    """The :class:`ControlCards` is a container for all the TRNSYS Simulation
+    """ControlCards class.
+
+    The :class:`ControlCards` is a container for all the TRNSYS Simulation
     Control Statements and Listing Control Statements. It implements the
     :func:`_to_deck` method which pretty-prints the statements with their
     docstrings.
@@ -47,8 +49,9 @@ class ControlCards(object):
         list=None,
         map=None,
     ):
-        """Each simulation must have SIMULATION and END statements. The other
-        simulation control statements are optional. Default values are assumed
+        """Insure that each simulation has a SIMULATION and END statements.
+
+        The other simulation control statements are optional. Default values are assumed
         for TOLERANCES, LIMITS, SOLVER, EQSOLVER and DFQ if they are not present
 
         Args:
@@ -88,7 +91,7 @@ class ControlCards(object):
                 :class:`NoCheck` for more details.
             eqsolver (EqSolver, optional): The Equation Solving Method
                 Statement. The order in which blocks of EQUATIONS are solved is
-                controlled by the EQSOLVER statement. See :class:`EqSolver` for
+                controlled by the EQSOLVER Statement. See :class:`EqSolver` for
                 more details.
             solver (Solver, optional): The SOLVER Statement. Select the
                 computational scheme. See :class:`Solver` for more details.
@@ -138,10 +141,15 @@ class ControlCards(object):
 
     @classmethod
     def all(cls):
-        """Returns a SimulationCard with all available Statements initialized
-        or with their default values. This class method is not recommended since
-        many of the Statements are a time consuming process and should be used
-        as a debugging tool.
+        """Return a SimulationCard with all available Statements.
+
+        If not initialized, default values are used. This class method is not
+        recommended since many of the Statements are a time consuming process and
+        should be used as a debugging tool.
+
+        See Also:
+            - :meth:`basic_template`
+            - :meth:`debug_template`
         """
         return cls(
             Version(),
@@ -163,7 +171,7 @@ class ControlCards(object):
 
     @classmethod
     def debug_template(cls):
-        """Returns a SimulationCard with useful debugging Statements."""
+        """Return a SimulationCard with useful debugging Statements."""
         return cls(
             version=Version(),
             simulation=Simulation(),
@@ -174,12 +182,13 @@ class ControlCards(object):
 
     @classmethod
     def basic_template(cls):
-        """Returns a SimulationCard with only the required Statements"""
+        """Return a SimulationCard with only the required Statements."""
         return cls(version=Version(), simulation=Simulation())
 
     def _to_deck(self):
-        """Creates a string representation. If the :attr:`doc` is specified, a
-        small description is printed in comments
+        """Return deck representation of self.
+
+        If the :attr:`doc` is specified, a small description is printed in comments.
         """
         version = str(self.version) + "\n"
         head = "*** Control Cards\n"
@@ -197,8 +206,4 @@ class ControlCards(object):
         return version + head + statements
 
     def set_statement(self, statement):
-        """
-        Args:
-            statement:
-        """
         self.__setattr__(statement.__class__.__name__.lower(), statement)

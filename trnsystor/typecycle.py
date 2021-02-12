@@ -6,6 +6,8 @@ from bs4 import Tag
 
 
 class TypeCycle(object):
+    """TypeCycle class."""
+
     def __init__(
         self,
         role=None,
@@ -18,7 +20,8 @@ class TypeCycle(object):
         question=None,
         **kwargs,
     ):
-        """
+        """Initialize object.
+
         Args:
             role (str): The role of the TypeCycle. "parameter", "input",
                 "output"
@@ -43,7 +46,8 @@ class TypeCycle(object):
 
     @classmethod
     def from_tag(cls, tag):
-        """
+        """Create TypeCycle from Tag.
+
         Args:
             tag (Tag): The XML tag with its attributes and contents.
         """
@@ -68,7 +72,7 @@ class TypeCycle(object):
 
     @property
     def idxs(self):
-        """0-based index of the TypeVariable(s) concerned with this cycle"""
+        """0-based index of the TypeVariable(s) concerned with this cycle."""
         return (
             list(
                 itertools.chain(

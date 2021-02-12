@@ -18,8 +18,7 @@ class SpecialCardsCollection(collections.UserList):
         return self._to_deck()
 
     def _to_deck(self):
-        """Return the deck representation for the SpecialCards (.dck)."""
-
+        """Return deck representation of self."""
         if self.size == 0:
             # Don't need to print empty inputs
             return ""

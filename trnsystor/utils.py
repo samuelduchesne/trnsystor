@@ -12,8 +12,9 @@ from sympy.printing import StrPrinter
 
 
 def affine_transform(geom, matrix=None):
-    """Apply affine transformation to geometry. By, default, flip geometry along
-    the x axis.
+    """Apply affine transformation to geometry.
+
+    By, default, flip geometry along the x axis.
 
     Hint:
         visit affine_matrix_ for other affine transformation matrices.
@@ -35,8 +36,9 @@ def affine_transform(geom, matrix=None):
 
 
 def get_rgb_from_int(rgb_int):
-    """Simple utility to convert an rgb int color to its red, green and blue
-    colors. Values are used ranging from 0 to 255 for each of the components.
+    """Convert an rgb int color to its red, green and blue colors.
+
+    Values are used ranging from 0 to 255 for each of the components.
 
     Important:
         Unlike Java, the TRNSYS Studio will want an integer where bits 0-7 are
@@ -61,8 +63,9 @@ def get_rgb_from_int(rgb_int):
 
 
 def get_int_from_rgb(rgb):
-    """Simple utility to convert an RBG color to its TRNSYS Studio compatible
-    int color. Values are used ranging from 0 to 255 for each of the components.
+    """Convert an RBG color to its TRNSYS Studio compatible int color.
+
+    Values are used ranging from 0 to 255 for each of the components.
 
     Important:
         Unlike Java, the TRNSYS Studio will want an integer where bits 0-7 are
@@ -87,10 +90,6 @@ def get_int_from_rgb(rgb):
 
 
 def resolve_type(args):
-    """
-    Args:
-        args:
-    """
     if isinstance(args, _Quantity):
         return args.m
     else:
@@ -98,14 +97,6 @@ def resolve_type(args):
 
 
 def _parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
-    """
-    Args:
-        value:
-        _type:
-        unit:
-        bounds:
-        name:
-    """
     if not name:
         name = ""
     _type = parse_type(_type)
@@ -139,10 +130,6 @@ def _parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
 
 
 def parse_type(_type):
-    """
-    Args:
-        _type (type or str):
-    """
     if isinstance(_type, type):
         return _type
     elif _type == "integer":
@@ -156,15 +143,13 @@ def parse_type(_type):
 
 
 def standerdized_name(name):
-    """
-    Args:
-        name:
-    """
     return re.sub("[^0-9a-zA-Z]+", "_", name)
 
 
 def parse_unit(unit):
-    """Units defined in the xml proformas follow a convention that is not quite
+    """Return supported unit.
+
+    Units defined in the xml proformas follow a convention that is not quite
     compatible with `Pint` . This method will catch known discrepancies.
 
     Args:
@@ -197,7 +182,10 @@ def parse_unit(unit):
 
 
 def redistribute_vertices(geom, distance):
-    """from https://stackoverflow.com/a/35025274
+    """Redistribute vertices by a certain distance.
+
+    Hint:
+        https://stackoverflow.com/a/35025274
 
     Args:
         geom:
@@ -223,13 +211,14 @@ ureg = UnitRegistry()
 
 
 class DeckFilePrinter(StrPrinter):
-    """Print derivative of a function of symbols in deck file form. This will
-    override the :func:`sympy.printing.str.StrPrinter#_print_Symbol` method to
+    """Print derivative of a function of symbols in deck file form.
+
+    This will override the :func:`sympy.printing.str.StrPrinter#_print_Symbol` method to
     print the TypeVariable's unit_number and output number.
     """
 
     def _print_Symbol(self, expr):
-        """print the TypeVariable's unit_number and output number. :param expr:
+        """Print the TypeVariable's unit_number and output number.
 
         Args:
             expr (TypeVariable or Equation):
@@ -244,8 +233,9 @@ class DeckFilePrinter(StrPrinter):
 
 
 def print_my_latex(expr):
-    """Most of the printers define their own wrappers for print(). These
-    wrappers usually take printer settings. Our printer does not have any
+    """Most of the printers define their own wrappers for print().
+
+    These wrappers usually take printer settings. Our printer does not have any
     settings.
 
     Args:
@@ -255,12 +245,13 @@ def print_my_latex(expr):
 
 
 class TypeVariableSymbol(Symbol):
-    """This is a subclass of the sympy Symbol class. It is a bit of a hack, so
-    hopefully nothing bad will happen.
+    """This is a subclass of the sympy Symbol class.
+
+    It is a bit of a hack, so hopefully nothing bad will happen.
     """
 
     def __new__(cls, type_variable, **assumptions):
-        """TypeVariableSymbol are identified by TypeVariable and assumptions:
+        """TypeVariableSymbol are identified by TypeVariable and assumptions.
 
         >>> from trnsystor import TypeVariableSymbol
         >>> TypeVariableSymbol("x") == TypeVariableSymbol("x")
@@ -278,11 +269,6 @@ class TypeVariableSymbol(Symbol):
         return TypeVariableSymbol.__xnew_cached_(cls, type_variable, **assumptions)
 
     def __new_stage2__(cls, model, **assumptions):
-        """
-        Args:
-            model:
-            **assumptions:
-        """
         obj = Expr.__new__(cls)
         obj.name = model.name
         obj.model = model

@@ -42,7 +42,7 @@ from trnsystor.utils import get_rgb_from_int
 
 
 class DeckFormatter:
-    """Class for handling the formatting of deck files"""
+    """Class for handling the formatting of deck files."""
 
     def __init__(self, obj, path_or_buf, encoding=None, mode="w"):
 
@@ -84,7 +84,9 @@ class DeckFormatter:
 
 
 class Deck(object):
-    """The Deck class holds :class:`TrnsysModel` objects, the
+    """Deck class.
+
+    The Deck class holds :class:`TrnsysModel` objects, the
     :class:`ControlCards` and specifies the name of the project. This class
     handles reading from a file (see :func:`read_file`) and printing to a file
     (see :func:`save`).
@@ -100,7 +102,7 @@ class Deck(object):
         canvas_width=1200,
         canvas_height=1000,
     ):
-        """Initialize a Deck object with parameters:
+        """Initialize a Deck object.
 
         Args:
             name (str): The name of the project.
@@ -145,7 +147,7 @@ class Deck(object):
 
     @classmethod
     def read_file(cls, file, author=None, date_created=None, proforma_root=None):
-        """Returns a Deck from a file
+        """Returns a Deck from a file.
 
         Args:
             file (str or Path): Either the absolute or relative path to the file to be
@@ -206,7 +208,7 @@ class Deck(object):
         return G
 
     def check_deck_integrity(self):
-        """Checks if Deck definition passes a few obvious rules"""
+        """Checks if Deck definition passes a few obvious rules."""
 
         # Check if external file assignments are all unique.
         from collections import Counter
@@ -225,8 +227,7 @@ class Deck(object):
             )
 
     def update_models(self, amodel):
-        """Update the Deck.models attribute with a :class:`TrnsysModel` or a
-        list of :class:`TrnsysModel`.
+        """Update the :attr:`models` attribute with a :class:`TrnsysModel` (or list).
 
         Args:
             amodel (Component or list of Component):
@@ -247,10 +248,6 @@ class Deck(object):
             self.models.append(amodel)
 
     def remove_models(self, amodel):
-        """
-        Args:
-            amodel:
-        """
         if isinstance(amodel, Component):
             amodel = [amodel]
         for amodel in amodel:
@@ -262,7 +259,7 @@ class Deck(object):
                         break
 
     def to_file(self, path_or_buf, encoding=None, mode="w"):
-        """Saves the Deck object to file
+        """Save the Deck object to file.
 
         Examples:
 
@@ -324,14 +321,6 @@ class Deck(object):
 
     @classmethod
     def _parse_logic(cls, cc, dck, dcklines, line, proforma_root):
-        """
-        Args:
-            cc:
-            dck:
-            dcklines:
-            line:
-            proforma_root:
-        """
         if proforma_root is None:
             proforma_root = Path.getcwd()
         else:
@@ -615,8 +604,7 @@ class Deck(object):
             getattr(model, key)[i] = tvar
 
     def _parse_line(self, line):
-        """Do a regex search against all defined regexes and return the key and
-        match result of the first matching regex
+        """Search against all defined regexes and return (key, match).
 
         Args:
             line (str): the line string to parse.
@@ -633,10 +621,11 @@ class Deck(object):
         return None, None
 
     def _setup_re(self):
-        """set up regular expressions. use https://regexper.com to visualise
-        these if required
-        """
+        """Set up regular expressions.
 
+        Hint:
+            Use https://regexper.com to visualise these if required.
+        """
         rx_dict = {
             "version": re.compile(
                 r"(?i)(?P<key>^version)(?P<version>.*?)(?=(?:!|\\n|$))"

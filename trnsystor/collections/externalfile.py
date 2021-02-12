@@ -10,13 +10,10 @@ from trnsystor.utils import standerdized_name
 
 
 class ExternalFileCollection(collections.UserDict):
-    """A collection of :class:`ExternalFile` objects"""
+    """A collection of :class:`ExternalFile` objects."""
 
     def __getitem__(self, key):
-        """
-        Args:
-            key:
-        """
+        """Get item."""
         if isinstance(key, int):
             value = list(self.data.values())[key]
         else:
@@ -24,11 +21,7 @@ class ExternalFileCollection(collections.UserDict):
         return value
 
     def __setitem__(self, key, value):
-        """
-        Args:
-            key:
-            value:
-        """
+        """Set item."""
         if isinstance(value, ExternalFile):
             """if a ExternalFile is given, simply set it"""
             super().__setitem__(key, value)
@@ -47,21 +40,21 @@ class ExternalFileCollection(collections.UserDict):
 
     @classmethod
     def from_dict(cls, dictionary):
-        """Construct an :class:`~ExternalFileCollection` from a dict of
-        :class:`~ExternalFile` objects with the object's id as a key.
+        """Construct from a dict of :class:`~ExternalFile` objects.
+
+        The object's ``id`` is used as the key.
 
         Args:
             dictionary (dict): The dict of {key: :class:`~ExternalFile`}
         """
         item = cls()
         for key in dictionary:
-            # self.parameters[key] = ex_file.logical_unit
             named_key = standerdized_name(dictionary[key].question)
             item.__setitem__(named_key, dictionary[key])
         return item
 
     def _to_deck(self):
-        """Returns the string representation for the external files (.dck)"""
+        """Return deck representation of self."""
         if self:
             head = "*** External files\n"
             v_ = (

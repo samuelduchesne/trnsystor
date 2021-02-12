@@ -10,8 +10,7 @@ from trnsystor.utils import _parse_value
 
 
 class InitialInputValuesCollection(VariableCollection):
-    """Subclass of :class:`VariableCollection` specific to Initial Input
-    Values
+    """Subclass of :class:`VariableCollection` specific to Initial Input Values.
 
     Hint:
         Iterating over `InitialInputValuesCollection` will not pass Inputs that
@@ -43,10 +42,7 @@ class InitialInputValuesCollection(VariableCollection):
         return iter({k: v for k, v in self.data.items() if not v._is_question})
 
     def __getitem__(self, key):
-        """
-        Args:
-            key:
-        """
+        """Get item."""
         if isinstance(key, int):
             type_variable = list(self.values())[key]
         else:
@@ -55,7 +51,6 @@ class InitialInputValuesCollection(VariableCollection):
 
     def __setitem__(self, key, value):
         """Set item."""
-
         if isinstance(value, TypeVariable):
             """if a TypeVariable is given, simply set it"""
             super().__setitem__(key, value)
@@ -76,7 +71,7 @@ class InitialInputValuesCollection(VariableCollection):
             )
 
     def _to_deck(self):
-        """Returns the string representation for the Initial Input Values"""
+        """Return deck representation of self."""
         if self.size == 0:
             # Don't need to print empty inputs
             return ""

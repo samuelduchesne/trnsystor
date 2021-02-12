@@ -3,7 +3,9 @@ from bs4 import Tag
 
 
 class SpecialCard(object):
-    """Once the user has defined the Parameters, Inputs, Outputs, and Derivatives,
+    """SpecialCard class.
+
+    Once the user has defined the Parameters, Inputs, Outputs, and Derivatives,
     some components require addition description statements (or Cards). An example of a
     model that requires a special card is the TYPE 65 Online plotter which must
     specify the titles for each axis and for the plot. These special cards can be
@@ -21,7 +23,8 @@ class SpecialCard(object):
 
     @classmethod
     def from_tag(cls, tag):
-        """
+        """Create SpecialCard from Tag.
+
         Args:
             tag (Tag): The XML tag with its attributes and contents.
         """

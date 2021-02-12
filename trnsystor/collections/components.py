@@ -4,8 +4,12 @@ import collections
 
 
 class ComponentCollection(collections.UserList):
-    """A class that handles collections of components, eg.; TrnsysModels,
-    EquationCollections and ConstantCollections
+    """A class that handles collections of components.
+
+    Supported members:
+        - :class:`TrnsysModels`
+        - :class:`EquationCollections`
+        - :class:`ConstantCollections`
 
     Get a component from a ComponentCollection using either the component's
     unit numer or its full name.

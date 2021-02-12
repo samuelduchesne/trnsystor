@@ -2,14 +2,16 @@
 
 
 class Name(object):
-    """Handles the attribution of user defined names for :class:`TrnsysModel`,
+    """Name class.
+
+    Handles the attribution of user defined names for :class:`TrnsysModel`,
     :class:`EquationCollection` and more.
     """
 
     existing = []  # a list to store the created names
 
     def __init__(self, name=None):
-        """Pick a name. Will increment the name if already used
+        """Pick a name. Will increment the name if already used.
 
         Args:
             name:
@@ -17,11 +19,13 @@ class Name(object):
         self.name = self.create_unique(name)
 
     def create_unique(self, name):
-        """Check if name has already been used. If so, try to increment until
-        not used
+        """Return unique name.
+
+        Checks if ``name`` has already been used. If so, try to increment until not
+        used.
 
         Args:
-            name:
+            name (str): The name to render unique.
         """
         if not name:
             return None

@@ -36,7 +36,8 @@ class ExternalFile(object):
 
     @classmethod
     def from_tag(cls, tag):
-        """
+        """Create ExternalFile from Tag.
+
         Args:
             tag (Tag): The XML tag with its attributes and contents.
         """

@@ -13,6 +13,7 @@
 #
 import os
 import sys
+
 from trnsystor import __version__
 
 sys.path.insert(0, os.path.abspath("."))

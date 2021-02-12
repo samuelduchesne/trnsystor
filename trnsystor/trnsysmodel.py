@@ -165,11 +165,7 @@ class MetaData(object):
                 raise NotImplementedError()
 
     def __getitem__(self, item):
-        """eg.: self[item] :param item:
-
-        Args:
-            item:
-        """
+        """Get item. self[item]."""
         return getattr(self, item)
 
     @classmethod
@@ -191,10 +187,13 @@ class MetaData(object):
 
 
 class TrnsysModel(Component):
+    """TrnsysModel class."""
+
     def __init__(self, meta, name):
-        """Main Class for holding TRNSYS components. Alone, this __init__ method
-        does not do much. See the :func:`from_xml` class method for the official
-        constructor of this class.
+        """Initialize object.
+
+        Alone, this __init__ method does not do much. See the :func:`from_xml` class
+        method for the official constructor of this class.
 
         Args:
             meta (MetaData): A class containing the model's metadata.
@@ -242,6 +241,9 @@ class TrnsysModel(Component):
     def copy(self, invalidate_connections=True):
         """Copy object.
 
+        The new object has a new unit_number.
+        The new object is translated by 50 pts to the right on the canvas.
+
         Args:
             invalidate_connections (bool): If True, connections to other models
                 will be reset.
@@ -258,34 +260,35 @@ class TrnsysModel(Component):
         return new
 
     @property
-    def derivatives(self):
-        """VariableCollection: returns the model's derivatives"""
+    def derivatives(self) -> DerivativesCollection:
+        """Return derivatives of self."""
         return self._get_derivatives()
 
     @property
-    def special_cards(self):
-        """VariableCollection: returns the model's special cards"""
+    def special_cards(self) -> SpecialCardsCollection:
+        """Return special cards of self."""
         return self._get_special_cards()
 
     @property
-    def initial_input_values(self):
-        """VariableCollection: returns the model's initial input values."""
+    def initial_input_values(self) -> InitialInputValuesCollection:
+        """Return initial input values of self."""
         return self._get_initial_input_values()
 
     @property
-    def parameters(self):
-        """ParameterCollection: returns the model's parameters."""
+    def parameters(self) -> ParameterCollection:
+        """Return parameters of self."""
         return self._get_parameters()
 
     @property
-    def external_files(self):
-        """ExternalFileCollection: returns the model's external files"""
+    def external_files(self) -> ExternalFileCollection:
+        """Return external files of self."""
         return self._get_external_files()
 
     @property
-    def anchor_points(self):
-        """dict: Returns the 8-AnchorPoints as a dict with the anchor point
-        location ('top-left', etc.) as a key.
+    def anchor_points(self) -> dict:
+        """Return the 8-AnchorPoints as a dict.
+
+        The anchor point location ('top-left', etc.) is the key.
         """
         return AnchorPoint(self).anchor_points
 
@@ -295,7 +298,7 @@ class TrnsysModel(Component):
 
     @classmethod
     def _from_tag(cls, tag, **kwargs):
-        """Class method to create a :class:`TrnsysModel` from a tag
+        """Class method to create a :class:`TrnsysModel` from a tag.
 
         Args:
             tag (Tag): The XML tag with its attributes and contents.
@@ -353,7 +356,7 @@ class TrnsysModel(Component):
         return model
 
     def _get_initial_input_values(self):
-        """initial input values getter"""
+        """Get initial input values."""
         try:
             self._resolve_cycles("input", Input)
             input_dict = self._get_ordered_filtered_types(Input, "variables")
@@ -382,9 +385,7 @@ class TrnsysModel(Component):
             return InputCollection()
 
     def _get_outputs(self):
-        """outputs getter. Sorts by order number and resolves cycles each time
-        it is called
-        """
+        """Sorts by order number and resolves cycles each time it is called."""
         # output_dict = self._get_ordered_filtered_types(Output)
         try:
             self._resolve_cycles("output", Output)
@@ -398,9 +399,7 @@ class TrnsysModel(Component):
             return OutputCollection()
 
     def _get_parameters(self):
-        """parameters getter. Sorts by order number and resolves cycles each
-        time it is called
-        """
+        """Sorts by order number and resolves cycles each time it is called."""
         self._resolve_cycles("parameter", Parameter)
         param_dict = self._get_ordered_filtered_types(Parameter, "variables")
         # filter out cyclebases
@@ -435,8 +434,9 @@ class TrnsysModel(Component):
             return ExternalFileCollection()  # return empty collection
 
     def _get_ordered_filtered_types(self, class_name, store):
-        """Returns an ordered dict of :class:`TypeVariable` filtered by
-        *class_name* and ordered by their order number attribute.
+        """Return an ordered dict of :class:`TypeVariable`.
+
+        Filtered by *class_name* and ordered by their order number attribute.
 
         Args:
             class_name: Name of TypeVariable to filer: Choices are :class:`Input`,
@@ -453,7 +453,7 @@ class TrnsysModel(Component):
         )
 
     def _get_filtered_types(self, class_name, store):
-        """Returns a filter of TypeVariables from the self._meta[store] by *class_name*
+        """Return a filter of TypeVariables from the self._meta[store] by *class_name*.
 
         Args:
             class_name: Name of TypeVariable to filer: Choices are :class:`Input`,
@@ -583,7 +583,7 @@ class TrnsysModel(Component):
                         self._meta.variables.update({id(item): item})
 
     def _to_deck(self):
-        """print the Input File (.dck) representation of this TrnsysModel"""
+        """Return deck representation of self."""
         unit_type = f"UNIT {self.unit_number} TYPE  {self.type_number} {self.name}\n"
         studio = self.studio
         params = self.parameters
@@ -605,10 +605,6 @@ class TrnsysModel(Component):
         )
 
     def update_meta(self, new_meta):
-        """
-        Args:
-            new_meta:
-        """
         for attr in self._meta.__dict__:
             if hasattr(new_meta, attr):
                 setattr(self._meta, attr, getattr(new_meta, attr))

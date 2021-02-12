@@ -9,8 +9,9 @@ from trnsystor.utils import _parse_value, standerdized_name
 
 
 class VariableCollection(collections.UserDict):
-    """A collection of :class:`VariableType` as a dict. Handles getting and
-    setting variable values.
+    """A collection of :class:`VariableType` as a dict.
+
+    Handles getting and setting variable values.
     """
 
     def __getattr__(self, key):
@@ -63,14 +64,11 @@ class VariableCollection(collections.UserDict):
         return self._to_deck()
 
     def _to_deck(self):
+        """Return deck representation of self."""
         pass
 
     @classmethod
     def from_dict(cls, dictionary):
-        """
-        Args:
-            dictionary:
-        """
         item = cls()
         for key in dictionary:
             named_key = standerdized_name(dictionary[key].name)

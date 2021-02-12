@@ -2,7 +2,9 @@
 
 
 class Statement(object):
-    """This is the base class for many of the TRNSYS Simulation Control and
+    """Statement class.
+
+    This is the base class for many of the TRNSYS Simulation Control and
     Listing Control Statements. It implements common methods such as the repr()
     method.
     """
@@ -14,4 +16,5 @@ class Statement(object):
         return self._to_deck()
 
     def _to_deck(self):
+        """Return deck representation of self."""
         return ""

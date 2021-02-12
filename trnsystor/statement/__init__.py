@@ -1,4 +1,4 @@
-"""Statement"""
+"""Statement module."""
 
 __all__ = [
     "Constant",

@@ -6,10 +6,11 @@ from shapely.geometry import MultiPoint
 
 
 class AnchorPoint(object):
-    """Handles the anchor point. There are 6 anchor points around a component"""
+    """Handles the anchor point. There are 6 anchor points around a component."""
 
     def __init__(self, model, offset=20, height=40, width=40):
-        """
+        """Initialize object.
+
         Args:
             model (Component): The Component.
             offset (float): The offset to give the anchor points from the center
@@ -39,10 +40,6 @@ class AnchorPoint(object):
         return u_loc, v_loc
 
     def find_best_anchors(self, other):
-        """
-        Args:
-            other:
-        """
         dist = {}
         for u in self.anchor_points.values():
             for v in other.anchor_points.values():
@@ -95,13 +92,15 @@ class AnchorPoint(object):
         }
 
     def get_octo_pts_dict(self, offset=10):
-        """Define 8-anchor :class:`Point` around the :class:`TrnsysModel` in
-        cartesian space and return a named-dict with human readable meaning.
-        These points are equally dispersed at the four corners and 4 edges of
-        the center, at distance = :attr:`offset`
+        """Define 8-anchor :class:`Point` around the :class:`TrnsysModel`.
 
-        See :func:`~trnsysmodel.TrnsysType.set_link_style` or
-        :class:`trnsysmodel.LinkStyle` for more details.
+        In cartesian space and returns a named-dict with human readable meaning.
+        These points are equally dispersed at the four corners and 4 edges of
+        the center, at distance = :attr:`offset`.
+
+        See Also:
+            - :meth:`trnsystor.component.Component.set_link_style`
+            - :class:`trnsystor.linkstyle.LinkStyle`
 
         Args:
             offset (float): The offset around the center point of :attr:`self`.
