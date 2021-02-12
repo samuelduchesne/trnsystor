@@ -205,7 +205,7 @@ class TypeVariable(object):
 
     @property
     def idx(self):
-        """The 0-based index of the TypeVariable."""
+        """Get the 0-based variable index of self."""
         ordered_dict = collections.OrderedDict(
             (
                 standerdized_name(self.model._meta.variables[attr].name),
@@ -232,6 +232,7 @@ class TypeVariable(object):
 
     @property
     def one_based_idx(self):
+        """Get the 1-based variable index of self such as it appears in Trnsys."""
         return self.idx + 1
 
     def connect_to(self, other, link_style_kwargs=None):
@@ -327,7 +328,8 @@ class Output(TypeVariable):
         self._parse_types()
 
     @property
-    def is_connected(self):
+    def is_connected(self) -> bool:
+        """Return True of self has any successor."""
         return len(self.successors) > 0
 
     @property

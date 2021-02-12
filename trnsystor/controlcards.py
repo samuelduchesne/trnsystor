@@ -206,4 +206,5 @@ class ControlCards(object):
         return version + head + statements
 
     def set_statement(self, statement):
+        """Set `statement`."""
         self.__setattr__(statement.__class__.__name__.lower(), statement)

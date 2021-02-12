@@ -55,10 +55,12 @@ class Component(metaclass=ABCMeta):
             return self.unit_number == other
 
     def copy(self):
+        """Return copy(self)."""
         pass
 
     @property
     def link_styles(self):
+        """Return :class:`LinkStyles` of self."""
         return [
             data["LinkStyle"]
             for u, v, key, data in self.UNIT_GRAPH.edges(keys=True, data=True)

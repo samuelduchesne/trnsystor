@@ -34,6 +34,7 @@ class StudioHeader(object):
 
     @classmethod
     def from_component(cls, model):
+        """Create object from :class:`TrnsysModel`."""
         position = Point(50, 50)
         layer = ["Main"]
         return cls(model.name, model.model, position, layer)

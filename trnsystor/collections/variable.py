@@ -70,6 +70,10 @@ class VariableCollection(collections.UserDict):
 
     @classmethod
     def from_dict(cls, dictionary):
+        """Return VariableCollection from dict.
+
+        Sets also the class attribute using ``named_key``.
+        """
         item = cls()
         for key in dictionary:
             named_key = standerdized_name(dictionary[key].name)

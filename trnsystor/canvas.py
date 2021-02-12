@@ -29,6 +29,7 @@ class StudioCanvas:
 
     @property
     def grid_is_valid(self):
+        """Return True if grid is valid."""
         if self._grid_valid:
             return True
         else:
@@ -44,6 +45,7 @@ class StudioCanvas:
             return self._grid
 
     def invalidate_grid(self):
+        """Invalidate grid."""
         self._grid_valid = False
 
     def resize_canvas(self, width, height):

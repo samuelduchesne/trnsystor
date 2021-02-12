@@ -190,6 +190,7 @@ class Deck(object):
 
     @property
     def graph(self):
+        """Return the :class:`MultiDiGraph` of self."""
         import networkx as nx
 
         G = nx.MultiDiGraph()
@@ -247,6 +248,7 @@ class Deck(object):
             self.models.append(amodel)
 
     def remove_models(self, amodel):
+        """Remove `amodel` from self.models."""
         if isinstance(amodel, Component):
             amodel = [amodel]
         for amodel in amodel:
