@@ -54,6 +54,7 @@ class TypeCycle:
 
     @property
     def default(self):
+        """Return the default value of self."""
         return int(self.minSize)
 
     @property
@@ -74,6 +75,7 @@ class TypeCycle:
 
     @property
     def is_question(self):
+        """Return True if self is a question."""
         return (
             any(cycle.question is not None for cycle in self.cycles)
             if self.cycles

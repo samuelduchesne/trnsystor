@@ -6,7 +6,7 @@ import tabulate
 from path import Path
 
 from trnsystor.externalfile import ExternalFile
-from trnsystor.utils import standerdized_name
+from trnsystor.utils import standardize_name
 
 
 class ExternalFileCollection(collections.UserDict):
@@ -52,7 +52,7 @@ class ExternalFileCollection(collections.UserDict):
         """
         item = cls()
         for key in dictionary:
-            named_key = standerdized_name(dictionary[key].question)
+            named_key = standardize_name(dictionary[key].question)
             item.__setitem__(named_key, dictionary[key])
         return item
 

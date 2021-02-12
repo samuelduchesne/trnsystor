@@ -289,6 +289,7 @@ class TrnsysModel(Component):
 
     @property
     def reverse_anchor_points(self):
+        """Reverse anchor points."""
         return AnchorPoint(self).reverse_anchor_points
 
     @classmethod
@@ -596,6 +597,7 @@ class TrnsysModel(Component):
         )
 
     def update_meta(self, new_meta):
+        """Update self with new :class:`MetaData`."""
         for attr in self._meta.__dict__:
             if hasattr(new_meta, attr):
                 setattr(self._meta, attr, getattr(new_meta, attr))
@@ -631,6 +633,7 @@ class TrnsysModel(Component):
             )
 
     def plot(self):
+        """Plot the model."""
         import matplotlib.pyplot as plt
 
         G = nx.DiGraph()
@@ -654,13 +657,3 @@ class TrnsysModel(Component):
         )
         plt.show()
         return ax
-
-
-class Trace:
-    # Todo: Implement Trace
-    pass
-
-
-class Format:
-    # Todo: Implement Format
-    pass

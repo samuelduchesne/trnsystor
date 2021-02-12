@@ -39,6 +39,8 @@ class ConstantCollection(Component, collections.UserDict):
         """Get item."""
         if isinstance(key, int):
             value = list(self.data.values())[key]
+        elif isinstance(key, slice):
+            value = list(self.data.values()).__getitem__(key)
         else:
             value = super().__getitem__(key)
         return value
@@ -103,11 +105,17 @@ class ConstantCollection(Component, collections.UserDict):
         super(ConstantCollection, self).update(_e)
 
     @property
-    def size(self):
+    def size(self) -> int:
+        """Return len(self)."""
         return len(self)
 
     @property
-    def unit_number(self):
+    def unit_number(self) -> int:
+        """Return the unit_number of self. Negative by design.
+
+        Hint:
+            Only :class:`TrnsysModel` objects have a positive unit_number.
+        """
         return self._unit * -1
 
     def _to_deck(self):

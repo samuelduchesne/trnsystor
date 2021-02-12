@@ -115,17 +115,18 @@ class EquationCollection(Component, collections.UserDict):
             _e.update(_f)
         super(EquationCollection, self).update(_e)
 
-    def setdefault(self, key, value=None):
-        if key not in self:
-            self[key] = value
-        return self[key]
-
     @property
     def size(self):
+        """Return len(self)."""
         return len(self)
 
     @property
     def unit_number(self):
+        """Return the unit_number of self. Negative by design.
+
+        Hint:
+            Only :class:`TrnsysModel` objects have a positive unit_number.
+        """
         return self._unit * -1
 
     @property

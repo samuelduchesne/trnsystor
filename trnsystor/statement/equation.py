@@ -184,6 +184,7 @@ class Equation(Statement, TypeVariable):
 
     @property
     def unit_number(self):
+        """Return the unit number of the EquationCollection self belongs to."""
         return self.model.unit_number
 
     def _to_deck(self):

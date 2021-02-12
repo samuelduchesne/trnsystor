@@ -24,6 +24,7 @@ class Version(Statement):
 
     @classmethod
     def from_string(cls, string):
+        """Create Version statement from str version number. eg. 18.0."""
         return cls(tuple(map(int, string.split("."))))
 
     def _to_deck(self):

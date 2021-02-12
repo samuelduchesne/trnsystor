@@ -34,23 +34,13 @@ class StudioHeader(object):
 
     @classmethod
     def from_component(cls, model):
+        """Create object from :class:`TrnsysModel`."""
         position = Point(50, 50)
         layer = ["Main"]
         return cls(model.name, model.model, position, layer)
 
     def _to_deck(self):
-        """Return deck representation of self.
-
-        Examples:
-            >>>
-            *$UNIT_NAME Boulder, CO
-            *$MODEL ./Weather Data Reading and Processing/StandardFormat/TMY2/Type15-2.tmf
-            *$POSITION 69 182
-            *$LAYER Main #
-
-        Returns:
-            (str): The string representation of the StudioHeader.
-        """
+        """Return deck representation of self."""
         unit_name = "*$UNIT_NAME {}".format(self.unit_name)
         model = "*$MODEL {}".format(self.model.expand())
         position = "*$POSITION {} {}".format(self.position.x, self.position.y)

@@ -190,6 +190,7 @@ class Deck(object):
 
     @property
     def graph(self):
+        """Return the :class:`MultiDiGraph` of self."""
         import networkx as nx
 
         G = nx.MultiDiGraph()
@@ -247,6 +248,7 @@ class Deck(object):
             self.models.append(amodel)
 
     def remove_models(self, amodel):
+        """Remove `amodel` from self.models."""
         if isinstance(amodel, Component):
             amodel = [amodel]
         for amodel in amodel:
@@ -261,18 +263,17 @@ class Deck(object):
         """Save the Deck object to file.
 
         Examples:
-
             >>> from trnsystor.deck import Deck
             >>> deck = Deck("Unnamed")
             >>> deck.to_file("my_project.dck",None,"w")
 
         Args:
-            encoding:
-            mode:
             path_or_buf (Union[str, Path, IO[AnyStr]]): str or file handle, default None
                 File path or object, if None is provided the result is returned as
                 a string.  If a file object is passed it should be opened with
                 `newline=''`, disabling universal newlines.
+            encoding (str or None): Encoding to use.
+            mode (str): Mode to open path_or_buf with.
         """
         self.check_deck_integrity()
 

@@ -8,6 +8,8 @@ from trnsystor.utils import get_int_from_rgb, redistribute_vertices
 
 
 class LinkStyle(object):
+    """LinkStyle class."""
+
     def __init__(
         self,
         u,
@@ -57,6 +59,7 @@ class LinkStyle(object):
 
     @property
     def path(self):
+        """Return the path of self."""
         if self._path is None:
             u_anchor_name, v_anchor_name = self.anchor_ids
             _u = AnchorPoint(self.u).anchor_points[u_anchor_name]
@@ -74,6 +77,7 @@ class LinkStyle(object):
 
     @property
     def anchor_ids(self):
+        """Return studio anchor ids."""
         if isinstance(self.loc, tuple):
             loc_u, loc_v = self.loc
         else:

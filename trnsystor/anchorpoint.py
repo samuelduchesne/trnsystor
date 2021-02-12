@@ -41,6 +41,7 @@ class AnchorPoint(object):
         return u_loc, v_loc
 
     def find_best_anchors(self, other):
+        """Find best anchor points to connect self and other."""
         dist = {}
         for u in self.anchor_points.values():
             for v in other.anchor_points.values():
@@ -54,15 +55,18 @@ class AnchorPoint(object):
 
     @property
     def anchor_points(self):
+        """Return dict of anchor points str->tuple."""
         return self.get_octo_pts_dict(self.offset)
 
     @property
     def reverse_anchor_points(self):
+        """Return dict of anchor points tuple->str."""
         pts = self.get_octo_pts_dict(self.offset)
         return {(pt.x, pt.y): key for key, pt in pts.items()}
 
     @property
     def studio_anchor_mapping(self):
+        """Return dict of anchor mapping str->tuple."""
         from shapely.affinity import translate
 
         p_ = {}
@@ -81,6 +85,7 @@ class AnchorPoint(object):
 
     @property
     def studio_anchor_reverse_mapping(self):
+        """Return dict of anchor mapping tuple->str."""
         return {
             (0, 0): "top-left",
             (20, 0): "top-center",
@@ -129,4 +134,5 @@ class AnchorPoint(object):
 
     @property
     def centroid(self):
+        """Return centroid of self."""
         return self.model.studio.position
