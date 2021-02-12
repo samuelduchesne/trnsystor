@@ -1,6 +1,4 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+"""DerivativesCollection module."""
 
 import tabulate
 
@@ -9,13 +7,10 @@ from trnsystor.typevariable import TypeVariable
 
 
 class DerivativesCollection(VariableCollection):
-    """Subclass of :class:`VariableCollection` specific to Derivatives"""
-
-    def __init__(self):
-        super().__init__()
-        pass
+    """Subclass of :class:`VariableCollection` specific to Derivatives."""
 
     def __repr__(self):
+        """Return repr(self)."""
         num_inputs = "{} Inputs:\n".format(self.size)
         inputs = "\n".join(
             ['"{}": {:~P}'.format(key, value.value) for key, value in self.data.items()]
@@ -23,8 +18,7 @@ class DerivativesCollection(VariableCollection):
         return num_inputs + inputs
 
     def _to_deck(self):
-        """Returns the string representation for the Input File (.dck)"""
-
+        """Return deck representation of self."""
         if self.size == 0:
             # Don't need to print empty inputs
             return ""

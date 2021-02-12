@@ -1,3 +1,4 @@
+"""TrnsysModel module."""
 import collections
 import copy
 import itertools
@@ -17,16 +18,10 @@ from trnsystor.collections.parameter import ParameterCollection
 from trnsystor.collections.specialcards import SpecialCardsCollection
 from trnsystor.component import Component
 from trnsystor.externalfile import ExternalFile
+from trnsystor.specialcard import SpecialCard
 from trnsystor.studio import StudioHeader
 from trnsystor.typecycle import TypeCycle
-from trnsystor.typevariable import (
-    Derivative,
-    Input,
-    Output,
-    Parameter,
-    TypeVariable,
-)
-from trnsystor.specialcard import SpecialCard
+from trnsystor.typevariable import Derivative, Input, Output, Parameter, TypeVariable
 
 
 class MetaData(object):
@@ -100,11 +95,11 @@ class MetaData(object):
             cycles (list, optional): List of TypeCycle.
             source (Path): Path of the source code.
             externalFiles (trnsystor.external_file.ExternalFileCollection): A
-            class handling
-                ExternalFiles for this object.
+                class handling ExternalFiles for this object.
             compileCommand (str): Command used to recompile this type.
             model (Path): Path of the xml or tmf file.
-            **kwargs:
+            specialCards (list of SpecialCards): List of SpecialCards.
+            **kwargs: Other keyword arguments passed to the constructor.
         """
         self.compileCommand = compileCommand
         self.object = object
@@ -146,11 +141,6 @@ class MetaData(object):
             for child in tag.children
             if isinstance(child, Tag)
         }
-        xml_args = {
-            child.name: child.prettify()
-            for child in tag.children
-            if isinstance(child, Tag)
-        }
         meta_args.update(kwargs)
         return cls(**{attr: meta_args[attr] for attr in meta_args})
 
@@ -175,21 +165,12 @@ class MetaData(object):
                 raise NotImplementedError()
 
     def __getitem__(self, item):
-        """eg.: self[item] :param item:
-
-        Args:
-            item:
-        """
+        """Get item. self[item]."""
         return getattr(self, item)
 
     @classmethod
     def from_xml(cls, xml, **kwargs):
-        """Initialize MetaData from xml file.
-
-        Args:
-            xml:
-            **kwargs:
-        """
+        """Initialize MetaData from xml file."""
         xml_file = Path(xml)
         with open(xml_file) as xml:
             soup = BeautifulSoup(xml, "xml")
@@ -201,10 +182,13 @@ class MetaData(object):
 
 
 class TrnsysModel(Component):
+    """TrnsysModel class."""
+
     def __init__(self, meta, name):
-        """Main Class for holding TRNSYS components. Alone, this __init__ method
-        does not do much. See the :func:`from_xml` class method for the official
-        constructor of this class.
+        """Initialize object.
+
+        Alone, this __init__ method does not do much. See the :func:`from_xml` class
+        method for the official constructor of this class.
 
         Args:
             meta (MetaData): A class containing the model's metadata.
@@ -213,11 +197,11 @@ class TrnsysModel(Component):
         super().__init__(name=name, meta=meta)
 
     def __str__(self):
-        """Return Deck representation of self."""
-        return f"[{self.unit_number}]Type{self.type_number}: {self.name}"  # self._to_deck()
+        """Return repr(self)."""
+        return f"[{self.unit_number}]Type{self.type_number}: {self.name}"
 
     def __repr__(self):
-        """str: The String representation of this object."""
+        """Return repr(self)."""
         return f"[{self.unit_number}]Type{self.type_number}: {self.name}"
 
     @classmethod
@@ -252,6 +236,9 @@ class TrnsysModel(Component):
     def copy(self, invalidate_connections=True):
         """Copy object.
 
+        The new object has a new unit_number.
+        The new object is translated by 50 pts to the right on the canvas.
+
         Args:
             invalidate_connections (bool): If True, connections to other models
                 will be reset.
@@ -268,34 +255,35 @@ class TrnsysModel(Component):
         return new
 
     @property
-    def derivatives(self):
-        """VariableCollection: returns the model's derivatives"""
+    def derivatives(self) -> DerivativesCollection:
+        """Return derivatives of self."""
         return self._get_derivatives()
 
     @property
-    def special_cards(self):
-        """VariableCollection: returns the model's special cards"""
+    def special_cards(self) -> SpecialCardsCollection:
+        """Return special cards of self."""
         return self._get_special_cards()
 
     @property
-    def initial_input_values(self):
-        """VariableCollection: returns the model's initial input values."""
+    def initial_input_values(self) -> InitialInputValuesCollection:
+        """Return initial input values of self."""
         return self._get_initial_input_values()
 
     @property
-    def parameters(self):
-        """ParameterCollection: returns the model's parameters."""
+    def parameters(self) -> ParameterCollection:
+        """Return parameters of self."""
         return self._get_parameters()
 
     @property
-    def external_files(self):
-        """ExternalFileCollection: returns the model's external files"""
+    def external_files(self) -> ExternalFileCollection:
+        """Return external files of self."""
         return self._get_external_files()
 
     @property
-    def anchor_points(self):
-        """dict: Returns the 8-AnchorPoints as a dict with the anchor point
-        location ('top-left', etc.) as a key.
+    def anchor_points(self) -> dict:
+        """Return the 8-AnchorPoints as a dict.
+
+        The anchor point location ('top-left', etc.) is the key.
         """
         return AnchorPoint(self).anchor_points
 
@@ -305,7 +293,7 @@ class TrnsysModel(Component):
 
     @classmethod
     def _from_tag(cls, tag, **kwargs):
-        """Class method to create a :class:`TrnsysModel` from a tag
+        """Class method to create a :class:`TrnsysModel` from a tag.
 
         Args:
             tag (Tag): The XML tag with its attributes and contents.
@@ -363,16 +351,16 @@ class TrnsysModel(Component):
         return model
 
     def _get_initial_input_values(self):
-        """initial input values getter"""
+        """Get initial input values."""
         try:
             self._resolve_cycles("input", Input)
             input_dict = self._get_ordered_filtered_types(Input, "variables")
             # filter out cyclebases
             input_dict = {
-                k: v for k, v in input_dict.items() if v._iscyclebase == False
+                k: v for k, v in input_dict.items() if v._iscyclebase is False
             }
             return InitialInputValuesCollection.from_dict(input_dict)
-        except:
+        except TypeError:
             return InitialInputValuesCollection()
 
     def _get_inputs(self):
@@ -385,43 +373,39 @@ class TrnsysModel(Component):
             input_dict = self._get_ordered_filtered_types(Input, "variables")
             # filter out cyclebases
             input_dict = {
-                k: v for k, v in input_dict.items() if v._iscyclebase == False
+                k: v for k, v in input_dict.items() if v._iscyclebase is False
             }
             return InputCollection.from_dict(input_dict)
-        except:
+        except TypeError:
             return InputCollection()
 
     def _get_outputs(self):
-        """outputs getter. Sorts by order number and resolves cycles each time
-        it is called
-        """
+        """Sorts by order number and resolves cycles each time it is called."""
         # output_dict = self._get_ordered_filtered_types(Output)
         try:
             self._resolve_cycles("output", Output)
             output_dict = self._get_ordered_filtered_types(Output, "variables")
             # filter out cyclebases
             output_dict = {
-                k: v for k, v in output_dict.items() if v._iscyclebase == False
+                k: v for k, v in output_dict.items() if v._iscyclebase is False
             }
             return OutputCollection.from_dict(output_dict)
         except TypeError:
             return OutputCollection()
 
     def _get_parameters(self):
-        """parameters getter. Sorts by order number and resolves cycles each
-        time it is called
-        """
+        """Sorts by order number and resolves cycles each time it is called."""
         self._resolve_cycles("parameter", Parameter)
         param_dict = self._get_ordered_filtered_types(Parameter, "variables")
         # filter out cyclebases
-        param_dict = {k: v for k, v in param_dict.items() if v._iscyclebase == False}
+        param_dict = {k: v for k, v in param_dict.items() if v._iscyclebase is False}
         return ParameterCollection.from_dict(param_dict)
 
     def _get_derivatives(self):
         self._resolve_cycles("derivative", Derivative)
         deriv_dict = self._get_ordered_filtered_types(Derivative, "variables")
         # filter out cyclebases
-        deriv_dict = {k: v for k, v in deriv_dict.items() if v._iscyclebase == False}
+        deriv_dict = {k: v for k, v in deriv_dict.items() if v._iscyclebase is False}
         return DerivativesCollection.from_dict(deriv_dict)
 
     def _get_special_cards(self):
@@ -445,8 +429,9 @@ class TrnsysModel(Component):
             return ExternalFileCollection()  # return empty collection
 
     def _get_ordered_filtered_types(self, class_name, store):
-        """Returns an ordered dict of :class:`TypeVariable` filtered by
-        *class_name* and ordered by their order number attribute.
+        """Return an ordered dict of :class:`TypeVariable`.
+
+        Filtered by *class_name* and ordered by their order number attribute.
 
         Args:
             class_name: Name of TypeVariable to filer: Choices are :class:`Input`,
@@ -463,7 +448,7 @@ class TrnsysModel(Component):
         )
 
     def _get_filtered_types(self, class_name, store):
-        """Returns a filter of TypeVariables from the self._meta[store] by *class_name*
+        """Return a filter of TypeVariables from the self._meta[store] by *class_name*.
 
         Args:
             class_name: Name of TypeVariable to filer: Choices are :class:`Input`,
@@ -481,10 +466,6 @@ class TrnsysModel(Component):
         Proformas can contain parameters, inputs and outputs that have a variable
         number of entries. This will deal with their creation each time the linked
         parameters are changed.
-
-        Args:
-            type_:
-            class_:
         """
         output_dict = self._get_ordered_filtered_types(class_, "variables")
         cycles = {
@@ -593,7 +574,7 @@ class TrnsysModel(Component):
                         self._meta.variables.update({id(item): item})
 
     def _to_deck(self):
-        """print the Input File (.dck) representation of this TrnsysModel"""
+        """Return deck representation of self."""
         unit_type = f"UNIT {self.unit_number} TYPE  {self.type_number} {self.name}\n"
         studio = self.studio
         params = self.parameters
@@ -615,10 +596,6 @@ class TrnsysModel(Component):
         )
 
     def update_meta(self, new_meta):
-        """
-        Args:
-            new_meta:
-        """
         for attr in self._meta.__dict__:
             if hasattr(new_meta, attr):
                 setattr(self._meta, attr, getattr(new_meta, attr))
@@ -677,11 +654,6 @@ class TrnsysModel(Component):
         )
         plt.show()
         return ax
-
-
-class Derivatives:
-    # Todo: Implement Derivatives
-    pass
 
 
 class Trace:

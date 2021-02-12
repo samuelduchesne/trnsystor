@@ -1,12 +1,12 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+"""NaNCheck Statement."""
 
 from trnsystor.statement.statement import Statement
 
 
 class NaNCheck(Statement):
-    """One problem that has plagued TRNSYS simulation debuggers is that in
+    """NaNCheck Statement.
+
+    One problem that has plagued TRNSYS simulation debuggers is that in
     Fortran, the “Not a Number” (NaN) condition can be passed along through
     numerous subroutines without being flagged as an error. For example, a
     division by zero results in a variable being set to NaN. This NaN can then
@@ -37,4 +37,5 @@ class NaNCheck(Statement):
         self.doc = "The NAN_CHECK Statement"
 
     def _to_deck(self):
+        """Return deck representation of self."""
         return "NAN_CHECK {}".format(self.n)

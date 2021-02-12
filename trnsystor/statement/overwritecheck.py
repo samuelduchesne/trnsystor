@@ -1,12 +1,12 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+"""OverwriteCheck Statement."""
 
 from trnsystor.statement.statement import Statement
 
 
 class OverwriteCheck(Statement):
-    """A common error in non standard and user written TRNSYS Type routines is
+    """OverwriteCheck Statement.
+
+    A common error in non standard and user written TRNSYS Type routines is
     to reserve too little space in the global output array. By default, each
     Type is accorded 20 spots in the global TRNSYS output array. However, there
     is no way to prevent the Type from then writing in (for example) the 21st
@@ -33,4 +33,5 @@ class OverwriteCheck(Statement):
         self.doc = "The OVERWRITE_CHECK Statement"
 
     def _to_deck(self):
+        """Return deck representation of self."""
         return "OVERWRITE_CHECK {}".format(self.n)

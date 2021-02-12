@@ -1,12 +1,12 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+"""Width Statement."""
 
 from trnsystor.statement.statement import Statement
 
 
 class Width(Statement):
-    """The WIDTH statement is an optional control statement is used to set the
+    """WIDTH Statement.
+
+    The WIDTH statement is an optional control statement is used to set the
     number of characters to be allowed on a line of TRNSYS output.
 
     Note:
@@ -25,14 +25,11 @@ class Width(Statement):
         self.doc = "The number of printed characters per line"
 
     def _to_deck(self):
+        """Return deck representation of self."""
         return str("WIDTH {}".format(self.k))
 
     @staticmethod
     def _check_range(n):
-        """
-        Args:
-            n:
-        """
         if n >= 72 and n <= 132:
             return n
         else:

@@ -1,16 +1,18 @@
+"""Equation module."""
 import itertools
 
-from trnsystor.component import Component
-from sympy import Symbol, Expr
+from sympy import Expr, Symbol
 
-from trnsystor import TypeVariableSymbol, print_my_latex
 from trnsystor.statement.constant import Constant
 from trnsystor.statement.statement import Statement
 from trnsystor.typevariable import TypeVariable
+from trnsystor.utils import TypeVariableSymbol, print_my_latex
 
 
 class Equation(Statement, TypeVariable):
-    """The EQUATIONS statement allows variables to be defined as algebraic
+    """EQUATION Statement.
+
+    The EQUATIONS statement allows variables to be defined as algebraic
     functions of constants, previously defined variables, and outputs from
     TRNSYS components. These variables can then be used in place of numbers in
     the TRNSYS input file to represent inputs to components; numerical values of
@@ -29,12 +31,14 @@ class Equation(Statement, TypeVariable):
     _new_id = itertools.count(start=1)
 
     def __init__(self, name=None, equals_to=None, doc=None, model=None):
-        """
+        """Initialize object.
+
         Args:
             name (str): The left hand side of the equation.
             equals_to (str, TypeVariable): The right hand side of the equation.
             doc (str, optional): A small description optionally printed in the
                 deck file.
+            model (Component): The TrnsysModel this Equation belongs to.
         """
         super().__init__()
         self._n = next(self._new_id)
@@ -44,16 +48,19 @@ class Equation(Statement, TypeVariable):
         self.model = model  # the TrnsysModel this Equation belongs to.
 
     def __repr__(self):
+        """Return repr(self)."""
         return " = ".join([self.name, self._to_deck()])
 
     def __str__(self):
-        return self.__repr__()
+        """Return repr(self)."""
+        return repr(self)
 
     @classmethod
     def from_expression(cls, expression, doc=None):
-        """Create an equation from a string expression. Anything before the
-        equal sign ("=") will become a Constant and anything after will become
-        the equality statement.
+        """Create an equation from a string expression.
+
+        Anything before the equal sign ("=") will become a Constant and anything
+        after will become the equality statement.
 
         Example:
             Create a simple expression like so:
@@ -75,7 +82,9 @@ class Equation(Statement, TypeVariable):
 
     @classmethod
     def from_symbolic_expression(cls, name, exp, *args, doc=None):
-        """Crate an equation with a combination of a generic expression (with
+        """Create an equation from symbolic expression.
+
+        Crate an equation with a combination of a generic expression (with
         placeholder variables) and a list of arguments. The underlying engine
         will use Sympy and symbolic variables. You can use a mixture of
         :class:`TypeVariable` and :class:`Equation`, :class:`Constant` as
@@ -164,12 +173,12 @@ class Equation(Statement, TypeVariable):
 
     @property
     def eq_number(self):
-        """The equation number. Unique"""
+        """Return the equation number (unique)."""
         return self._n
 
     @property
     def idx(self):
-        """The 0-based index of the Equation"""
+        """Return the 0-based index of the Equation."""
         ns = {e: i for i, e in enumerate(self.model)}
         return ns[self.name]
 
@@ -178,6 +187,7 @@ class Equation(Statement, TypeVariable):
         return self.model.unit_number
 
     def _to_deck(self):
+        """Return deck representation of self."""
         if isinstance(self.equals_to, TypeVariable):
             return "[{unit_number}, {output_id}]".format(
                 unit_number=self.equals_to.model.unit_number,

@@ -1,6 +1,4 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+"""ExternalFile module."""
 import itertools
 
 from bs4 import Tag
@@ -8,19 +6,32 @@ from path import Path
 
 
 class ExternalFile(object):
-    """ExternalFile class."""
+    """ExternalFile class.
+
+    The External File Specification allows the user to associate a TRNSYS parameter (
+    typically a logical unit) with an external file through the use of the TRNSYS
+    ASSIGN, FILES, or DESIGNATE statements. This feature allows the author to
+    describe a question that will be asked in the assembly window. If the ASSIGN
+    statement is used, a parameter has to be associated with this external file to
+    define its FORTRAN logical unit number. For example, "Which file contains the
+    meteorological information?” When the input file is generated, it will contain a
+    TRNSYS ASSIGN statement with the answer to the question and the value of the
+    associated parameter. If the user would instead rather use the DESIGNATE input
+    file keyword for their component (please see more information in the TRNEdit
+    manual), the “Designate” checkbox will have to be clicked.
+    """
 
     logic_unit = itertools.count(start=30)
     _logic_unit = itertools.count(start=30)
 
     def __init__(self, question, default, answers, parameter, designate):
-        """Initilize object from arguments.
+        """Initialize object from arguments.
 
         Args:
-            question (str):
-            default (str):
-            answers (list of str):
-            parameter (str):
+            question (str): Question to ask.
+            default (str): Default answer.
+            answers (list of str): List of possible answers.
+            parameter (str): The parameter associated with the external file.
             designate (bool): If True, the external files are assigned to
                 logical unit numbers from within the TRNSYS input file. Files
                 that are assigned to a logical unit number using a DESIGNATE
@@ -38,7 +49,8 @@ class ExternalFile(object):
 
     @classmethod
     def from_tag(cls, tag):
-        """
+        """Create ExternalFile from Tag.
+
         Args:
             tag (Tag): The XML tag with its attributes and contents.
         """

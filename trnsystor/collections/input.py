@@ -1,5 +1,4 @@
-""""""
-
+"""InputCollection module."""
 import tabulate
 
 from trnsystor.collections.variable import VariableCollection
@@ -19,11 +18,8 @@ class InputCollection(VariableCollection):
         will not be returned in the iterator; only regular inputs will.
     """
 
-    def __init__(self):
-        super().__init__()
-        pass
-
     def __repr__(self):
+        """Return Deck representation of self."""
         num_inputs = "{} Inputs:\n".format(self.size)
         try:
             inputs = "\n".join(
@@ -46,8 +42,7 @@ class InputCollection(VariableCollection):
         return iter({k: v for k, v in self.data.items() if not v._is_question})
 
     def _to_deck(self):
-        """Returns the string representation for the Input File (.dck)"""
-
+        """Return deck representation of self."""
         if self.size == 0:
             # Don't need to print empty inputs
             return ""

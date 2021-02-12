@@ -1,16 +1,17 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+"""StudioHeader module."""
 from shapely.geometry import Point
 
 
 class StudioHeader(object):
-    """Each TrnsysModel has a StudioHeader which handles the studio comments
+    """StudioHeader class.
+
+    Each TrnsysModel has a StudioHeader which handles the studio comments
     such as position, UNIT_NAME, model, POSITION, LAYER, LINK_STYLE
     """
 
     def __init__(self, unit_name, model, position, layer=None):
-        """
+        """Initialize object.
+
         Args:
             unit_name (str): The unit_name, eg.: "Type104".
             model (Path): The path of the tmf/xml file.
@@ -28,25 +29,22 @@ class StudioHeader(object):
         self.link_styles = {}
 
     def __str__(self):
+        """Return deck representation of self."""
         return self._to_deck()
 
     @classmethod
     def from_component(cls, model):
-        """
-        Args:
-            model (Component):
-        """
         position = Point(50, 50)
         layer = ["Main"]
         return cls(model.name, model.model, position, layer)
 
     def _to_deck(self):
-        """
+        """Return deck representation of self.
+
         Examples:
             >>>
             *$UNIT_NAME Boulder, CO
-            *$MODEL .\Weather Data Reading and Processing\Standard
-            Format\TMY2\Type15-2.tmf
+            *$MODEL ./Weather Data Reading and Processing/StandardFormat/TMY2/Type15-2.tmf
             *$POSITION 69 182
             *$LAYER Main #
 

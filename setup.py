@@ -1,10 +1,11 @@
+"""Setup/install the package."""
 # Always prefer setuptools over distutils
 import codecs
 import os
 import re
 from os import path
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 here = os.getcwd()
 

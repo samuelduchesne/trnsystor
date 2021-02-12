@@ -1,7 +1,4 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+"""Parameter module."""
 import tabulate
 from pint.quantity import _Quantity
 
@@ -11,13 +8,10 @@ from trnsystor.typevariable import TypeVariable
 
 
 class ParameterCollection(VariableCollection):
-    """Subclass of :class:`VariableCollection` specific to Parameters"""
-
-    def __init__(self):
-        super().__init__()
-        pass
+    """Subclass of :class:`VariableCollection` specific to Parameters."""
 
     def __repr__(self):
+        """Return repr(self)."""
         num_inputs = "{} Parameters:\n".format(self.size)
         inputs = "\n".join(
             ['"{}": {:~P}'.format(key, value.value) for key, value in self.data.items()]
@@ -25,8 +19,7 @@ class ParameterCollection(VariableCollection):
         return num_inputs + inputs
 
     def _to_deck(self):
-        """Returns the string representation for the Input File (.dck)"""
-
+        """Return deck representation of self."""
         head = "PARAMETERS {}\n".format(self.size)
         # loop through parameters and print the (value, name) tuples.
         v_ = []
@@ -59,5 +52,5 @@ class ParameterCollection(VariableCollection):
 
     @property
     def size(self):
-        """The number of parameters"""
+        """Return the number of inputs."""
         return len([p for p in self if not self[p]._is_question])

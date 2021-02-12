@@ -1,6 +1,4 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+"""SpecialCardsCollection module."""
 import collections
 
 import tabulate
@@ -12,7 +10,7 @@ class SpecialCardsCollection(collections.UserList):
     """Subclass of :class:`VariableCollection` specific to Derivatives."""
 
     def __repr__(self):
-        """Return repr."""
+        """Return repr(self)."""
         return self._to_deck()
 
     def __str__(self):
@@ -20,8 +18,7 @@ class SpecialCardsCollection(collections.UserList):
         return self._to_deck()
 
     def _to_deck(self):
-        """Return the deck representation for the SpecialCards (.dck)."""
-
+        """Return deck representation of self."""
         if self.size == 0:
             # Don't need to print empty inputs
             return ""

@@ -1,6 +1,4 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+"""Deck module."""
 
 import datetime
 import itertools
@@ -12,44 +10,42 @@ from io import StringIO
 from pandas import to_datetime
 from pandas.io.common import _get_filepath_or_buffer, get_handle
 from path import Path
-from trnsystor.component import Component
-from shapely.geometry import Point, LineString
+from shapely.geometry import LineString, Point
 
-from trnsystor import TrnsysModel, get_rgb_from_int
 from trnsystor.anchorpoint import AnchorPoint
 from trnsystor.collections.components import ComponentCollection
 from trnsystor.collections.constant import ConstantCollection
 from trnsystor.collections.equation import EquationCollection
+from trnsystor.component import Component
 from trnsystor.controlcards import ControlCards
 from trnsystor.linkstyle import _studio_to_linestyle
 from trnsystor.name import Name
 from trnsystor.statement import (
-    End,
-    Version,
-    Constant,
-    Simulation,
-    Tolerances,
-    Limits,
     DFQ,
-    Width,
-    List,
-    Solver,
-    NaNCheck,
-    OverwriteCheck,
-    TimeReport,
+    Constant,
+    End,
     EqSolver,
     Equation,
+    Limits,
+    List,
+    NaNCheck,
+    OverwriteCheck,
+    Simulation,
+    Solver,
+    TimeReport,
+    Tolerances,
+    Version,
+    Width,
 )
-from trnsystor.trnsysmodel import (
-    MetaData,
-)
+from trnsystor.trnsysmodel import MetaData, TrnsysModel
+from trnsystor.utils import get_rgb_from_int
 
 
 class DeckFormatter:
-    """Class for handling the formatting of deck files"""
+    """Class for handling the formatting of deck files."""
 
     def __init__(self, obj, path_or_buf, encoding=None, mode="w"):
-
+        """Initialize object."""
         if path_or_buf is None:
             path_or_buf = StringIO()
         io_args = _get_filepath_or_buffer(
@@ -88,7 +84,9 @@ class DeckFormatter:
 
 
 class Deck(object):
-    """The Deck class holds :class:`TrnsysModel` objects, the
+    """Deck class.
+
+    The Deck class holds :class:`TrnsysModel` objects, the
     :class:`ControlCards` and specifies the name of the project. This class
     handles reading from a file (see :func:`read_file`) and printing to a file
     (see :func:`save`).
@@ -104,7 +102,7 @@ class Deck(object):
         canvas_width=1200,
         canvas_height=1000,
     ):
-        """Initialize a Deck object with parameters:
+        """Initialize a Deck object.
 
         Args:
             name (str): The name of the project.
@@ -149,7 +147,7 @@ class Deck(object):
 
     @classmethod
     def read_file(cls, file, author=None, date_created=None, proforma_root=None):
-        """Returns a Deck from a file
+        """Returns a Deck from a file.
 
         Args:
             file (str or Path): Either the absolute or relative path to the file to be
@@ -187,16 +185,8 @@ class Deck(object):
         return dck
 
     def __str__(self):
+        """Return deck representation of self."""
         return self._to_string()
-
-    @property
-    def graph(self):
-        import networkx as nx
-
-        G = nx.MultiDiGraph()
-        for component in self.models:
-            G = nx.compose(G, component.UNIT_GRAPH)
-        return G
 
     @property
     def graph(self):
@@ -219,9 +209,7 @@ class Deck(object):
         return G
 
     def check_deck_integrity(self):
-        """Checks if Deck definition passes a few obvious rules"""
-
-        # Check if external file assignments are all unique.
+        """Checks if Deck definition passes a few obvious rules."""
         from collections import Counter
 
         ext_files = []
@@ -232,14 +220,13 @@ class Deck(object):
                         if file:
                             ext_files.append(file.value)
         if sum(1 for i in Counter(ext_files).values() if i > 1):
-            lg.warn(
+            lg.warning(
                 "Some ExternalFile paths have duplicated names. Please make sure all "
                 "ASSIGNED paths are unique unless this is desired."
             )
 
     def update_models(self, amodel):
-        """Update the Deck.models attribute with a :class:`TrnsysModel` or a
-        list of :class:`TrnsysModel`.
+        """Update the :attr:`models` attribute with a :class:`TrnsysModel` (or list).
 
         Args:
             amodel (Component or list of Component):
@@ -260,10 +247,6 @@ class Deck(object):
             self.models.append(amodel)
 
     def remove_models(self, amodel):
-        """
-        Args:
-            amodel:
-        """
         if isinstance(amodel, Component):
             amodel = [amodel]
         for amodel in amodel:
@@ -275,7 +258,7 @@ class Deck(object):
                         break
 
     def to_file(self, path_or_buf, encoding=None, mode="w"):
-        """Saves the Deck object to file
+        """Save the Deck object to file.
 
         Examples:
 
@@ -337,14 +320,6 @@ class Deck(object):
 
     @classmethod
     def _parse_logic(cls, cc, dck, dcklines, line, proforma_root):
-        """
-        Args:
-            cc:
-            dck:
-            dcklines:
-            line:
-            proforma_root:
-        """
         if proforma_root is None:
             proforma_root = Path.getcwd()
         else:
@@ -552,7 +527,9 @@ class Deck(object):
                             linewidth,
                             path,
                         )
-                    except:
+                    except KeyError:
+                        #  "Trying to set a LinkStyle on a non-existent connection.
+                        #  Make sure to connect [26]Type2: yFill using '.connect_to()'"
                         pass
             if key == "model":
                 _mod = match.group("model").strip()
@@ -560,7 +537,7 @@ class Deck(object):
                 tmf_basename = tmf.basename()
                 try:
                     meta = MetaData.from_xml(tmf)
-                except:
+                except FileNotFoundError:
                     # replace extension with ".xml" and retry
                     xml_basename = tmf_basename.stripext() + ".xml"
                     xmls = proforma_root.glob("*.xml")
@@ -626,8 +603,7 @@ class Deck(object):
             getattr(model, key)[i] = tvar
 
     def _parse_line(self, line):
-        """Do a regex search against all defined regexes and return the key and
-        match result of the first matching regex
+        """Search against all defined regexes and return (key, match).
 
         Args:
             line (str): the line string to parse.
@@ -635,7 +611,6 @@ class Deck(object):
         Returns:
             2-tuple: the key and the match.
         """
-
         for key, rx in self._setup_re().items():
             match = rx.search(line)
             if match:
@@ -644,10 +619,11 @@ class Deck(object):
         return None, None
 
     def _setup_re(self):
-        """set up regular expressions. use https://regexper.com to visualise
-        these if required
-        """
+        """Set up regular expressions.
 
+        Hint:
+            Use https://regexper.com to visualise these if required.
+        """
         rx_dict = {
             "version": re.compile(
                 r"(?i)(?P<key>^version)(?P<version>.*?)(?=(?:!|\\n|$))"

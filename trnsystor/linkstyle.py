@@ -1,12 +1,10 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+"""LinkStyle module."""
 import numpy as np
 from matplotlib.colors import colorConverter
 from shapely.geometry import LineString
 
 from trnsystor.anchorpoint import AnchorPoint
-from trnsystor.utils import redistribute_vertices, get_int_from_rgb
+from trnsystor.utils import get_int_from_rgb, redistribute_vertices
 
 
 class LinkStyle(object):
@@ -21,7 +19,8 @@ class LinkStyle(object):
         path=None,
         autopath=True,
     ):
-        """
+        """Initialize class.
+
         Args:
             u (Component): from Model.
             v (Component): to Model.
@@ -45,6 +44,7 @@ class LinkStyle(object):
             linewidth (float): The link line width in points.
             path (LineString or MultiLineString): The path the link should
                 follow.
+            autopath (bool): If True, find best path.
         """
         self.u = u
         self.v = v
@@ -82,14 +82,11 @@ class LinkStyle(object):
         return AnchorPoint(self.u).studio_anchor(self.v, (loc_u, loc_v))
 
     def __repr__(self):
+        """Return Deck representation of self."""
         return self._to_deck()
 
     def set_color(self, color):
-        """Set the color of the line.
-
-        Args:
-            color (color):
-        """
+        """Set the color of the line."""
         self._color = color
 
     def get_color(self):
@@ -129,7 +126,11 @@ class LinkStyle(object):
         return self._linewidth
 
     def _to_deck(self):
-        """0:20:40:20:1:0:0:0:1:513,441:471,441:471,430:447,430"""
+        """Return deck representation of self.
+
+        Examples:
+            0:20:40:20:1:0:0:0:1:513,441:471,441:471,430:447,430
+        """
         u_anchor_name, v_anchor_name = self.anchor_ids
         anchors = (
             ":".join(
@@ -171,10 +172,6 @@ class LinkStyle(object):
 
 
 def _linestyle_to_studio(ls):
-    """
-    Args:
-        ls:
-    """
     linestyle_dict = {
         "-": 0,
         "solid": 0,
@@ -192,10 +189,6 @@ def _linestyle_to_studio(ls):
 
 
 def _studio_to_linestyle(ls):
-    """
-    Args:
-        ls:
-    """
     linestyle_dict = {0: "-", 1: "--", 2: ":", 3: "-.", 4: "-.."}
     _ls = linestyle_dict.get(ls)
     return _ls

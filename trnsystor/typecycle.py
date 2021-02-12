@@ -1,14 +1,13 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+"""TypeCycle module."""
 import collections
 import itertools
 
 from bs4 import Tag
 
 
-class TypeCycle(object):
+class TypeCycle:
+    """TypeCycle class."""
+
     def __init__(
         self,
         role=None,
@@ -19,22 +18,8 @@ class TypeCycle(object):
         maxSize=None,
         paramName=None,
         question=None,
-        **kwargs,
     ):
-        """
-        Args:
-            role (str): The role of the TypeCycle. "parameter", "input",
-                "output"
-            firstRow:
-            lastRow:
-            cycles:
-            minSize:
-            maxSize:
-            paramName:
-            question:
-            **kwargs:
-        """
-        super().__init__()
+        """Initialize object."""
         self.role = role
         self.firstRow = firstRow
         self.lastRow = lastRow
@@ -46,7 +31,8 @@ class TypeCycle(object):
 
     @classmethod
     def from_tag(cls, tag):
-        """
+        """Create TypeCycle from Tag.
+
         Args:
             tag (Tag): The XML tag with its attributes and contents.
         """
@@ -63,6 +49,7 @@ class TypeCycle(object):
         return cls(**dict_)
 
     def __repr__(self):
+        """Return repr(self)."""
         return self.role + " {} to {}".format(self.firstRow, self.lastRow)
 
     @property
@@ -71,7 +58,7 @@ class TypeCycle(object):
 
     @property
     def idxs(self):
-        """0-based index of the TypeVariable(s) concerned with this cycle"""
+        """0-based index of the TypeVariable(s) concerned with this cycle."""
         return (
             list(
                 itertools.chain(

@@ -1,19 +1,20 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+"""Solver Statement."""
 
 from trnsystor.statement.statement import Statement
 
 
 class Solver(Statement):
-    """A SOLVER command has been added to TRNSYS to select the computational
+    """SOLVER Statement.
+
+    A SOLVER command has been added to TRNSYS to select the computational
     scheme. The optional SOLVER card allows the user to select one of two
     algorithms built into TRNSYS to numerically solve the system of algebraic
     and differential equations.
     """
 
     def __init__(self, k=0, rf_min=1, rf_max=1):
-        """
+        """Initialize object.
+
         Args:
             k (int): the solution algorithm.
             rf_min (float): the minimum relaxation factor.
@@ -37,6 +38,7 @@ class Solver(Statement):
         )
 
     def _to_deck(self):
+        """Return deck representation of self."""
         return (
             "SOLVER {} {} {}".format(self.k, self.rf_min, self.rf_max)
             if self.k == 0

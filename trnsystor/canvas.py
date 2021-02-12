@@ -1,21 +1,30 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+"""StudioCanvas module."""
 import networkx as nx
-from shapely.geometry import box, LineString
+from shapely.geometry import LineString, box
 
 
 class StudioCanvas:
-    # TODO: Document class
+    """StudioCanvas class.
+
+    Handles geometric positioning of Components on a grid.
+    """
+
     def __init__(self, width=2000, height=1000):
-        self._grid_valid = True
-        self._grid = None
+        """Initialize object.
+
+        Args:
+            width (int): The width of the grid in points.
+            height (int): The height of the grid in points.
+        """
         self.width = width
         self.height = height
 
+        self._grid_valid = True
+        self._grid = None
+
     @property
     def bbox(self):
-        """The :class:`shapely.geometry.geo.box` representation of the studio canvas"""
+        """Return a bounding box rectangle for the canvas."""
         return box(0, 0, self.width, self.height)
 
     @property
@@ -27,7 +36,7 @@ class StudioCanvas:
 
     @property
     def grid(self):
-        """The two-dimensional grid graph of the studio canvas"""
+        """Return the two-dimensional grid graph of the studio canvas."""
         if self.grid_is_valid and self._grid is not None:
             return self._grid
         else:
@@ -51,7 +60,7 @@ class StudioCanvas:
         self.invalidate_grid()
 
     def shortest_path(self, u, v, donotcross=True):
-        """
+        """Return shortest path between u and v on the :attr:`grid`.
 
         Args:
             u (Point): The *from* Point geometry.

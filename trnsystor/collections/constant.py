@@ -1,20 +1,15 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+"""ConstantCollection module."""
 
 import collections
 
 import tabulate
-from trnsystor.component import Component
 
-from trnsystor.name import Name
+from trnsystor.component import Component
 from trnsystor.statement import Constant
-from trnsystor.studio import StudioHeader
 
 
 class ConstantCollection(Component, collections.UserDict):
-    """A class that behaves like a dict and that collects one or more
-    :class:`Constants`.
+    """A class that behaves like a dict and collects one or more :class:`Constants`.
 
     You can pass a dict of Equation or you can pass a list of Equation. In
     the latter, the :attr:`Equation.name` attribute will be used as a key.
@@ -41,10 +36,7 @@ class ConstantCollection(Component, collections.UserDict):
         super(ConstantCollection, self).__init__(_dict, meta=None, name=name, **kwargs)
 
     def __getitem__(self, key):
-        """
-        Args:
-            key:
-        """
+        """Get item."""
         if isinstance(key, int):
             value = list(self.data.values())[key]
         else:
@@ -52,21 +44,26 @@ class ConstantCollection(Component, collections.UserDict):
         return value
 
     def __setitem__(self, key, value):
+        """Set item."""
         # optional processing here
         value.model = self
         super().__setitem__(key, value)
 
     def __repr__(self):
+        """Return Deck representation of self."""
         return self._to_deck()
 
     def __hash__(self):
+        """Return hash(self)."""
         return self.unit_number
 
     def __eq__(self, other):
+        """Return self == other."""
         return hash(self) == hash(other)
 
     def update(self, E=None, **F):
-        """D.update([E, ]**F). Update D from a dict/list/iterable E and F.
+        """Update D from a dict/list/iterable E and F.
+
         If E is present and has a .keys() method, then does:  for k in E: D[
         k] = E[k]
         If E is present and lacks a .keys() method, then does:  for cts.name,
@@ -114,7 +111,7 @@ class ConstantCollection(Component, collections.UserDict):
         return self._unit * -1
 
     def _to_deck(self):
-        """To deck representation
+        """Return deck representation of self.
 
         Examples::
 
@@ -133,9 +130,9 @@ class ConstantCollection(Component, collections.UserDict):
         return str(header_comment) + str(head) + str(core)
 
     def _get_inputs(self):
-        """inputs getter. Sorts by order number each time it is called"""
+        """Sort by order number each time it is called."""
         return self
 
     def _get_outputs(self):
-        """outputs getter. Since self is already a  dict, return self."""
+        """Return outputs. Since self is already a  dict, return self."""
         return self
