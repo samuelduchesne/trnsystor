@@ -39,7 +39,6 @@ class VariableCollection(collections.UserDict):
 
     def __setitem__(self, key, value):
         """Set item."""
-
         if isinstance(value, TypeVariable):
             """if a TypeVariable is given, simply set it"""
             super().__setitem__(key, value)

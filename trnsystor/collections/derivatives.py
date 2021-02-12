@@ -23,7 +23,6 @@ class DerivativesCollection(VariableCollection):
 
     def _to_deck(self):
         """Return deck representation of self."""
-
         if self.size == 0:
             # Don't need to print empty inputs
             return ""

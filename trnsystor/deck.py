@@ -210,8 +210,6 @@ class Deck(object):
 
     def check_deck_integrity(self):
         """Checks if Deck definition passes a few obvious rules."""
-
-        # Check if external file assignments are all unique.
         from collections import Counter
 
         ext_files = []
@@ -222,7 +220,7 @@ class Deck(object):
                         if file:
                             ext_files.append(file.value)
         if sum(1 for i in Counter(ext_files).values() if i > 1):
-            lg.warn(
+            lg.warning(
                 "Some ExternalFile paths have duplicated names. Please make sure all "
                 "ASSIGNED paths are unique unless this is desired."
             )
@@ -613,7 +611,6 @@ class Deck(object):
         Returns:
             2-tuple: the key and the match.
         """
-
         for key, rx in self._setup_re().items():
             match = rx.search(line)
             if match:
