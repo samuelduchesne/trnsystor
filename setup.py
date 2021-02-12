@@ -1,3 +1,4 @@
+"""Setup/install the package."""
 # Always prefer setuptools over distutils
 import codecs
 import os

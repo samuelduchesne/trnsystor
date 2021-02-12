@@ -1,5 +1,4 @@
-""""""
-
+"""VariableCollection module."""
 import collections
 
 from pint.quantity import _Quantity

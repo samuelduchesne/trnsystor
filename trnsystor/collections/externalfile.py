@@ -1,4 +1,4 @@
-""""""
+"""ExternalFileCollection module."""
 
 import collections
 

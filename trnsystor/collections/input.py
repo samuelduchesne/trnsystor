@@ -1,5 +1,4 @@
-""""""
-
+"""InputCollection module."""
 import tabulate
 
 from trnsystor.collections.variable import VariableCollection

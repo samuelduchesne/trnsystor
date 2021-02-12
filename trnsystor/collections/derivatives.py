@@ -1,4 +1,4 @@
-""""""
+"""DerivativesCollection module."""
 
 import tabulate
 

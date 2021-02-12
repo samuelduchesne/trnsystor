@@ -1,4 +1,4 @@
-""""""
+"""EquationCollection module."""
 
 import collections
 

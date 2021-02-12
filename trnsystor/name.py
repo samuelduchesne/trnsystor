@@ -1,4 +1,4 @@
-""""""
+"""Name module."""
 
 
 class Name(object):

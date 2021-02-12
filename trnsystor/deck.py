@@ -1,4 +1,4 @@
-""""""
+"""Deck module."""
 
 import datetime
 import itertools

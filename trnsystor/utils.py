@@ -1,3 +1,4 @@
+"""Utils module."""
 import math
 import re
 

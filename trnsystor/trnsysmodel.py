@@ -1,3 +1,4 @@
+"""TrnsysModel module."""
 import collections
 import copy
 import itertools
@@ -666,11 +667,6 @@ class TrnsysModel(Component):
         )
         plt.show()
         return ax
-
-
-class Derivatives:
-    # Todo: Implement Derivatives
-    pass
 
 
 class Trace:

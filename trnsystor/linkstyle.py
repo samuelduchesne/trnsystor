@@ -1,4 +1,4 @@
-""""""
+"""LinkStyle module."""
 import numpy as np
 from matplotlib.colors import colorConverter
 from shapely.geometry import LineString

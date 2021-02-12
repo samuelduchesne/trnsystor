@@ -1,4 +1,4 @@
-""""""
+"""StudioHeader module."""
 from shapely.geometry import Point
 
 

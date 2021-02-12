@@ -1,4 +1,4 @@
-""""""
+"""AnchorPoint module."""
 
 import itertools
 

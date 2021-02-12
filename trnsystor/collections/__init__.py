@@ -1,4 +1,4 @@
-""""""
+"""Collections Module."""
 
 __all__ = [
     "ComponentCollection",

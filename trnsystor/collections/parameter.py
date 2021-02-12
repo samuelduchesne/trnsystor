@@ -1,5 +1,4 @@
-""""""
-
+"""Parameter module."""
 import tabulate
 from pint.quantity import _Quantity
 

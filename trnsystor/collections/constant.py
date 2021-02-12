@@ -1,4 +1,4 @@
-""""""
+"""ConstantCollection module."""
 
 import collections
 

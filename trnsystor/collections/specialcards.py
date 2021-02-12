@@ -1,4 +1,4 @@
-""""""
+"""SpecialCardsCollection module."""
 import collections
 
 import tabulate

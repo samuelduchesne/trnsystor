@@ -1,3 +1,5 @@
+"""Trnsystor Module."""
+
 from outdated import warn_if_outdated
 
 from .controlcards import ControlCards

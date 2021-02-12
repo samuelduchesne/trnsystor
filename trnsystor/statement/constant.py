@@ -1,5 +1,4 @@
-""""""
-
+"""Constant module."""
 import itertools
 
 from trnsystor.statement.statement import Statement

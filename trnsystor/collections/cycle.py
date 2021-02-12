@@ -1,4 +1,4 @@
-""""""
+"""CycleCollection module."""
 
 import collections
 

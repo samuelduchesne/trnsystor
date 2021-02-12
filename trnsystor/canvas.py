@@ -1,4 +1,4 @@
-""""""
+"""StudioCanvas module."""
 import networkx as nx
 from shapely.geometry import LineString, box
 

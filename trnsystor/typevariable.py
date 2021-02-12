@@ -1,4 +1,4 @@
-""""""
+"""TypeVariable module."""
 import collections
 import copy
 import re

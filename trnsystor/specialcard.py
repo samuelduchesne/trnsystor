@@ -1,5 +1,4 @@
-""""""
-
+"""SpecialCard module."""
 from bs4 import Tag
 
 

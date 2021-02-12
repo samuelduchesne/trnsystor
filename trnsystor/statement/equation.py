@@ -1,3 +1,4 @@
+"""Equation module."""
 import itertools
 
 from sympy import Expr, Symbol

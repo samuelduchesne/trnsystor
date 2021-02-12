@@ -1,3 +1,4 @@
+"""Test utils module."""
 import pytest
 
 from trnsystor.utils import redistribute_vertices

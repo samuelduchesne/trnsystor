@@ -1,4 +1,4 @@
-""""""
+"""Component module."""
 import itertools
 from abc import ABCMeta, abstractmethod
 

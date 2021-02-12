@@ -1,4 +1,4 @@
-""""""
+"""ExternalFile module."""
 import itertools
 
 from bs4 import Tag

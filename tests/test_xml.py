@@ -1,3 +1,4 @@
+"""Test module."""
 import os
 import sys
 from tempfile import NamedTemporaryFile, TemporaryFile
