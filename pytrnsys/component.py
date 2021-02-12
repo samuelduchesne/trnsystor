@@ -51,6 +51,9 @@ class Component(metaclass=ABCMeta):
         else:
             return self.unit_number == other
 
+    def copy(self):
+        pass
+
     @property
     def link_styles(self):
         return [
@@ -309,3 +312,6 @@ class Component(metaclass=ABCMeta):
             self.UNIT_GRAPH.remove_edge(*edge)
             if self.UNIT_GRAPH.has_edge(*edge):
                 edges.append(edge)
+
+    def _to_deck(self):
+        pass

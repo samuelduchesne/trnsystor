@@ -1,12 +1,13 @@
 import os
+import sys
 from tempfile import NamedTemporaryFile, TemporaryFile
 
 import pytest
 from mock import patch
 from path import Path
-from pytrnsys.component import Component
-from shapely.geometry import Point, LineString
+from shapely.geometry import LineString, Point
 
+from pytrnsys.component import Component
 from pytrnsys.trnsysmodel import TrnsysModel
 
 
@@ -128,8 +129,9 @@ class TestTrnsysModel:
         assert weather_type.outputs[26].name == "Beam radiation for surface-2"
 
     def test_cancel_missing_tag(self, tank_type):
-        from pytrnsys.trnsysmodel import TrnsysModel
         from bs4 import BeautifulSoup
+
+        from pytrnsys.trnsysmodel import TrnsysModel
 
         with pytest.raises(NotImplementedError):
             with patch("builtins.input", return_value="N"):
@@ -236,7 +238,9 @@ class TestTrnsysModel:
 
     def test_trnsysmodel_repr(self, tank_type):
         """test the __repr__ for :class:`TrnsysModel`"""
-        assert repr(tank_type)[3:] == "Type4: Storage Tank; Fixed Inlets, Uniform Losses"
+        assert (
+            repr(tank_type)[3:] == "Type4: Storage Tank; Fixed Inlets, Uniform Losses"
+        )
 
     def test_typecycle_repr(self, tank_type):
         """test the __repr__ for :class:`TypeCycle`"""
@@ -611,7 +615,8 @@ class TestConstantsAndEquations:
         yield c_block
 
     def test_unit_number(self, equation_block):
-        assert equation_block.unit_number > 0
+        """Equation block unit numbers are negative."""
+        assert equation_block.unit_number < 0
 
     def test_symbolic_expression(self, tank_type, fan_type):
         from pytrnsys.statement.constant import Constant
@@ -778,7 +783,7 @@ class TestConstantsAndEquations:
 
     def test_eq_unit_number(self, equation_block):
         for equation in equation_block.values():
-            assert equation.unit_number > 1
+            assert equation.unit_number < 1
 
     def test_eq_is_connected(self, equation_block):
         for equation in equation_block.values():
@@ -793,12 +798,15 @@ class TestConstantsAndEquations:
 
 class TestDeck:
     @pytest.fixture(scope="class")
-    def pvt_deck(self):
+    def deck_file(self):
+        yield "tests/input_files/test_deck.dck"
+
+    @pytest.fixture(scope="class")
+    def pvt_deck(self, deck_file):
         from pytrnsys.deck import Deck
 
-        file = "tests/input_files/test_deck.dck"
         with patch("builtins.input", return_value="y"):
-            dck = Deck.read_file(file, proforma_root="tests/input_files")
+            dck = Deck.read_file(deck_file, proforma_root="tests/input_files")
             yield dck
 
     @pytest.mark.xfail(raises=ValueError)
@@ -816,7 +824,7 @@ class TestDeck:
         yield pvt_deck.graph
 
     @pytest.mark.xfail(raises=ValueError)
-    def test_irragular_deck(self, irregular_deck):
+    def test_irregular_deck(self, irregular_deck):
         assert irregular_deck
 
     def test_update_with_model(self, weather_type, tank_type, pipe_type):
@@ -835,8 +843,8 @@ class TestDeck:
         assert len(dck.models) == 3
 
     def test_deck_graph(self, pvt_deck, G):
-        import networkx as nx
         import matplotlib.pyplot as plt
+        import networkx as nx
 
         print(len(pvt_deck.models))
         assert not nx.is_empty(G)
@@ -848,12 +856,12 @@ class TestDeck:
         plt.show()
 
     @pytest.mark.xfail(
-        "TRAVIS" in os.environ and os.environ["TRAVIS"] == "true",
+        "pygraphviz" not in sys.modules,
         reason="Skipping this test on Travis CI.",
     )
     def test_deck_graphviz(self, pvt_deck, G):
-        import networkx as nx
         import matplotlib.pyplot as plt
+        import networkx as nx
 
         pos = nx.nx_agraph.graphviz_layout(G, "dot")
         nx.draw_networkx(G, pos=pos)
@@ -865,8 +873,11 @@ class TestDeck:
         cycles = nx.find_cycle(G)
         print(cycles)
 
-    def test_print(self, pvt_deck):
-        print(self, pvt_deck)
+    @pytest.mark.skip("Known fail")
+    def test_print(self, deck_file, pvt_deck):
+        with open(deck_file, "r") as f:
+            pvt_deck_str = f.read().splitlines()
+        assert str(pvt_deck).splitlines() == pvt_deck_str
 
     def test_save(self, pvt_deck):
         pvt_deck.to_file("test.dck", None, "w")
@@ -927,8 +938,8 @@ class TestCommonTypes:
         yield deck
 
     def test_type951(self, deck, tmp_path):
-        from pytrnsys.trnsysmodel import TrnsysModel
         from pytrnsys.deck import Deck
+        from pytrnsys.trnsysmodel import TrnsysModel
 
         d = tmp_path / "sub"
         d.mkdir()
@@ -944,7 +955,7 @@ class TestCommonTypes:
 class TestStudioCanvas:
     """TODO: complete tests for Canvas LinkStyles and path positioning"""
 
-    def test_shortest_path(self, tank_type: Component, pipe_type: Component):
+    def test_shortest_path(self, tank_type: TrnsysModel, pipe_type: TrnsysModel):
         pipe_type.set_canvas_position((1, 50))
         tank_type.set_canvas_position((100, 50))
         pipe_type.connect_to(tank_type, mapping={0: 0, 1: 1})

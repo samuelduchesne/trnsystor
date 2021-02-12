@@ -16,6 +16,7 @@ class VariableCollection(collections.UserDict):
     """A collection of :class:`VariableType` as a dict. Handles getting and
     setting variable values.
     """
+
     def __getattr__(self, key):
         """Get attribute."""
         if isinstance(key, int):

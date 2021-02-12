@@ -184,9 +184,12 @@ class ControlCards(object):
         """Creates a string representation. If the :attr:`doc` is specified, a
         small description is printed in comments
         """
+        version = str(self.version) + "\n"
         head = "*** Control Cards\n"
         v_ = []
         for param in self.__dict__.values():
+            if isinstance(param, Version):
+                continue
             if isinstance(param, Component):
                 v_.append((str(param), None))
             if hasattr(param, "doc"):
@@ -194,7 +197,7 @@ class ControlCards(object):
             else:
                 pass
         statements = tabulate.tabulate(tuple(v_), tablefmt="plain", numalign="left")
-        return str(head) + str(statements)
+        return version + head + statements
 
     def set_statement(self, statement):
         """

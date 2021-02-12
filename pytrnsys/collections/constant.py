@@ -111,7 +111,7 @@ class ConstantCollection(Component, collections.UserDict):
 
     @property
     def unit_number(self):
-        return self._unit
+        return self._unit * -1
 
     def _to_deck(self):
         """To deck representation

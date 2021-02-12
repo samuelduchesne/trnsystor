@@ -44,6 +44,9 @@ class ExternalFileCollection(collections.UserDict):
                 "ExternalFileCollection".format(type(value))
             )
 
+    def __str__(self):
+        return self._to_deck()
+
     @classmethod
     def from_dict(cls, dictionary):
         """Construct an :class:`~ExternalFileCollection` from a dict of

@@ -29,10 +29,12 @@ class SpecialCardsCollection(collections.UserList):
         _ins = []
         special_card: SpecialCard
         for special_card in self:
-            _ins.append((special_card.name, special_card.default))
-        core = tabulate.tabulate(_ins, tablefmt="plain", numalign="left")
+            _ins.append(
+                [" ".join(a for a in [special_card.name, special_card.default] if a)]
+            )
+        core = tabulate.tabulate(_ins, tablefmt="plain")
 
-        return core + "\n"
+        return core
 
     @property
     def size(self):

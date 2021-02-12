@@ -43,12 +43,7 @@ class InitialInputValuesCollection(VariableCollection):
         return type_variable
 
     def __setitem__(self, key, value):
-        """Setter for default values (initial values).
-
-        Args:
-            key:
-            value:
-        """
+        """Set item."""
 
         if isinstance(value, TypeVariable):
             """if a TypeVariable is given, simply set it"""
@@ -76,12 +71,12 @@ class InitialInputValuesCollection(VariableCollection):
             return ""
 
         head = "*** INITIAL INPUT VALUES\n"
-        _ins = [
+        input_tuples = [
             (
                 v.default.m if isinstance(v.default, _Quantity) else v.default,
                 "! {}".format(v.name),
             )
             for v in self.values()
         ]
-        core = tabulate.tabulate(_ins, tablefmt="plain", numalign="left")
+        core = tabulate.tabulate(input_tuples, tablefmt="plain", numalign="left")
         return head + core + "\n"

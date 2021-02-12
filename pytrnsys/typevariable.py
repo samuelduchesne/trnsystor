@@ -264,8 +264,8 @@ class TypeVariable(object):
 
         loc = link_style_kwargs.pop("loc", "best")
         self.model.UNIT_GRAPH.add_edge(
-            u_for_edge=self,
-            v_for_edge=other,
+            u_for_edge=self.model,
+            v_for_edge=other.model,
             key=(u, v),
             LinkStyle=LinkStyle(self.model, other.model, loc=loc, **link_style_kwargs),
         )

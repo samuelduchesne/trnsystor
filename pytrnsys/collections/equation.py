@@ -14,9 +14,10 @@ from pytrnsys.studio import StudioHeader
 
 class EquationCollection(Component, collections.UserDict):
     """A class that behaves like a dict and that collects one or more
-    :class:`Equations`. This class behaves a little bit like the equation
-    component in the TRNSYS Studio, meaning that you can list equation in a
-    block, give it a name, etc.
+    :class:`Equations`.
+
+    This class behaves a little bit like the equation component in the TRNSYS Studio,
+    meaning that you can list equation in a block, give it a name, etc.
 
     You can pass a dict of Equation or you can pass a list of Equation. In
     this case, the :attr:`Equation.name` attribute will be used as a key.
@@ -25,6 +26,10 @@ class EquationCollection(Component, collections.UserDict):
         Creating equations in pytrnsys is done trough the :class:`Equation`
         class. Equations are than collected in this EquationCollection. See the
         :class:`Equation` class for more details.
+
+    Since equation blocks don't have a unit number, a incremental negative unit
+    number is given to instantiated EquationCollections to ensure that it is
+    compatible with its parent class (see :class:`Component`).
     """
 
     def __init__(self, mutable=None, name=None, **kwargs):
@@ -123,7 +128,7 @@ class EquationCollection(Component, collections.UserDict):
 
     @property
     def unit_number(self):
-        return self._unit
+        return self._unit * -1
 
     @property
     def unit_name(self):

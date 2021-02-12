@@ -160,7 +160,7 @@ class Equation(Statement, TypeVariable):
                 exp = exp.subs(arg, Symbol(new_symbol.name))
             else:
                 exp = exp.subs(arg, Symbol(new_symbol))
-        return cls(name, exp)
+        return cls(name, exp, doc=doc)
 
     @property
     def eq_number(self):

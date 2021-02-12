@@ -7,5 +7,5 @@ path
 shapely
 numpy
 matplotlib
-pandas==1.2.2
-sympy
+pandas==1.2.2  # because of io.common methods
+sympy==1.5.1  # because of specific expression parsing

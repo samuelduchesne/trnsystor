@@ -214,11 +214,11 @@ class TrnsysModel(Component):
 
     def __str__(self):
         """Return Deck representation of self."""
-        return self._to_deck()
+        return f"[{self.unit_number}]Type{self.type_number}: {self.name}"  # self._to_deck()
 
     def __repr__(self):
         """str: The String representation of this object."""
-        return "[{}]Type{}: {}".format(self.unit_number, self.type_number, self.name)
+        return f"[{self.unit_number}]Type{self.type_number}: {self.name}"
 
     @classmethod
     def from_xml(cls, xml, **kwargs):
@@ -250,7 +250,7 @@ class TrnsysModel(Component):
             return all_types[0]
 
     def copy(self, invalidate_connections=True):
-        """copy object
+        """Copy object.
 
         Args:
             invalidate_connections (bool): If True, connections to other models
@@ -328,8 +328,6 @@ class TrnsysModel(Component):
             for tag in tag.find("cycles").children
             if isinstance(tag, Tag)
         )
-        model._meta.variables = {id(var): var for var in type_vars}
-        model._meta.cycles = type_cycles
         special_cards = (
             [
                 SpecialCard.from_tag(tag)
@@ -339,6 +337,8 @@ class TrnsysModel(Component):
             if tag.find("specialCards")
             else None
         )
+        model._meta.variables = {id(var): var for var in type_vars}
+        model._meta.cycles = type_cycles
         model._meta.special_cards = (
             {id(var): var for var in special_cards} if special_cards else None
         )
@@ -431,6 +431,8 @@ class TrnsysModel(Component):
                 for attr in self._get_filtered_types(SpecialCard, "special_cards")
             )
             return SpecialCardsCollection(special_cards_list)
+        else:
+            return SpecialCardsCollection()  # return empty collection
 
     def _get_external_files(self):
         if self._meta.external_files:
@@ -439,6 +441,8 @@ class TrnsysModel(Component):
                 for attr in self._get_filtered_types(ExternalFile, "external_files")
             )
             return ExternalFileCollection.from_dict(ext_files_dict)
+        else:
+            return ExternalFileCollection()  # return empty collection
 
     def _get_ordered_filtered_types(self, class_name, store):
         """Returns an ordered dict of :class:`TypeVariable` filtered by
@@ -628,8 +632,13 @@ class TrnsysModel(Component):
         type_cycles = CycleCollection(
             TypeCycle.from_tag(tag) for tag in tag if isinstance(tag, Tag)
         )
+        tag = new_meta.special_cards or {}
+        special_cards = [
+            SpecialCard.from_tag(tag) for tag in tag if isinstance(tag, Tag)
+        ]
         self._meta.variables = {id(var): var for var in type_vars}
         self._meta.cycles = type_cycles
+        self._meta.special_cards = {id(var): var for var in special_cards}
 
         tag = new_meta.external_files
         if tag:
@@ -644,13 +653,6 @@ class TrnsysModel(Component):
                 }
             )
 
-        # self._get_inputs()
-        # self._get_outputs()
-        # self._get_parameters()
-        # self._get_external_files()
-
-        # _meta = MetaData.from_tag([s for s in new_meta.author.parents][-1])
-
     def plot(self):
         import matplotlib.pyplot as plt
 
@@ -662,11 +664,16 @@ class TrnsysModel(Component):
             G,
             pos,
             with_labels=True,
+            arrows=True,
+            width=4,
+        )
+        nx.draw_networkx_edge_labels(
+            G,
+            pos,
             edge_labels={
                 ("type", output.name): output.name for output in self.outputs.values()
             },
-            arrow=True,
-            width=4,
+            ax=ax,
         )
         plt.show()
         return ax

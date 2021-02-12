@@ -162,29 +162,25 @@ class Deck(object):
         """
         file = Path(file)
         with open(file) as dcklines:
+            cc = ControlCards()
             dck = cls(
                 name=file.basename(),
                 author=author,
                 date_created=date_created,
-                control_cards=None,
+                control_cards=cc,
             )
-            cc = ControlCards()
-            dck._control_card = cc
             no_whitelines = list(filter(None, (line.rstrip() for line in dcklines)))
             with tempfile.TemporaryFile("r+") as dcklines:
                 dcklines.writelines("\n".join(no_whitelines))
                 dcklines.seek(0)
                 line = dcklines.readline()
-                iteration = 0
-                maxiter = 26
-                while line:
-                    iteration += 1
-                    # at each line check for a match with a regex
-                    line = cls._parse_logic(cc, dck, dcklines, line, proforma_root)
+                # parse whole file once
+                cls._parse_logic(cc, dck, dcklines, line, proforma_root)
 
-                    if iteration < maxiter:
-                        dcklines.seek(0)
-                        line = "\n"
+                # parse a second time to complete links
+                dcklines.seek(0)
+                line = dcklines.readline()
+                cls._parse_logic(cc, dck, dcklines, line, proforma_root)
 
         # assert missing types
         # todo: list types that could not be parsed
@@ -317,7 +313,7 @@ class Deck(object):
         end = self.control_cards.__dict__.pop("end", End())
         cc = str(self.control_cards)
 
-        models = "\n\n".join([str(model) for model in self.models])
+        models = "\n\n".join([model._to_deck() for model in self.models])
 
         model: Component
         styles = (
@@ -372,9 +368,12 @@ class Deck(object):
                     cb.update(Constant.from_expression(line))
                 cc.set_statement(cb)
             if key == "simulation":
-                sss = match.group(key).strip()
+                start, stop, step, *_ = re.split(r"\s+", match.group(key))
                 start, stop, step = tuple(
-                    map(lambda x: dck.return_equation_or_constant(x), sss.split(" "))
+                    map(
+                        lambda x: dck.return_equation_or_constant(x),
+                        (start, stop, step),
+                    )
                 )
                 s_ = Simulation(*(start, stop, step))
                 cc.set_statement(s_)
@@ -428,10 +427,6 @@ class Deck(object):
                     # create equation
                     list_eq.append(Equation.from_expression(value))
                 component = EquationCollection(list_eq, name=Name("block"))
-                dck.remove_models(component)
-                component._unit = next(component.INIT_UNIT_NUMBER)
-                dck.update_models(component)
-                # append the dictionary to the data list
             if key == "userconstantend":
                 try:
                     dck.update_models(component)
@@ -461,34 +456,54 @@ class Deck(object):
 
                 xml = Path(proforma_root).glob(f"Type{t}*.xml")
                 try:
-                    component = TrnsysModel.from_xml(next(iter(xml)), name=n)
-                except StopIteration:
-                    raise ValueError(f"Could not find proforma for Type{t}")
+                    component = dck.models.loc[int(u)]
+                except KeyError:  # The model has not yet been instantiated
+                    try:
+                        component = TrnsysModel.from_xml(next(iter(xml)), name=n)
+                    except StopIteration:
+                        raise ValueError(f"Could not find proforma for Type{t}")
+                    else:
+                        component._unit = int(u)
+                        dck.update_models(component)
                 else:
-                    component._unit = int(u)
-                    dck.update_models(component)
-            if key == "parameters" or key == "inputs":
+                    pass
+            if key in ("parameters", "inputs"):
                 if component._meta.variables:
                     n_vars = int(match.group(key).strip())
-                    i = -1
+                    init_at = n_vars
+                    if key == "inputs":
+                        init_at = n_vars
+                        n_vars = n_vars * 2
+                    i = 0
                     while line:
-                        i += 1
                         line = dcklines.readline()
                         if not line.strip():
                             line = "\n"
-                            i -= 1
                         else:
                             varkey, match = dck._parse_line(line)
                             if varkey == "typevariable":
-                                tvar = match.group("typevariable").strip()
-                                try:
-                                    cls.set_typevariable(dck, i, component, tvar, key)
-                                except KeyError:
-                                    line = cls._parse_logic(
-                                        cc, dck, dcklines, line, proforma_root
-                                    )
-                            if i == n_vars - 1:
+                                tvar_group = match.group("typevariable").strip()
+                                for j, tvar in enumerate(tvar_group.split(" ")):
+                                    try:
+                                        if i >= init_at:
+                                            key = "initial_input_values"
+                                            j = j + i - init_at
+                                        else:
+                                            j = i
+                                        cls.set_typevariable(
+                                            dck, j, component, tvar, key
+                                        )
+                                    except (KeyError, IndexError, ValueError):
+                                        continue
+                                    finally:
+                                        i += 1
+                            elif varkey is None:
+                                continue
+                            if i == n_vars:
                                 line = None
+            if key == "typevariable":
+                # We need to pass because we need to get out of this recursion
+                pass
             # identify linkstyles
             if key == "link":
                 # identify u,v unit numbers
@@ -562,14 +577,19 @@ class Deck(object):
         return line
 
     def return_equation_or_constant(self, name):
-        """
-        Args:
-            name:
+        """Return Equation or Constant for name.
+
+        If `name` parses to int literal, then the `int` is returned.
         """
         for n in self.models:
             if name in n.outputs:
                 return n[name]
-        return Constant(name)
+        try:
+            value = int(name)
+        except ValueError:
+            return Constant(name)
+        else:
+            return value
 
     @staticmethod
     def set_typevariable(dck, i, model, tvar, key):
@@ -581,11 +601,11 @@ class Deck(object):
             model (Component): the component to modify.
             tvar (str or float): the new value to set.
             key (str): the specific type of TypeVariable, eg.: 'inputs',
-                'parameters', 'outputs'.
+                'parameters', 'outputs', 'initial_input_values'.
         """
         try:
             tvar = float(tvar)
-        except:
+        except ValueError:  # e.g.: could not convert string to float: '21,1'
             # deal with a string, either a Constant or a "[u, n]"
             if "0,0" in tvar:
                 # this is an unconnected typevariable, pass.
@@ -595,11 +615,12 @@ class Deck(object):
                 other = dck.models.iloc[unit_number]
                 other.connect_to(model, mapping={output_number - 1: i})
             else:
-                if any((tvar in n.outputs) for n in dck.models):
+                try:
                     # one Equation or Constant has this tvar
-                    other = next((n for n in dck.models if (tvar in n.outputs)), None)
+                    other = next((n for n in dck.models if (tvar in n.outputs)))
                     other[tvar].connect_to(getattr(model, key)[i])
-
+                except StopIteration:
+                    pass
         else:
             # simply set the new value
             getattr(model, key)[i] = tvar
@@ -635,27 +656,27 @@ class Deck(object):
                 r"(?i)(?P<key>^constants)(?P<constants>.*?)(?=(?:!|\\n|$))"
             ),
             "simulation": re.compile(
-                r"(?i)(?P<key>^simulation)(" r"?P<simulation>.*?)(?=(?:!|$))"
+                r"(?i)(?P<key>^simulation)\s*(?P<simulation>.*?)(?=(?:!|$))"
             ),
             "tolerances": re.compile(
-                r"(?i)(?P<key>^tolerances)(" r"?P<tolerances>.*?)(?=(" r"?:!|$))"
+                r"(?i)(?P<key>^tolerances)(?P<tolerances>.*?)(?=(?:!|$))"
             ),
-            "limits": re.compile(r"(?i)(?P<key>^limits)(?P<limits>.*?)(?=(" r"?:!|$))"),
+            "limits": re.compile(r"(?i)(?P<key>^limits)(?P<limits>.*?)(?=(?:!|$))"),
             "dfq": re.compile(r"(?i)(?P<key>^dfq)(?P<dfq>.*?)(?=(?:!|$))"),
-            "width": re.compile(r"(?i)(?P<key>^width)(?P<width>.*?)(?=(" r"?:!|$))"),
-            "list": re.compile(r"(?i)(?P<key>^list)(?P<list>.*?)(?=(" r"?:!|$))"),
-            "solver": re.compile(r"(?i)(?P<key>^solver)(?P<solver>.*?)(?=(" r"?:!|$))"),
+            "width": re.compile(r"(?i)(?P<key>^width)(?P<width>.*?)(?=(?:!|$))"),
+            "list": re.compile(r"(?i)(?P<key>^list)(?P<list>.*?)(?=(?:!|$))"),
+            "solver": re.compile(r"(?i)(?P<key>^solver)(?P<solver>.*?)(?=(?:!|$))"),
             "nancheck": re.compile(
-                r"(?i)(?P<key>^nan_check)(?P<nancheck>.*?)(?=(" r"?:!|$))"
+                r"(?i)(?P<key>^nan_check)(?P<nancheck>.*?)(?=(?:!|$))"
             ),
             "overwritecheck": re.compile(
-                r"(?i)(?P<key>^overwrite_check)(?P<overwritecheck>.*?)(?=(" r"?:!|$))"
+                r"(?i)(?P<key>^overwrite_check)(?P<overwritecheck>.*?)(?=(?:!|$))"
             ),
             "timereport": re.compile(
-                r"(?i)(?P<key>^time_report)(?P<timereport>.*?)(?=(" r"?:!|$))"
+                r"(?i)(?P<key>^time_report)(?P<timereport>.*?)(?=(?:!|$))"
             ),
             "eqsolver": re.compile(
-                r"(?i)(?P<key>^eqsolver)(?P<eqsolver>.*?)(?=(" r"?:!|$))"
+                r"(?i)(?P<key>^eqsolver)(?P<eqsolver>.*?)(?=(?:!|$))"
             ),
             "equations": re.compile(
                 r"(?i)(?P<key>^equations)(?P<equations>.*?)(?=(?:!|$))"
@@ -665,7 +686,7 @@ class Deck(object):
                 r"?=(?:!|$))"
             ),
             "unitnumber": re.compile(
-                r"(?i)(?P<key>^\*\$unit_number)(" r"?P<unitnumber>.*?)(?=(?:!|$))"
+                r"(?i)(?P<key>^\*\$unit_number)(?P<unitnumber>.*?)(?=(?:!|$))"
             ),
             "unitname": re.compile(
                 r"(?i)(?P<key>^\*\$unit_name)(?P<unitname>.*?)(?=(?:!|$))"
@@ -675,11 +696,10 @@ class Deck(object):
                 r"(?i)(?P<key>^\*\$position)(?P<position>.*?)(?=(?:!|$))"
             ),
             "unit": re.compile(
-                r"(?i)unit\s*(?P<unitnumber>.*?)\s*type\s*(?P<typenumber>\d*?\s)\s*(?P<name>.*$)"
+                r"(?i)unit\s*(?P<unitnumber>.*?)\s*type\s*(?P<typenumber>\d*?\s)\s*("
+                r"?P<name>.*$)"
             ),
-            "model": re.compile(
-                r"(?i)(?P<key>^\*\$model)(?P<model>.*?)(?=(" r"?:!|$))"
-            ),
+            "model": re.compile(r"(?i)(?P<key>^\*\$model)(?P<model>.*?)(?=(?:!|$))"),
             "link": re.compile(r"(?i)(^\*!link\s)(?P<link>.*?)(?=(?:!|$))"),
             "linkstyle": re.compile(
                 r"(?i)(?:^\*!connection_set )(?P<u1>.*?):(?P<u2>.*?):("
@@ -687,13 +707,14 @@ class Deck(object):
                 r"?P<linestyle>.*?):(?P<linewidth>.*?):(?P<ignored>.*?):("
                 r"?P<path>.*?$)"
             ),
-            "userconstants": re.compile(
-                r"(?i)(?P<key>^\*\$user_constants)(" r"?=(?:!|$))"
-            ),
+            "userconstants": re.compile(r"(?i)(?P<key>^\*\$user_constants)(?=(?:!|$))"),
             "parameters": re.compile(
                 r"(?i)(?P<key>^parameters )(?P<parameters>.*?)(?=(?:!|$))"
             ),
             "inputs": re.compile(r"(?i)(?P<key>^inputs)(?P<inputs>.*?)(?=(?:!|$))"),
+            "labels": re.compile(
+                r"(?i)(?P<key>^labels )(?P<parameters>.*?)(?=(?:!|$))"
+            ),
             "typevariable": re.compile(r"^(?![*$!\s])(?P<typevariable>.*?)(?=(?:!|$))"),
             "end": re.compile(r"END"),
         }
