@@ -34,6 +34,7 @@ class Limits(Statement):
         """Return deck representation of self.
 
         Examples:
-            TOLERANCES 0.001 0.001"""
+            TOLERANCES 0.001 0.001
+        """
         head = "LIMITS {} {} {}".format(self.m, self.n, self.p)
         return str(head)

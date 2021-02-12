@@ -178,7 +178,8 @@ class TypeVariable(object):
     def is_connected(self):
         """Whether or not this TypeVariable is connected to another TypeVariable.
 
-        Checks if self is in any keys"""
+        Checks if self is in any keys
+        """
         return self.predecessor is not None
 
     @property

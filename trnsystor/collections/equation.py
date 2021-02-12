@@ -129,7 +129,8 @@ class EquationCollection(Component, collections.UserDict):
     def unit_name(self):
         """Return ``name`` of self.
 
-        This type does not have a unit_name."""
+        This type does not have a unit_name.
+        """
         return self.name
 
     @property

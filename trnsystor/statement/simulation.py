@@ -34,5 +34,6 @@ class Simulation(Statement):
     def _to_deck(self):
         """Return deck representation of self.
 
-        SIMULATION to tf Δt"""
+        SIMULATION to tf Δt
+        """
         return "SIMULATION {} {} {}".format(self.start, self.stop, self.step)
