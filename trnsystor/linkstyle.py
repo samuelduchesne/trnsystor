@@ -44,6 +44,7 @@ class LinkStyle(object):
             linewidth (float): The link line width in points.
             path (LineString or MultiLineString): The path the link should
                 follow.
+            autopath (bool): If True, find best path.
         """
         self.u = u
         self.v = v
@@ -85,11 +86,7 @@ class LinkStyle(object):
         return self._to_deck()
 
     def set_color(self, color):
-        """Set the color of the line.
-
-        Args:
-            color (color):
-        """
+        """Set the color of the line."""
         self._color = color
 
     def get_color(self):

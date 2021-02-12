@@ -11,11 +11,7 @@ class Name(object):
     existing = []  # a list to store the created names
 
     def __init__(self, name=None):
-        """Pick a name. Will increment the name if already used.
-
-        Args:
-            name:
-        """
+        """Pick a name. Will increment the name if already used."""
         self.name = self.create_unique(name)
 
     def create_unique(self, name):

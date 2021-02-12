@@ -43,7 +43,7 @@ class TypeVariable(object):
 
         Args:
             val (int, float, _Quantity): The actual value hold by this object.
-            order (str):
+            order (str): The order of the variable.
             name (str): This name will be seen by the user in the connections
                 window and all other variable information windows.
             role (str): The role of the variables such as input, output, etc.
@@ -73,7 +73,7 @@ class TypeVariable(object):
                 the inputs and derivatives and suppressed for the outputs.
             symbol (str): The symbol of the unit (not used).
             definition (str): A short description of the variable.
-            model:
+            model (TrnsysModel): the TrnsysModel this TypeVariable belongs to.
         """
         super().__init__()
         self._is_question = False
@@ -108,7 +108,7 @@ class TypeVariable(object):
 
         Args:
             tag (Tag): The XML tag with its attributes and contents.
-            model (TrnsysModel):
+            model (TrnsysModel): The model.
         """
         role = tag.find("role").text
         val = tag.find("default").text
@@ -291,12 +291,7 @@ class Parameter(TypeVariable):
     """A subclass of :class:`TypeVariable` specific to parameters."""
 
     def __init__(self, val, **kwargs):
-        """A subclass of :class:`TypeVariable` specific to parameters.
-
-        Args:
-            val:
-            **kwargs:
-        """
+        """A subclass of :class:`TypeVariable` specific to parameters."""
         super().__init__(val, **kwargs)
 
         self._parse_types()
@@ -306,12 +301,7 @@ class Input(TypeVariable):
     """A subclass of :class:`TypeVariable` specific to inputs."""
 
     def __init__(self, val, **kwargs):
-        """A subclass of :class:`TypeVariable` specific to inputs.
-
-        Args:
-            val:
-            **kwargs:
-        """
+        """A subclass of :class:`TypeVariable` specific to inputs."""
         super().__init__(val, **kwargs)
 
         self._parse_types()
@@ -321,12 +311,7 @@ class InitialInputValue(TypeVariable):
     """A subclass of :class:`TypeVariable` specific to Initial Input Values."""
 
     def __init__(self, val, **kwargs):
-        """A subclass of :class:`TypeVariable` specific to inputs.
-
-        Args:
-            val:
-            **kwargs:
-        """
+        """A subclass of :class:`TypeVariable` specific to inputs."""
         super().__init__(val, **kwargs)
 
         self._parse_types()
@@ -336,12 +321,7 @@ class Output(TypeVariable):
     """A subclass of :class:`TypeVariable` specific to outputs."""
 
     def __init__(self, val, **kwargs):
-        """A subclass of :class:`TypeVariable` specific to outputs.
-
-        Args:
-            val:
-            **kwargs:
-        """
+        """A subclass of :class:`TypeVariable` specific to outputs."""
         super().__init__(val, **kwargs)
 
         self._parse_types()
@@ -371,12 +351,7 @@ class Derivative(TypeVariable):
     """
 
     def __init__(self, val, **kwargs):
-        """A subclass of :class:`TypeVariable` specific to derivatives.
-
-        Args:
-            val:
-            **kwargs:
-        """
+        """A subclass of :class:`TypeVariable` specific to derivatives."""
         super().__init__(val, **kwargs)
 
         self._parse_types()

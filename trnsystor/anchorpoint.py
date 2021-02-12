@@ -27,8 +27,9 @@ class AnchorPoint(object):
         """Return the studio anchor based on a location.
 
         Args:
-            other: TrnsysModel
-            loc (2-tuple):
+            other (TrnsysModel): The other TrnsysModel used to find the anchor of self.
+            loc (2-tuple): A 2-tuple of location, eg.: ("best", "best") or
+                of :attr:`anchor_ids`.
         """
         if "best" not in loc:
             return loc

@@ -95,11 +95,11 @@ class MetaData(object):
             cycles (list, optional): List of TypeCycle.
             source (Path): Path of the source code.
             externalFiles (trnsystor.external_file.ExternalFileCollection): A
-            class handling
-                ExternalFiles for this object.
+                class handling ExternalFiles for this object.
             compileCommand (str): Command used to recompile this type.
             model (Path): Path of the xml or tmf file.
-            **kwargs:
+            specialCards (list of SpecialCards): List of SpecialCards.
+            **kwargs: Other keyword arguments passed to the constructor.
         """
         self.compileCommand = compileCommand
         self.object = object
@@ -170,12 +170,7 @@ class MetaData(object):
 
     @classmethod
     def from_xml(cls, xml, **kwargs):
-        """Initialize MetaData from xml file.
-
-        Args:
-            xml:
-            **kwargs:
-        """
+        """Initialize MetaData from xml file."""
         xml_file = Path(xml)
         with open(xml_file) as xml:
             soup = BeautifulSoup(xml, "xml")
@@ -471,10 +466,6 @@ class TrnsysModel(Component):
         Proformas can contain parameters, inputs and outputs that have a variable
         number of entries. This will deal with their creation each time the linked
         parameters are changed.
-
-        Args:
-            type_:
-            class_:
         """
         output_dict = self._get_ordered_filtered_types(class_, "variables")
         cycles = {

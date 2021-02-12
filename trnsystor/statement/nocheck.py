@@ -14,7 +14,7 @@ class NoCheck(Statement):
         """Initialize object.
 
         Args:
-            inputs (list of Input):
+            inputs (list of Input): The list of Inputs.
         """
         super().__init__()
         if not inputs:

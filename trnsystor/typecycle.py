@@ -5,7 +5,7 @@ import itertools
 from bs4 import Tag
 
 
-class TypeCycle(object):
+class TypeCycle:
     """TypeCycle class."""
 
     def __init__(
@@ -18,23 +18,8 @@ class TypeCycle(object):
         maxSize=None,
         paramName=None,
         question=None,
-        **kwargs,
     ):
-        """Initialize object.
-
-        Args:
-            role (str): The role of the TypeCycle. "parameter", "input",
-                "output"
-            firstRow:
-            lastRow:
-            cycles:
-            minSize:
-            maxSize:
-            paramName:
-            question:
-            **kwargs:
-        """
-        super().__init__()
+        """Initialize object."""
         self.role = role
         self.firstRow = firstRow
         self.lastRow = lastRow

@@ -85,7 +85,8 @@ class Component(metaclass=ABCMeta):
         Args:
             pt (Point or 2-tuple): The Point geometry or a tuple of (x, y)
                 coordinates.
-            trnsys_coords:
+            trnsys_coords (bool): Set to True of ``pt`` is given in Trnsys Studio
+                coordinates: origin 0,0 is at top-left.
         """
         if not isinstance(pt, Point):
             pt = Point(*pt)
@@ -100,11 +101,7 @@ class Component(metaclass=ABCMeta):
             )
 
     def set_component_layer(self, layers):
-        """Change the layer of self. Pass a list to change multiple layers.
-
-        Args:
-            layers (str or list of str):
-        """
+        """Change the layer of self. Pass a list to change multiple layers."""
         if isinstance(layers, str):
             layers = [layers]
         self.studio.layer = layers

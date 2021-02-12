@@ -38,6 +38,7 @@ class Equation(Statement, TypeVariable):
             equals_to (str, TypeVariable): The right hand side of the equation.
             doc (str, optional): A small description optionally printed in the
                 deck file.
+            model (Component): The TrnsysModel this Equation belongs to.
         """
         super().__init__()
         self._n = next(self._new_id)

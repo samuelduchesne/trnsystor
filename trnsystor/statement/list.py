@@ -18,7 +18,7 @@ class List(Statement):
             file and may be located anywhere in the input file.
 
         Args:
-            activate (bool):
+            activate (bool): Print to deck if True.
         """
         super().__init__()
         self.activate = activate

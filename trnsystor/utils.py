@@ -188,8 +188,8 @@ def redistribute_vertices(geom, distance):
         https://stackoverflow.com/a/35025274
 
     Args:
-        geom:
-        distance:
+        geom (LineString): The geometry.
+        distance (float): The distance used to redistribute vertices.
     """
     if geom.length == 0:
         return geom
@@ -218,11 +218,7 @@ class DeckFilePrinter(StrPrinter):
     """
 
     def _print_Symbol(self, expr):
-        """Print the TypeVariable's unit_number and output number.
-
-        Args:
-            expr (TypeVariable or Equation):
-        """
+        """Print the TypeVariable's unit_number and output number."""
         try:
             return "[{}, {}]".format(
                 expr.model.model.unit_number, expr.model.one_based_idx
@@ -237,9 +233,6 @@ def print_my_latex(expr):
 
     These wrappers usually take printer settings. Our printer does not have any
     settings.
-
-    Args:
-        expr:
     """
     return DeckFilePrinter().doprint(expr)
 
