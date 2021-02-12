@@ -6,7 +6,7 @@ import re
 from bs4 import Tag
 
 from trnsystor.linkstyle import LinkStyle
-from trnsystor.utils import _parse_value, parse_type, standerdized_name
+from trnsystor.utils import _parse_value, parse_type, standardize_name
 
 
 class TypeVariable(object):
@@ -208,7 +208,7 @@ class TypeVariable(object):
         """Get the 0-based variable index of self."""
         ordered_dict = collections.OrderedDict(
             (
-                standerdized_name(self.model._meta.variables[attr].name),
+                standardize_name(self.model._meta.variables[attr].name),
                 [self.model._meta.variables[attr], 0],
             )
             for attr in sorted(
@@ -228,7 +228,7 @@ class TypeVariable(object):
             value[1] = i
             i += 1
 
-        return ordered_dict[standerdized_name(self.name)][1]
+        return ordered_dict[standardize_name(self.name)][1]
 
     @property
     def one_based_idx(self):

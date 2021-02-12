@@ -8,6 +8,8 @@ from trnsystor.utils import get_int_from_rgb, redistribute_vertices
 
 
 class LinkStyle(object):
+    """LinkStyle class."""
+
     def __init__(
         self,
         u,

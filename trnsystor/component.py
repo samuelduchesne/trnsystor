@@ -55,7 +55,7 @@ class Component(metaclass=ABCMeta):
             return self.unit_number == other
 
     def copy(self):
-        """Return copy(self)."""
+        """Return copy of self."""
         pass
 
     @property

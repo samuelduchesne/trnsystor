@@ -657,13 +657,3 @@ class TrnsysModel(Component):
         )
         plt.show()
         return ax
-
-
-class Trace:
-    # Todo: Implement Trace
-    pass
-
-
-class Format:
-    # Todo: Implement Format
-    pass

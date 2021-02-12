@@ -90,6 +90,7 @@ def get_int_from_rgb(rgb):
 
 
 def resolve_type(args):
+    """Return float for :class:`_Quantity` or number."""
     if isinstance(args, _Quantity):
         return args.m
     else:
@@ -130,6 +131,7 @@ def _parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
 
 
 def parse_type(_type):
+    """Parse type str as builtin type."""
     if isinstance(_type, type):
         return _type
     elif _type == "integer":
@@ -142,7 +144,8 @@ def parse_type(_type):
         raise NotImplementedError()
 
 
-def standerdized_name(name):
+def standardize_name(name):
+    """Replace invalid characters with underscores."""
     return re.sub("[^0-9a-zA-Z]+", "_", name)
 
 
