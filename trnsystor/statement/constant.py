@@ -1,6 +1,4 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+""""""
 
 import itertools
 
@@ -27,7 +25,7 @@ class Constant(Statement):
         super().__init__()
         try:
             c_ = Constant.instances[name]
-        except:
+        except KeyError:
             self._n = next(self._new_id)
             self.name = name
             self.equals_to = equals_to

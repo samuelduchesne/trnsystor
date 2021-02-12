@@ -1,27 +1,25 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+""""""
 
 import tabulate
-from trnsystor.component import Component
 
+from trnsystor.component import Component
 from trnsystor.statement import (
-    End,
-    Version,
-    Simulation,
-    Tolerances,
-    Limits,
-    NaNCheck,
-    OverwriteCheck,
-    TimeReport,
     DFQ,
-    Width,
-    NoCheck,
+    End,
     EqSolver,
-    Solver,
-    NoList,
+    Limits,
     List,
     Map,
+    NaNCheck,
+    NoCheck,
+    NoList,
+    OverwriteCheck,
+    Simulation,
+    Solver,
+    TimeReport,
+    Tolerances,
+    Version,
+    Width,
 )
 
 

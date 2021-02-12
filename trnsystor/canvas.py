@@ -1,8 +1,6 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+""""""
 import networkx as nx
-from shapely.geometry import box, LineString
+from shapely.geometry import LineString, box
 
 
 class StudioCanvas:

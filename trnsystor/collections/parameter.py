@@ -1,6 +1,4 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+""""""
 
 import tabulate
 from pint.quantity import _Quantity
@@ -59,5 +57,5 @@ class ParameterCollection(VariableCollection):
 
     @property
     def size(self):
-        """The number of parameters"""
+        """Return the number of inputs."""
         return len([p for p in self if not self[p]._is_question])

@@ -1,12 +1,10 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+""""""
 import numpy as np
 from matplotlib.colors import colorConverter
 from shapely.geometry import LineString
 
 from trnsystor.anchorpoint import AnchorPoint
-from trnsystor.utils import redistribute_vertices, get_int_from_rgb
+from trnsystor.utils import get_int_from_rgb, redistribute_vertices
 
 
 class LinkStyle(object):

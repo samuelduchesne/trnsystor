@@ -1,15 +1,12 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+""""""
 import collections
 import copy
 import re
 
 from bs4 import Tag
 
-from trnsystor import parse_type, standerdized_name
 from trnsystor.linkstyle import LinkStyle
-from trnsystor.utils import _parse_value
+from trnsystor.utils import _parse_value, parse_type, standerdized_name
 
 
 class TypeVariable(object):
@@ -116,12 +113,11 @@ class TypeVariable(object):
         val = tag.find("default").text
         try:
             val = float(val)
-        except:  # todo: find type of error
-            # val is a string
+        except ValueError:
+            # could not convert string to float.
             if val == "STEP":
                 val = 1
-                # Todo: figure out better logic when default value
-                #  is 'STEP
+                # Todo: figure out better logic when default value is 'STEP'
             elif val == "START":
                 val = 1
             elif val == "STOP":
@@ -213,7 +209,7 @@ class TypeVariable(object):
                     lambda kv: isinstance(
                         self.model._meta.variables[kv], self.__class__
                     )
-                    and self.model._meta.variables[kv]._iscyclebase == False,
+                    and self.model._meta.variables[kv]._iscyclebase is False,
                     self.model._meta.variables,
                 ),
                 key=lambda key: self.model._meta.variables[key].order,
@@ -272,7 +268,10 @@ class TypeVariable(object):
 
     def __repr__(self):
         try:
-            return f"{self.name}; units={self.unit}; value={self.value:~P}\n{self.definition}"
+            return (
+                f"{self.name}; units={self.unit}; "
+                f"value={self.value:~P}\n{self.definition}"
+            )
         except Exception:
             return (
                 f"{self.name}; units={self.unit}; value={self.value}\n"

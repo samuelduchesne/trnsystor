@@ -1,15 +1,12 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+""""""
 
 import collections
 
 from pint.quantity import _Quantity
 
-from trnsystor import standerdized_name
 from trnsystor.statement import Constant, Equation
 from trnsystor.typevariable import TypeVariable
-from trnsystor.utils import _parse_value
+from trnsystor.utils import _parse_value, standerdized_name
 
 
 class VariableCollection(collections.UserDict):
@@ -84,5 +81,5 @@ class VariableCollection(collections.UserDict):
 
     @property
     def size(self):
-        """The number of parameters"""
+        """The number of variable in the collection."""
         return len(self)

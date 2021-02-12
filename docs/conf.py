@@ -12,6 +12,7 @@
 #
 import os
 import sys
+from trnsystor import __version__
 
 sys.path.insert(0, os.path.abspath("."))
 sys.path.insert(0, os.path.abspath("trnsystor"))
@@ -23,9 +24,8 @@ copyright = "2019, Samuel Letellier-Duchesne"
 author = "Samuel Letellier-Duchesne"
 
 # The full version, including alpha/beta/rc tags
-import trnsystor
 
-version = release = trnsystor.__version__
+version = release = __version__
 
 # -- General configuration ---------------------------------------------------
 

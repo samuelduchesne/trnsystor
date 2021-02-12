@@ -1,6 +1,4 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+""""""
 
 import datetime
 import itertools
@@ -12,37 +10,35 @@ from io import StringIO
 from pandas import to_datetime
 from pandas.io.common import _get_filepath_or_buffer, get_handle
 from path import Path
-from trnsystor.component import Component
-from shapely.geometry import Point, LineString
+from shapely.geometry import LineString, Point
 
-from trnsystor import TrnsysModel, get_rgb_from_int
 from trnsystor.anchorpoint import AnchorPoint
 from trnsystor.collections.components import ComponentCollection
 from trnsystor.collections.constant import ConstantCollection
 from trnsystor.collections.equation import EquationCollection
+from trnsystor.component import Component
 from trnsystor.controlcards import ControlCards
 from trnsystor.linkstyle import _studio_to_linestyle
 from trnsystor.name import Name
 from trnsystor.statement import (
-    End,
-    Version,
-    Constant,
-    Simulation,
-    Tolerances,
-    Limits,
     DFQ,
-    Width,
-    List,
-    Solver,
-    NaNCheck,
-    OverwriteCheck,
-    TimeReport,
+    Constant,
+    End,
     EqSolver,
     Equation,
+    Limits,
+    List,
+    NaNCheck,
+    OverwriteCheck,
+    Simulation,
+    Solver,
+    TimeReport,
+    Tolerances,
+    Version,
+    Width,
 )
-from trnsystor.trnsysmodel import (
-    MetaData,
-)
+from trnsystor.trnsysmodel import MetaData, TrnsysModel
+from trnsystor.utils import get_rgb_from_int
 
 
 class DeckFormatter:
@@ -188,15 +184,6 @@ class Deck(object):
 
     def __str__(self):
         return self._to_string()
-
-    @property
-    def graph(self):
-        import networkx as nx
-
-        G = nx.MultiDiGraph()
-        for component in self.models:
-            G = nx.compose(G, component.UNIT_GRAPH)
-        return G
 
     @property
     def graph(self):
@@ -552,7 +539,9 @@ class Deck(object):
                             linewidth,
                             path,
                         )
-                    except:
+                    except KeyError:
+                        #  "Trying to set a LinkStyle on a non-existent connection.
+                        #  Make sure to connect [26]Type2: yFill using '.connect_to()'"
                         pass
             if key == "model":
                 _mod = match.group("model").strip()
@@ -560,7 +549,7 @@ class Deck(object):
                 tmf_basename = tmf.basename()
                 try:
                     meta = MetaData.from_xml(tmf)
-                except:
+                except FileNotFoundError:
                     # replace extension with ".xml" and retry
                     xml_basename = tmf_basename.stripext() + ".xml"
                     xmls = proforma_root.glob("*.xml")

@@ -1,12 +1,11 @@
 import itertools
 
-from trnsystor.component import Component
-from sympy import Symbol, Expr
+from sympy import Expr, Symbol
 
-from trnsystor import TypeVariableSymbol, print_my_latex
 from trnsystor.statement.constant import Constant
 from trnsystor.statement.statement import Statement
 from trnsystor.typevariable import TypeVariable
+from trnsystor.utils import TypeVariableSymbol, print_my_latex
 
 
 class Equation(Statement, TypeVariable):

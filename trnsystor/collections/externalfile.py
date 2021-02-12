@@ -1,14 +1,12 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+""""""
 
 import collections
 
 import tabulate
 from path import Path
 
-from trnsystor import standerdized_name
 from trnsystor.externalfile import ExternalFile
+from trnsystor.utils import standerdized_name
 
 
 class ExternalFileCollection(collections.UserDict):

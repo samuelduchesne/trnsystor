@@ -4,9 +4,10 @@ import re
 from pint import UnitRegistry
 from pint.quantity import _Quantity
 from shapely.geometry import LineString
-from sympy import Symbol, Expr, cacheit
+from sympy import Expr, Symbol, cacheit
 from sympy.core.assumptions import StdFactKB
 from sympy.core.logic import fuzzy_bool
+from sympy.printing import StrPrinter
 
 
 def affine_transform(geom, matrix=None):
@@ -111,7 +112,8 @@ def _parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
 
     try:
         f = _type(value)
-    except:
+    except ValueError:
+        # invalid literal for int() with base 10: '+Inf'
         if value == "STEP":
             value = 1
             # Todo: figure out better logic when default value is 'STEP'
@@ -218,8 +220,6 @@ def redistribute_vertices(geom, distance):
 
 ureg = UnitRegistry()
 
-from sympy.printing import StrPrinter
-
 
 class DeckFilePrinter(StrPrinter):
     """Print derivative of a function of symbols in deck file form. This will
@@ -237,7 +237,8 @@ class DeckFilePrinter(StrPrinter):
             return "[{}, {}]".format(
                 expr.model.model.unit_number, expr.model.one_based_idx
             )
-        except:
+        except AttributeError:
+            # 'Symbol' object has no attribute 'model'
             return expr.name
 
 

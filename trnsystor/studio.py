@@ -1,6 +1,4 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+""""""
 from shapely.geometry import Point
 
 
@@ -45,8 +43,7 @@ class StudioHeader(object):
         Examples:
             >>>
             *$UNIT_NAME Boulder, CO
-            *$MODEL .\Weather Data Reading and Processing\Standard
-            Format\TMY2\Type15-2.tmf
+            *$MODEL ./Weather Data Reading and Processing/StandardFormat/TMY2/Type15-2.tmf
             *$POSITION 69 182
             *$LAYER Main #
 

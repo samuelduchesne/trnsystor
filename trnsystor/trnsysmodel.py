@@ -17,16 +17,10 @@ from trnsystor.collections.parameter import ParameterCollection
 from trnsystor.collections.specialcards import SpecialCardsCollection
 from trnsystor.component import Component
 from trnsystor.externalfile import ExternalFile
+from trnsystor.specialcard import SpecialCard
 from trnsystor.studio import StudioHeader
 from trnsystor.typecycle import TypeCycle
-from trnsystor.typevariable import (
-    Derivative,
-    Input,
-    Output,
-    Parameter,
-    TypeVariable,
-)
-from trnsystor.specialcard import SpecialCard
+from trnsystor.typevariable import Derivative, Input, Output, Parameter, TypeVariable
 
 
 class MetaData(object):
@@ -146,11 +140,6 @@ class MetaData(object):
             for child in tag.children
             if isinstance(child, Tag)
         }
-        xml_args = {
-            child.name: child.prettify()
-            for child in tag.children
-            if isinstance(child, Tag)
-        }
         meta_args.update(kwargs)
         return cls(**{attr: meta_args[attr] for attr in meta_args})
 
@@ -213,11 +202,11 @@ class TrnsysModel(Component):
         super().__init__(name=name, meta=meta)
 
     def __str__(self):
-        """Return Deck representation of self."""
-        return f"[{self.unit_number}]Type{self.type_number}: {self.name}"  # self._to_deck()
+        """Return repr(self)."""
+        return f"[{self.unit_number}]Type{self.type_number}: {self.name}"
 
     def __repr__(self):
-        """str: The String representation of this object."""
+        """Return repr(self)."""
         return f"[{self.unit_number}]Type{self.type_number}: {self.name}"
 
     @classmethod
@@ -369,10 +358,10 @@ class TrnsysModel(Component):
             input_dict = self._get_ordered_filtered_types(Input, "variables")
             # filter out cyclebases
             input_dict = {
-                k: v for k, v in input_dict.items() if v._iscyclebase == False
+                k: v for k, v in input_dict.items() if v._iscyclebase is False
             }
             return InitialInputValuesCollection.from_dict(input_dict)
-        except:
+        except TypeError:
             return InitialInputValuesCollection()
 
     def _get_inputs(self):
@@ -385,10 +374,10 @@ class TrnsysModel(Component):
             input_dict = self._get_ordered_filtered_types(Input, "variables")
             # filter out cyclebases
             input_dict = {
-                k: v for k, v in input_dict.items() if v._iscyclebase == False
+                k: v for k, v in input_dict.items() if v._iscyclebase is False
             }
             return InputCollection.from_dict(input_dict)
-        except:
+        except TypeError:
             return InputCollection()
 
     def _get_outputs(self):
@@ -401,7 +390,7 @@ class TrnsysModel(Component):
             output_dict = self._get_ordered_filtered_types(Output, "variables")
             # filter out cyclebases
             output_dict = {
-                k: v for k, v in output_dict.items() if v._iscyclebase == False
+                k: v for k, v in output_dict.items() if v._iscyclebase is False
             }
             return OutputCollection.from_dict(output_dict)
         except TypeError:
@@ -414,14 +403,14 @@ class TrnsysModel(Component):
         self._resolve_cycles("parameter", Parameter)
         param_dict = self._get_ordered_filtered_types(Parameter, "variables")
         # filter out cyclebases
-        param_dict = {k: v for k, v in param_dict.items() if v._iscyclebase == False}
+        param_dict = {k: v for k, v in param_dict.items() if v._iscyclebase is False}
         return ParameterCollection.from_dict(param_dict)
 
     def _get_derivatives(self):
         self._resolve_cycles("derivative", Derivative)
         deriv_dict = self._get_ordered_filtered_types(Derivative, "variables")
         # filter out cyclebases
-        deriv_dict = {k: v for k, v in deriv_dict.items() if v._iscyclebase == False}
+        deriv_dict = {k: v for k, v in deriv_dict.items() if v._iscyclebase is False}
         return DerivativesCollection.from_dict(deriv_dict)
 
     def _get_special_cards(self):

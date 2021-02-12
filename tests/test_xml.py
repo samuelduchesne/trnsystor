@@ -143,7 +143,7 @@ class TestTrnsysModel:
                 with NamedTemporaryFile("w", delete=False) as tmp:
                     tmp.write(str(soup))
                     tmp.close()
-                    tank = TrnsysModel.from_xml(tmp.name)
+                    TrnsysModel.from_xml(tmp.name)
                     os.unlink(tmp.name)
 
     def test_out_of_bounds(self, pipe_type):
@@ -475,7 +475,7 @@ class TestStatements:
         from trnsystor.statement.statement import Statement
 
         statement = Statement()
-        assert print(statement) == None
+        assert print(statement) is None
 
     def test_version_statement(self):
         from trnsystor.statement.version import Version
@@ -513,7 +513,7 @@ class TestStatements:
         width_statement = Width(80)
         assert width_statement._to_deck() == "WIDTH 80"
         with pytest.raises(ValueError):
-            wrong_statement = Width(1000)
+            Width(1000)
 
     def test_nocheck_statement(self, fan_type):
         from trnsystor.statement.nocheck import NoCheck
@@ -645,11 +645,8 @@ class TestConstantsAndEquations:
 
     def test_malformed_symbolic_expression(self, tank_type, fan_type):
         """passed only two args while expression asks for 3"""
-        from trnsystor.statement.constant import Constant
-
         name = "var_a"
         exp = "log(a) + b / 12 - c"
-        c_ = Constant.from_expression("start=0")
         from trnsystor.statement.equation import Equation
 
         start = Equation("start", 0)
@@ -660,6 +657,7 @@ class TestConstantsAndEquations:
         from trnsystor.collections.equation import EquationCollection
 
         eq = EquationCollection()
+        assert eq is not None
 
     def test_equation_collection(self, equation_block):
         from trnsystor.collections.equation import EquationCollection
@@ -675,7 +673,7 @@ class TestConstantsAndEquations:
 
         # An equal sign needs to be included in an expression
         with pytest.raises(ValueError):
-            equa1 = Equation.from_expression("TdbAmb : [011,001]")
+            Equation.from_expression("TdbAmb : [011,001]")
 
     def test_update_equation_collection(self, equation_block):
         """test different .update() recipes"""

@@ -1,15 +1,11 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+""""""
 
 import collections
 
 import tabulate
-from trnsystor.component import Component
 
-from trnsystor.name import Name
+from trnsystor.component import Component
 from trnsystor.statement import Constant
-from trnsystor.studio import StudioHeader
 
 
 class ConstantCollection(Component, collections.UserDict):

@@ -1,12 +1,9 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+""""""
 import itertools
 from abc import ABCMeta, abstractmethod
 
 import networkx as nx
 from bs4 import Tag
-from networkx import MultiDiGraph
 from shapely.geometry import Point
 
 from trnsystor.canvas import StudioCanvas
@@ -306,7 +303,6 @@ class Component(metaclass=ABCMeta):
             edges.append((self, nbr))
         for nbr in self.UNIT_GRAPH.predecessors(self):
             edges.append((nbr, self))
-        has_edge = True
         while edges:
             edge = edges.pop()
             self.UNIT_GRAPH.remove_edge(*edge)
