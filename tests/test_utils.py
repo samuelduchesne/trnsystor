@@ -1,6 +1,6 @@
 import pytest
 
-from pytrnsys import redistribute_vertices
+from trnsystor import redistribute_vertices
 
 
 class TestRedistributeVertices:

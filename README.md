@@ -1,8 +1,8 @@
-[![image](https://travis-ci.com/samuelduchesne/pytrnsys.svg?branch=develop)](https://travis-ci.com/samuelduchesne/pytrnsys)
+[![PyPI version fury.io](https://badge.fury.io/py/trnsystor.svg)](https://pypi.python.org/pypi/trnsystor/)
+[![codecov](https://codecov.io/gh/samuelduchesne/trnsystor/branch/master/graph/badge.svg?token=kY9pzjlDZJ)](https://codecov.io/gh/samuelduchesne/trnsystor)
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/trnsystor.svg)](https://pypi.python.org/pypi/trnsystor/)
 
-[![image](https://coveralls.io/repos/github/samuelduchesne/pytrnsys/badge.svg?branch=develop)](https://coveralls.io/github/samuelduchesne/pytrnsys?branch=develop)
-
-# pytrnsys
+# trnsystor
 
 A python scripting language for TRNSYS.
 
@@ -12,12 +12,12 @@ specify parameters, connect components together and more throught python code.
 ## Installation
 
 ```python
-pip install pytrnsys
+pip install trnsystor
 ```
 
 ## Usage
 
-Since TRNSYS 18, type proformas can be exported to XML schemas. *pytrnsys* builds on
+Since TRNSYS 18, type proformas can be exported to XML schemas. *trnsystor* builds on
 this easy to read data structure to easily create TrnsysModels using the most popular
 scripting language in the data science community:
 [Python](https://www.economist.com/graphic-detail/2018/07/26/python-is-becoming-the-worlds-most-popular-coding-language).
@@ -26,7 +26,7 @@ From the xml file of a type proforma, simply create a TrnsysModel object by invo
 `from_xml()` constructor:
 
 ```python
->>> from pytrnsys import TrnsysModel
+>>> from trnsystor import TrnsysModel
 >>> xml = "tests/input_files/Type951.xml"
 >>> pipe1 = TrnsysModel.from_xml(xml)
 ```
@@ -91,7 +91,7 @@ pipe1.connect_to(pipe2, mapping={0:0, 1:1})
 ## Equations
 
 In the TRNSYS studio, equations are components holding a list of user-defined expressions.
-In pytrnsys a similar approach has been taken: the `Equation` class handles the
+In trnsystor a similar approach has been taken: the `Equation` class handles the
 creation of equations and the [EquationCollection` class handles the block of equations.
 Here's an example:
 
@@ -99,7 +99,7 @@ First, create a series of Equation by invoking the [from_expression` constructor
 allows you to input the equation as a string.
 
 ```python
->>> from pytrnsys import Equation, EquationCollection
+>>> from trnsystor import Equation, EquationCollection
 >>> equa1 = Equation.from_expression("TdbAmb = [011,001]")
 >>> equa2 = Equation.from_expression("rhAmb = [011,007]")
 >>> equa3 = Equation.from_expression("Tsky = [011,004]")
@@ -134,7 +134,7 @@ method `.save()`. The Deck object contains the Simulation Cards and the differen
 and saving it to file.
 
 ```python
->>> from pytrnsys import Deck, ControlCards
+>>> from trnsystor import Deck, ControlCards
 >>> 
 >>> control_card = ControlCards.debug_template(). # Specifies a predefined set of control cards. See section bellow.
 >>> cdeck = Deck(name="mydeck", control_cards=control_card, author="jovyan")
@@ -149,14 +149,14 @@ and saving it to file.
 ### Simulation Cards
 
 The Simulation Cards is a chuck of code that informs TRNSYS of various simulation controls
-such as start time end time and time-step. pytrnsys implements many of those
+such as start time end time and time-step. trnsystor implements many of those
 *Statements* with a series of Statement objects.
 
 For instance, to create simulation cards using default values, simply call the `all()`
 constructor:
 
 ```python
->>> from pytrnsys import ControlCards
+>>> from trnsystor import ControlCards
 >>> cc = ControlCards.all()
 >>> print(cc)
 *** Control Cards

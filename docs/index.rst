@@ -1,4 +1,4 @@
-pytrnsys |version|
+trnsystor |version|
 ======================
 
 .. include:: ../README.rst
@@ -13,7 +13,7 @@ pytrnsys |version|
 Indices and tables
 ==================
 
-.. py:currentmodule:: pytrnsys
+.. py:currentmodule:: trnsystor
 
 * :ref:`genindex`
 * :ref:`search`

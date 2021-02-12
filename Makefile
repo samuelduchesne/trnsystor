@@ -5,7 +5,7 @@
 # from the environment for the first two.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-SPHINXPROJ    = pytrnsys
+SPHINXPROJ    = trnsystor
 SOURCEDIR     = ./docs
 BUILDDIR      = _build
 
