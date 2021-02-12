@@ -285,6 +285,7 @@ class Component(metaclass=ABCMeta):
     @property
     def is_connected(self):
         """Whether or not this Component is connected to another TypeVariable.
+
         Connected to or connected by.
         """
         return any([len(list(self.predecessors)) > 0, len(list(self.successors)) > 0])
