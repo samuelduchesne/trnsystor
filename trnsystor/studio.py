@@ -29,6 +29,7 @@ class StudioHeader(object):
         self.link_styles = {}
 
     def __str__(self):
+        """Return deck representation of self."""
         return self._to_deck()
 
     @classmethod

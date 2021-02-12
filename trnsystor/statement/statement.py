@@ -13,6 +13,7 @@ class Statement(object):
         self.doc = ""
 
     def __repr__(self):
+        """Return deck representation of self."""
         return self._to_deck()
 
     def _to_deck(self):

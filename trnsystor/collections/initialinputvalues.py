@@ -27,6 +27,7 @@ class InitialInputValuesCollection(VariableCollection):
         pass
 
     def __repr__(self):
+        """Return repr(self)."""
         num_inputs = "{} Initial Input Values:\n".format(self.size)
         value: TypeVariable
         inputs = "\n".join(

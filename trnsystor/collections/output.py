@@ -10,6 +10,7 @@ class OutputCollection(VariableCollection):
         pass
 
     def __repr__(self):
+        """Return repr(self)."""
         num_inputs = "{} Outputs:\n".format(self.size)
         inputs = "\n".join(
             ['"{}": {:~P}'.format(key, value.value) for key, value in self.data.items()]

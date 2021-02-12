@@ -269,6 +269,7 @@ class TypeVariableSymbol(Symbol):
         return TypeVariableSymbol.__xnew_cached_(cls, type_variable, **assumptions)
 
     def __new_stage2__(cls, model, **assumptions):
+        """Return new stage."""
         obj = Expr.__new__(cls)
         obj.name = model.name
         obj.model = model

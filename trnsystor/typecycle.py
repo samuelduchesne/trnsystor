@@ -64,6 +64,7 @@ class TypeCycle(object):
         return cls(**dict_)
 
     def __repr__(self):
+        """Return repr(self)."""
         return self.role + " {} to {}".format(self.firstRow, self.lastRow)
 
     @property

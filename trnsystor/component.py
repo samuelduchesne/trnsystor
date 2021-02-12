@@ -39,13 +39,16 @@ class Component(metaclass=ABCMeta):
         self.UNIT_GRAPH.add_node(self)
 
     def __del__(self):
+        """Delete self."""
         if self in self.UNIT_GRAPH:
             self.UNIT_GRAPH.remove_node(self)
 
     def __hash__(self):
+        """Return hash(self)."""
         return self.unit_number
 
     def __eq__(self, other):
+        """Return self == other."""
         if isinstance(other, self.__class__):
             return self.unit_number == other.unit_number
         else:

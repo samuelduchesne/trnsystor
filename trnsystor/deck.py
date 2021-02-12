@@ -185,6 +185,7 @@ class Deck(object):
         return dck
 
     def __str__(self):
+        """Return deck representation of self."""
         return self._to_string()
 
     @property

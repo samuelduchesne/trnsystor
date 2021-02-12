@@ -81,6 +81,7 @@ class LinkStyle(object):
         return AnchorPoint(self.u).studio_anchor(self.v, (loc_u, loc_v))
 
     def __repr__(self):
+        """Return Deck representation of self."""
         return self._to_deck()
 
     def set_color(self, color):

@@ -36,6 +36,7 @@ class ExternalFileCollection(collections.UserDict):
             )
 
     def __str__(self):
+        """Return deck representation of self."""
         return self._to_deck()
 
     @classmethod

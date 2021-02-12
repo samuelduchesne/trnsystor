@@ -14,6 +14,7 @@ class DerivativesCollection(VariableCollection):
         pass
 
     def __repr__(self):
+        """Return repr(self)."""
         num_inputs = "{} Inputs:\n".format(self.size)
         inputs = "\n".join(
             ['"{}": {:~P}'.format(key, value.value) for key, value in self.data.items()]

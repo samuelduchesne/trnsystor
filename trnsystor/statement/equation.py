@@ -47,10 +47,12 @@ class Equation(Statement, TypeVariable):
         self.model = model  # the TrnsysModel this Equation belongs to.
 
     def __repr__(self):
+        """Return repr(self)."""
         return " = ".join([self.name, self._to_deck()])
 
     def __str__(self):
-        return self.__repr__()
+        """Return repr(self)."""
+        return repr(self)
 
     @classmethod
     def from_expression(cls, expression, doc=None):

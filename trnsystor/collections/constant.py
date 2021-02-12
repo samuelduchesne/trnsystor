@@ -44,17 +44,21 @@ class ConstantCollection(Component, collections.UserDict):
         return value
 
     def __setitem__(self, key, value):
+        """Set item."""
         # optional processing here
         value.model = self
         super().__setitem__(key, value)
 
     def __repr__(self):
+        """Return Deck representation of self."""
         return self._to_deck()
 
     def __hash__(self):
+        """return hash(self)."""
         return self.unit_number
 
     def __eq__(self, other):
+        """Return self == other."""
         return hash(self) == hash(other)
 
     def update(self, E=None, **F):

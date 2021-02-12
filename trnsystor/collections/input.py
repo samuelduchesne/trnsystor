@@ -23,6 +23,7 @@ class InputCollection(VariableCollection):
         pass
 
     def __repr__(self):
+        """Return Deck representation of self."""
         num_inputs = "{} Inputs:\n".format(self.size)
         try:
             inputs = "\n".join(

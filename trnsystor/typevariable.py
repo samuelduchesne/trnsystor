@@ -140,18 +140,23 @@ class TypeVariable(object):
             )
 
     def __float__(self):
+        """Return magnitude of self."""
         return self.value.m
 
     def __int__(self):
+        """Return int(self)."""
         return int(self.value.m)
 
     def __mul__(self, other):
+        """Return self * other."""
         return float(self) * other
 
     def __add__(self, other):
+        """Return self + other."""
         return float(self) + other
 
     def __sub__(self, other):
+        """Return self - other."""
         return float(self) - other
 
     def _parse_types(self):
@@ -268,6 +273,7 @@ class TypeVariable(object):
         )
 
     def __repr__(self):
+        """Return repr(self)."""
         try:
             return (
                 f"{self.name}; units={self.unit}; "

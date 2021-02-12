@@ -56,12 +56,15 @@ class EquationCollection(Component, collections.UserDict):
         return value
 
     def __hash__(self):
+        """Return hash(self)."""
         return self.unit_number
 
     def __repr__(self):
+        """Return Deck representation of self."""
         return self._to_deck()
 
     def __setitem__(self, key, value):
+        """Set item."""
         # optional processing here
         value.model = self
         super().__setitem__(key, value)

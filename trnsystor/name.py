@@ -40,7 +40,9 @@ class Name(object):
         return the_name
 
     def __repr__(self):
+        """Return str(self)."""
         return str(self)
 
     def __str__(self):
+        """Return str(self)."""
         return str(self.name)

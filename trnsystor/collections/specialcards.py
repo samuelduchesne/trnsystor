@@ -10,7 +10,7 @@ class SpecialCardsCollection(collections.UserList):
     """Subclass of :class:`VariableCollection` specific to Derivatives."""
 
     def __repr__(self):
-        """Return repr."""
+        """Return repr(self)."""
         return self._to_deck()
 
     def __str__(self):
