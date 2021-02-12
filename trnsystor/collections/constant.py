@@ -62,7 +62,8 @@ class ConstantCollection(Component, collections.UserDict):
         return hash(self) == hash(other)
 
     def update(self, E=None, **F):
-        """D.update([E, ]**F). Update D from a dict/list/iterable E and F.
+        """Update D from a dict/list/iterable E and F.
+
         If E is present and has a .keys() method, then does:  for k in E: D[
         k] = E[k]
         If E is present and lacks a .keys() method, then does:  for cts.name,
