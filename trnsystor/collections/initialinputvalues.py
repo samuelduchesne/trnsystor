@@ -1,12 +1,10 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+""""""
 
 import tabulate
 from pint.quantity import _Quantity
 
 from trnsystor.collections.variable import VariableCollection
-from trnsystor.statement import Equation, Constant
+from trnsystor.statement import Constant, Equation
 from trnsystor.typevariable import TypeVariable
 from trnsystor.utils import _parse_value
 
@@ -14,6 +12,15 @@ from trnsystor.utils import _parse_value
 class InitialInputValuesCollection(VariableCollection):
     """Subclass of :class:`VariableCollection` specific to Initial Input
     Values
+
+    Hint:
+        Iterating over `InitialInputValuesCollection` will not pass Inputs that
+        considered ``questions``. For example, Type15 (printer) has a question for
+        the number of variables to be printed by the component. This question can be
+        accessed with `.inputs[
+        "How_many_variables_are_to_be_printed_by_this_component_"]` to
+        modify the number of values. But when iterating over the initial inputs,
+        the question will not be returned in the iterator; only regular inputs will.
     """
 
     def __init__(self):
@@ -30,6 +37,10 @@ class InitialInputValuesCollection(VariableCollection):
             ]
         )
         return num_inputs + inputs
+
+    def __iter__(self):
+        """Iterate over inputs except questions."""
+        return iter({k: v for k, v in self.data.items() if not v._is_question})
 
     def __getitem__(self, key):
         """
