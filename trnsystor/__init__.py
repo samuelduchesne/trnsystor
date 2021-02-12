@@ -7,7 +7,7 @@ from .deck import Deck
 from .trnsysmodel import TrnsysModel
 
 # Version of the package
-__version__ = "1.3.1"
+__version__ = "1.3.2"
 
 # warn if a newer version of archetypal is available
 warn_if_outdated("trnsystor", __version__)
