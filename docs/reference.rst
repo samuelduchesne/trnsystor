@@ -6,7 +6,7 @@ Reference
 Main Classes
 ------------
 
-.. currentmodule:: pytrnsys
+.. currentmodule:: trnsystor
 .. autosummary::
     :template: autosummary.rst
     :nosignatures:
@@ -25,7 +25,7 @@ Main Classes
 Trnsys Statements
 -----------------
 
-.. currentmodule:: pytrnsys.statement
+.. currentmodule:: trnsystor.statement
 .. autosummary::
     :template: autosummary.rst
     :nosignatures:
@@ -51,7 +51,7 @@ Trnsys Statements
 Helper Classes
 --------------
 
-.. currentmodule:: pytrnsys
+.. currentmodule:: trnsystor
 .. autosummary::
     :template: autosummary.rst
     :nosignatures:
@@ -69,7 +69,7 @@ Helper Classes
 Collections
 -----------
 
-.. currentmodule:: pytrnsys.collections
+.. currentmodule:: trnsystor.collections
 .. autosummary::
     :template: autosummary.rst
     :nosignatures:
@@ -89,7 +89,7 @@ Collections
 Utils
 -----
 
-.. currentmodule:: pytrnsys.utils
+.. currentmodule:: trnsystor.utils
 .. autosummary::
     :template: autosummary.rst
     :nosignatures:

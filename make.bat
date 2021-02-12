@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=./docs
 set BUILDDIR=_build
-set SPHINXPROJ=pytrnsys
+set SPHINXPROJ=trnsystor
 
 if "%1" == "" goto help
 
