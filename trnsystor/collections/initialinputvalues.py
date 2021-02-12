@@ -41,10 +41,12 @@ class InitialInputValuesCollection(VariableCollection):
     def __getitem__(self, key):
         """Get item."""
         if isinstance(key, int):
-            type_variable = list(self.values())[key]
+            value = list(self.values())[key]
+        elif isinstance(key, slice):
+            value = list(self.data.values()).__getitem__(key)
         else:
-            type_variable = super(VariableCollection, self).__getitem__(key)
-        return type_variable
+            value = super(VariableCollection, self).__getitem__(key)
+        return value
 
     def __setitem__(self, key, value):
         """Set item."""

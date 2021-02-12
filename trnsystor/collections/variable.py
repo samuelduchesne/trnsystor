@@ -26,6 +26,8 @@ class VariableCollection(collections.UserDict):
         """Get item."""
         if isinstance(key, int):
             value = list(self.data.values())[key]
+        elif isinstance(key, slice):
+            value = list(self.data.values()).__getitem__(key)
         else:
             value = super(VariableCollection, self).__getitem__(key)
         return value
