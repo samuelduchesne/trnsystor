@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrnsysModel>
+    <object>Time Dependent Forcing Function</object>
+    <author>TRNSYS contributors are listed in the main manual</author>
+    <organization>Solar Energy Laboratory, University of Wisconsin - Madison</organization>
+    <editor>MKu, CMR</editor>
+    <creationDate>TRNSYS version 7.0</creationDate>
+    <modifictionDate>May 2011</modifictionDate>
+    <mode>4</mode>
+    <validation>2</validation>
+    <icon>.\Studio\Icon\Type14h.bmp</icon>
+    <type>14</type>
+    <maxInstance>9999</maxInstance>
+    <keywords/>
+    <details>In a transient simulation, it is sometimes convenient to employ a time dependent forcing function which has
+        a behavior characterized by a repeated pattern. The pattern of the forcing function is established by a set of
+        discrete data points indicating the value of the function at various times throughout one cycle. Linear
+        interpolation is provided in order to generate a continuous forcing function from the discrete data. The cycle
+        will repeat every N hours where N is the last value of time specified. While the code of Type14 is entirely
+        general, this version of the component uses dimensionless units so that it too can be used in a very generic
+        manner.
+    </details>
+    <plugin>.\Studio\Plugin\ForcingFunction.exe</plugin>
+    <variables>
+        <variable><!--parameter-1-->
+            <order>1</order>
+            <name>Initial value of time</name>
+            <role>parameter</role>
+            <dimension>Time</dimension>
+            <unit>hr</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The initial value of time for the function. If the cycle is to repeat, this initial value of
+                time must be set to 0.0.
+            </definition>
+        </variable>
+        <variable><!--parameter-2-->
+            <order>2</order>
+            <name>Initial value of function</name>
+            <role>parameter</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.0</default>
+            <symbol>SN</symbol>
+            <definition>The value of the function at the initial value of time.</definition>
+        </variable>
+        <variable><!--parameter-3-->
+            <order>3</order>
+            <name>Time at point</name>
+            <role>parameter</role>
+            <dimension>Time</dimension>
+            <unit>hr</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1.0</default>
+            <symbol>SN</symbol>
+            <definition>The value of time at the specified data point.</definition>
+        </variable>
+        <variable><!--parameter-4-->
+            <order>4</order>
+            <name>Value at point</name>
+            <role>parameter</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The value of the function at the specified data point.</definition>
+        </variable>
+        <variable><!--output-1-->
+            <order>5</order>
+            <name>Average value of function</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The average value of the function over the timestep.</definition>
+        </variable>
+        <variable><!--output-2-->
+            <order>6</order>
+            <name>Instantaneous value of function over the timestep</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The instantaneous value of the function at the end of the timestep.</definition>
+        </variable>
+    </variables>
+    <cycles>
+        <cycle>
+            <role>parameter</role>
+            <firstRow>1</firstRow>
+            <lastRow>4</lastRow>
+            <cycles>
+                <cycle>
+                    <role>parameter</role>
+                    <firstRow>3</firstRow>
+                    <lastRow>4</lastRow>
+                    <cycles/>
+                    <question>Besides the initial point, how many points make up the forcing function?</question>
+                    <minSize>1</minSize>
+                    <maxSize>100</maxSize>
+                </cycle>
+            </cycles>
+            <minSize>1</minSize>
+            <maxSize>50</maxSize>
+        </cycle>
+    </cycles>
+    <compileCommand>df /c</compileCommand>
+    <source>.\SourceCode\Types\Type14.f90</source>
+</TrnsysModel>

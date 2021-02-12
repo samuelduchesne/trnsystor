@@ -57,5 +57,5 @@ _build/
 # PyBuilder
 target/
 
-\.idea/
+.idea/
 /docs/reference/

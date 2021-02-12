@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrnsysModel>
+    <object>Variable volume tank</object>
+    <author>Contributors are listed in manuals</author>
+    <organization>Solar Energy Lab, University of Wisconsin - Madison</organization>
+    <editor>SEL and TESS</editor>
+    <creationDate>TRNSYS v7.0</creationDate>
+    <modifictionDate>September 2016</modifictionDate>
+    <mode>4</mode>
+    <validation>32</validation>
+    <icon>.\Studio\Icon\Type39.bmp</icon>
+    <type>39</type>
+    <maxInstance>9999</maxInstance>
+    <keywords/>
+    <details>This component models a fully-mixed tank with a constant cross-sectional area that contains a variable
+        quantity of fluid. In its simplest form, a single flow enters from a hot source and a single flow stream exits
+        to a load. Since the incoming and outgoing flows need not be equal, the level of fluid in the tank can vary. The
+        level is allowed to vary between user specified high and low level limits. If the lower limit is reached, the
+        load flow necessary to maintain this level is output rather than the desired load flow. If the volume of fluid
+        exceeds the upper limit, then the excess flow necessary to keep the tank at the upper limit is set as an output.
+        There are two modes for handling excess flow when the upper limit is reached. In mode 1, excess flow mixes with
+        the contents of the tank to simulate a recirculation flow stream. In this case, the temperature of the excess
+        flow stream is the temperature of the contents of the tank. In mode 2, the excess incoming fluid stream is
+        diverted from the tank. The temperature of the diverted stream is equal to that of the incoming flow stream.
+    </details>
+    <variables>
+        <variable><!--parameter-1-->
+            <order>1</order>
+            <name>Tank operation mode</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>2</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>2</default>
+            <symbol>SN</symbol>
+            <definition>The operation mode of the storage tank when a full condition is reched:
+                1 ---&gt; Recirculate the fluid if the tank is full
+                2 ---&gt; Divert the fluid stream if the tank is full
+            </definition>
+        </variable>
+        <variable><!--parameter-2-->
+            <order>2</order>
+            <name>Overall tank volume</name>
+            <role>parameter</role>
+            <dimension>Volume</dimension>
+            <unit>m^3</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>20.0</default>
+            <symbol>SN</symbol>
+            <definition>The overall volume of the storage tank.</definition>
+        </variable>
+        <variable><!--parameter-3-->
+            <order>3</order>
+            <name>Minimum fluid volume</name>
+            <role>parameter</role>
+            <dimension>Volume</dimension>
+            <unit>m^3</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1.0</default>
+            <symbol>SN</symbol>
+            <definition>The minimum volume of fluid allowed in the storage tank before the load is modulated to maintain
+                this minimum volume.
+            </definition>
+        </variable>
+        <variable><!--parameter-4-->
+            <order>4</order>
+            <name>Maximum fluid volume</name>
+            <role>parameter</role>
+            <dimension>Volume</dimension>
+            <unit>m^3</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>18.0</default>
+            <symbol>SN</symbol>
+            <definition>The maximum volume of fluid allowed in the storage tank before the fluid stream is either
+                recirculated or diverted.
+            </definition>
+        </variable>
+        <variable><!--parameter-5-->
+            <order>5</order>
+            <name>Tank circumference</name>
+            <role>parameter</role>
+            <dimension>Length</dimension>
+            <unit>m</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>15.0</default>
+            <symbol>SN</symbol>
+            <definition>The circumference of the storage tank.</definition>
+        </variable>
+        <variable><!--parameter-6-->
+            <order>6</order>
+            <name>Cross-sectional area</name>
+            <role>parameter</role>
+            <dimension>Area</dimension>
+            <unit>m^2</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>4.0</default>
+            <symbol>SN</symbol>
+            <definition>The cross-sectional area of the variable volume storage tank.</definition>
+        </variable>
+        <variable><!--parameter-7-->
+            <order>7</order>
+            <name>Wetted loss coefficient</name>
+            <role>parameter</role>
+            <dimension>Heat Transfer Coeff.</dimension>
+            <unit>kJ/hr.m^2.K</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>6.0</default>
+            <symbol>SN</symbol>
+            <definition>The loss coefficient of that part of the tank which is in contact with the fluid.</definition>
+        </variable>
+        <variable><!--parameter-8-->
+            <order>8</order>
+            <name>Dry loss coefficient</name>
+            <role>parameter</role>
+            <dimension>Heat Transfer Coeff.</dimension>
+            <unit>kJ/hr.m^2.K</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>4.0</default>
+            <symbol>SN</symbol>
+            <definition>The heat transfer coeficient of that part of the tank which is not in contact with the fluid.
+            </definition>
+        </variable>
+        <variable><!--parameter-9-->
+            <order>9</order>
+            <name>Fluid specific heat</name>
+            <role>parameter</role>
+            <dimension>Specific Heat</dimension>
+            <unit>kJ/kg.K</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>4.190</default>
+            <symbol>SN</symbol>
+            <definition>The specific heat of the fluid contained in the storage tank.</definition>
+        </variable>
+        <variable><!--parameter-10-->
+            <order>10</order>
+            <name>Fluid density</name>
+            <role>parameter</role>
+            <dimension>Density</dimension>
+            <unit>kg/m^3</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1000.0</default>
+            <symbol>SN</symbol>
+            <definition>The density of the fluid contained in the storage tank.</definition>
+        </variable>
+        <variable><!--parameter-11-->
+            <order>11</order>
+            <name>Initial fluid temperature</name>
+            <role>parameter</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>22.0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the fluid in the storage tank at the beginning of the simulation.
+            </definition>
+        </variable>
+        <variable><!--parameter-12-->
+            <order>12</order>
+            <name>Initial fluid volume</name>
+            <role>parameter</role>
+            <dimension>Volume</dimension>
+            <unit>m^3</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>5.0</default>
+            <symbol>SN</symbol>
+            <definition>The volume of the fluid in the storage tank at the beginning of the simulation.</definition>
+        </variable>
+        <variable><!--input-1-->
+            <order>13</order>
+            <name>Inlet temperature</name>
+            <role>input</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>25.0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the fluid entering the storage tank.</definition>
+        </variable>
+        <variable><!--input-2-->
+            <order>14</order>
+            <name>Inlet flow rate</name>
+            <role>input</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>100.0</default>
+            <symbol>SN</symbol>
+            <definition>The flow rate of fluid entering the storage tank.</definition>
+        </variable>
+        <variable><!--input-3-->
+            <order>15</order>
+            <name>Flow rate to load</name>
+            <role>input</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>75.0</default>
+            <symbol>SN</symbol>
+            <definition>The flow rate required by the load which is to be met by the storage tank.</definition>
+        </variable>
+        <variable><!--input-4-->
+            <order>16</order>
+            <name>Environment temperature</name>
+            <role>input</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>15.0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the environment in which the storage tank is located.</definition>
+        </variable>
+        <variable><!--output-1-->
+            <order>17</order>
+            <name>Fluid temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the fluid contained in the storage tank.</definition>
+        </variable>
+        <variable><!--output-2-->
+            <order>18</order>
+            <name>Load flow rate</name>
+            <role>output</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The flow rate of fluid exiting the storage tank to meet the load. Note - this may be different
+                than the desired load flow rate due to minimum and maximum volume considerations.
+            </definition>
+        </variable>
+        <variable><!--output-3-->
+            <order>19</order>
+            <name>Excess flow temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the recirculated flow stream (mode 1) or the diverted flow stream (mode 2) if
+                a maximum volume condition is reached.
+            </definition>
+        </variable>
+        <variable><!--output-4-->
+            <order>20</order>
+            <name>Excess flow rate</name>
+            <role>output</role>
+            <dimension>Flow Rate</dimension>
+            <unit>kg/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The flow rate of fluid that is either recirculated (mode 1) or diverted (mode 2) due to a
+                maximum volume condition being reached.
+            </definition>
+        </variable>
+        <variable><!--output-5-->
+            <order>21</order>
+            <name>Fluid volume</name>
+            <role>output</role>
+            <dimension>Volume</dimension>
+            <unit>m^3</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The volume of fluid in the storage tank.</definition>
+        </variable>
+        <variable><!--output-6-->
+            <order>22</order>
+            <name>Enthalpy difference</name>
+            <role>output</role>
+            <dimension>Specific Energy</dimension>
+            <unit>kJ/kg</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The difference in enthalpies of the outgoing and the incoming flow streams.</definition>
+        </variable>
+        <variable><!--output-7-->
+            <order>23</order>
+            <name>Environment losses</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which energy is transferred to the environment from the storage tank.</definition>
+        </variable>
+        <variable><!--output-8-->
+            <order>24</order>
+            <name>Internal energy change</name>
+            <role>output</role>
+            <dimension>Energy</dimension>
+            <unit>kJ</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The change in internal energy of the tank relative to the beginning of the simulation. This term
+                is an energy quantity and not an energy rate and should not be integrated.
+            </definition>
+        </variable>
+        <variable><!--output-9-->
+            <order>25</order>
+            <name>Level indicator</name>
+            <role>output</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The level indicator for the storage tank:
+                -1 ---&gt; Tank fluid is at minimum level
+                0 ---&gt; Tank fluid is somewhere between minimum and maximum levels
+                1 ---&gt; Tank fluid is at maximum level
+            </definition>
+        </variable>
+        <variable><!--input-5-->
+            <order>26</order>
+            <name>Auxiliary energy input</name>
+            <role>input</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The rate at which auxiliary energy is added to the storage tank during the timestep.
+            </definition>
+        </variable>
+    </variables>
+    <cycles/>
+    <compileCommand>df /c</compileCommand>
+    <source>.\SourceCode\Types\Type39.f90</source>
+</TrnsysModel>

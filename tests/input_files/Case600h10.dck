@@ -1,0 +1,883 @@
+Version 18.0
+! ----------------------------------------------------------------------------------------------------------------------
+! Case600 (2018-03 h10) - [Case600h10.dck]
+! ----------------------------------------------------------------------------------------------------------------------
+
+! --- General equations ------------------------------------------------------------------------------------------------
+
+! --- Control Cards ---
+
+equations 3
+start = 8016
+stop = 17520
+step = 1.00
+
+simulation start stop step
+tolerances 0.001 0.001
+limits 100 150 100
+dfq 1
+solver 0 1.00 1.00
+nan_check 0
+overwrite_check 0
+time_report 0
+eqsolver 0
+
+
+! --- Weather data reader ----------------------------------------------------------------------------------------------
+
+unit 11 type 15 Weather
+
+parameters 9
+
+7                    ! 1 File Type (7 - TMY3)
+31                   ! 2 Logical unit
+5                    ! 3 Tilted Surface Radiation Mode (5 - Perez 1990)
+0.2                  ! 4 Ground reflectance: no albedo reported
+0.2                  ! 5 Not used
+1                    ! 6 Number of surfaces
+1                    ! 7 Tracking mode
+0.0                  ! 8 Slope of surface
+0                    ! 9 Azimuth of surface
+
+! Weather file
+assign "..\Weather\725650TY.csv" 31
+
+
+! --- Names for weather outputs ----------------------------------------------------------------------------------------
+
+equations 7
+TdbAmb               = [011,001]
+rhAmb                = [011,007]
+Tsky                 = [011,004]
+vWind                = [011,008]
+dWind                = [011,009]
+ocSky                = [011,011]
+tcSky                = [011,012]
+
+
+! Logic for convection coefficients: 
+! Type 56 always reads hco as inputs from the deck. Values in the deck are set to constants or to MoWiTT equations
+! Type 56 uses internal (constant or automatic) hci for windows, OR inputs - inputs are calculated in the deck per ISO15099
+
+! --- Outside convection coefficients ----------------------------------------------------------------------------------
+
+! --- Local wind speed ---
+equations 12
+vMet                 = vWind    ! Wind speed at weather station [m/s]
+aMet                 = 0.14     ! Wind speed profile exponent at weather station
+a                    = 0.14     ! Wind speed profile exponent at building site
+deltaMet             = 270.0    ! Atmospheric boundary layer thickness at weather station [m]
+delta                = 270.0    ! Atmospheric boundary layer thickness at building site [m]
+zMet                 =  10.0    ! Height of wind speed measurement at weather station [m]
+zWalls               =  2.7/2.0 ! Height of surface centroid (walls) [m]
+zWin                 =  0.2 + 2.0/2.0 ! Height of surface centroid (windows) [m]
+zRoof                =  2.7     ! Height of surface centroid (roof) [m]
+vWalls               = vMet * (deltaMet/zMet)^aMet * (zWalls/delta)^a    ! Wind speed at centroid height (walls)
+vWin                 = vMet * (deltaMet/zMet)^aMet * (zWin/delta)^a      ! Wind speed at centroid height (windows)
+vRoof                = vMet * (deltaMet/zMet)^aMet * (zRoof/delta)^a     ! Wind speed at centroid height (roof)
+
+! --- Windward or leeward flag --- 
+! Windward if theta <= 90Â° according to JN instructions - Note that EnergyPlus Engineering Reference Manual (and EnergyPlus code) has 100Â°
+! Roof and floor are always windward (and floor has no windspeed so irrelevant)
+equations 6
+windWard02           = ge(dWind, 270) + le(dWind,  90)    ! North, windward if wind dir >= 270 or <= 90
+windWard03           = le(dWind, 180)                     ! East,  windward if wind dir <= 180
+windWard04           = ge(dWind, 90)  * le(dWind, 270)    ! South, windward if wind dir >= 90 and <= 270
+windWard05           = ge(dWind, 90)  * le(dWind, 270)    ! South, windward if wind dir >= 90 and <= 270                       ! Win or Hcp, set by script for different orientations
+windWard06           = ge(dWind, 90)  * le(dWind, 270)    ! South, windward if wind dir >= 90 and <= 270                       ! Win or Hcp, set by script for different orientations
+windWard07           = ge(dWind, 180)                     ! West,  windward if wind dir >= 180
+
+! --- Temperature-driven convection ---
+equations 8
+hn01                 = (0.76 + 0.75*gt(TdbAmb, Tso01)) * (abs(Tso01-TdbAmb))^(1/3)
+hn02                 = 1.31 * (abs(Tso02-TdbAmb))^(1/3)
+hn03                 = 1.31 * (abs(Tso03-TdbAmb))^(1/3)
+hn04                 = 1.31 * (abs(Tso04-TdbAmb))^(1/3)
+hn05                 = 1.31 * (abs(Tso05-TdbAmb))^(1/3)
+hn06                 = 1.31 * (abs(Tso06-TdbAmb))^(1/3)
+hn07                 = 1.31 * (abs(Tso07-TdbAmb))^(1/3)
+hn08                 = (0.76 + 0.75*gt(Tso08, TdbAmb)) * (abs(Tso08-TdbAmb))^(1/3)
+
+! --- Glass coefficient, windward ---
+equations 7
+hcGlass02ww          = ( hn02^2 + (3.260 * vWalls^0.890)^2 )^0.5
+hcGlass03ww          = ( hn03^2 + (3.260 * vWalls^0.890)^2 )^0.5
+hcGlass04ww          = ( hn04^2 + (3.260 * vWalls^0.890)^2 )^0.5
+hcGlass05ww          = ( hn05^2 + (3.260 * vWin^0.890)^2 )^0.5
+hcGlass06ww          = ( hn06^2 + (3.260 * vWin^0.890)^2 )^0.5
+hcGlass07ww          = ( hn07^2 + (3.260 * vWalls^0.890)^2 )^0.5
+hcGlass08ww          = ( hn08^2 + (3.260 * vRoof^0.890)^2 )^0.5
+
+! --- Glass coefficient, leeward ---
+equations 6
+hcGlass02lw          = ( hn02^2 + (3.550 * vWalls^0.617)^2 )^0.5
+hcGlass03lw          = ( hn03^2 + (3.550 * vWalls^0.617)^2 )^0.5
+hcGlass04lw          = ( hn04^2 + (3.550 * vWalls^0.617)^2 )^0.5
+hcGlass05lw          = ( hn05^2 + (3.550 * vWin^0.617)^2 )^0.5
+hcGlass06lw          = ( hn06^2 + (3.550 * vWin^0.617)^2 )^0.5
+hcGlass07lw          = ( hn07^2 + (3.550 * vWalls^0.617)^2 )^0.5
+
+! --- External convection coefficient according to MoWiTT algorithm ---
+equations 12
+hco01MoWiTT         = hn01    ! No windspeed
+hco02MoWiTT         = hn02 + 1.67 * ( windWard02 * hcGlass02ww + (1 - windWard02) * hcGlass02lw - hn02 )
+hco03MoWiTT         = hn03 + 1.67 * ( windWard03 * hcGlass03ww + (1 - windWard03) * hcGlass03lw - hn03 )
+hco04MoWiTT         = hn04 + 1.67 * ( windWard04 * hcGlass04ww + (1 - windWard04) * hcGlass04lw - hn04 )
+hco05MoWiTT         = hn05 + 1.67 * ( windWard05 * hcGlass05ww + (1 - windWard05) * hcGlass05lw - hn05 )
+hco05WinMoWiTT      = hn05 + 1.00 * ( windWard05 * hcGlass05ww + (1 - windWard05) * hcGlass05lw - hn05 )
+hco05HcpMoWiTT      = hco05WinMoWiTT
+hco06MoWiTT         = hn06 + 1.67 * ( windWard06 * hcGlass06ww + (1 - windWard06) * hcGlass06lw - hn06 )
+hco06WinMoWiTT      = hn06 + 1.00 * ( windWard06 * hcGlass06ww + (1 - windWard06) * hcGlass06lw - hn06 )
+hco06HcpMoWiTT      = hco06WinMoWiTT
+hco07MoWiTT         = hn07 + 1.67 * ( windWard07 * hcGlass07ww + (1 - windWard07) * hcGlass07lw - hn07 )
+hco08MoWiTT         = hn08 + 1.67 * ( hcGlass08ww - hn08 )    ! Flat roof always windward
+
+! --- Coefficients used in Type 56 (conversion to kJ/h is done inside Type 56) ---
+equations 12
+hco01                = max(1.0, hco01MoWiTT)    ! W/m²-K)
+hco02                = max(1.0, hco02MoWiTT)    ! W/m²-K)
+hco03                = max(1.0, hco03MoWiTT)    ! W/m²-K
+hco04                = max(1.0, hco04MoWiTT)    ! W/m²-K
+hco05                = max(1.0, hco05MoWiTT)    ! W/m²-K
+hco05Win             = max(1.0, hco05WinMoWiTT)    ! W/m²-K
+hco05Hcp             = max(1.0, hco05HcpMoWiTT)    ! W/m²-K
+hco06                = max(1.0, hco06MoWiTT)    ! W/m²-K
+hco06Win             = max(1.0, hco06WinMoWiTT)    ! W/m²-K
+hco06Hcp             = max(1.0, hco06HcpMoWiTT)    ! W/m²-K
+hco07                = max(1.0, hco07MoWiTT)    ! W/m²-K
+hco08                = max(1.0, hco08MoWiTT)    ! W/m²-K
+
+
+! --- Building ---------------------------------------------------------------------------------------------------------
+
+unit 21 type 56 Building
+
+parameters 3
+
+32                   ! 1 Logical unit for building description file (*.b17, *.bui)
+1                    ! 2 Star network calculation switch
+0.50                 ! 3 Weighting factor for operative temperature
+
+inputs 22
+
+11,1                 !  1 TAmb
+11,7                 !  2 relHumAmb
+11,4                 !  3 TSky
+11,1                 !  4 TSGrd
+11,16                !  5 aZen
+11,17                !  6 aAzm
+0,0                  !  7 ItFloor
+0,0                  !  8 IbFloor
+0,0                  !  9 aiFloor
+0,0	                 ! 10 grdRef
+hco01                ! 11 hco01
+hco02                ! 12 hco02
+hco03                ! 13 hco03
+hco04                ! 14 hco04
+hco05                ! 15 hco05
+hco05Win             ! 16 hco05Win
+hco05Hcp             ! 17 hco05Hcp
+hco06                ! 18 hco06
+hco06Win             ! 19 hco06Win
+hco06Hcp             ! 20 hco06Hcp
+hco07                ! 21 hco07
+hco08                ! 22 hco08
+	
+! Initial values
+
+0.0                  !  1 TAmb
+0.0                  !  2 relHumAmb
+0.0                  !  3 TSky
+0.0                  !  4 TSGrd
+0.0                  !  5 aZen
+0.0                  !  6 aAzm
+0.0                  !  7 ItFloor
+0.0                  !  8 IbFloor
+0.0                  !  9 aiFloor
+0.2	                 ! 10 grdRef
+10.0                 ! 11 hco01
+10.0                 ! 12 hco02
+10.0                 ! 13 hco03
+10.0                 ! 14 hco04
+10.0                 ! 15 hco05
+10.0                 ! 16 hco05Win
+10.0                 ! 17 hco05Hcp
+10.0                 ! 18 hco06
+10.0                 ! 19 hco06Win
+10.0                 ! 20 hco06Hcp
+10.0                 ! 21 hco07
+10.0                 ! 22 hco08
+		
+! Bui file
+assign "Case600h10.bui" 32
+
+! --- Names for building outputs ---------------------------------------------------------------------------------------
+
+equations 153
+
+TdbRoom              = [021,001]
+rhRoom               = [021,002]
+TstarRoom            = [021,003]
+TmsurfRoom           = [021,004]
+QHeatRoom            = [021,005] / 3.6    ! converted to W
+QCoolRoom            = [021,006] / 3.6    ! converted to W
+Tsi01                = [021,007]
+Tsi02                = [021,008]
+Tsi03                = [021,009]
+Tsi04                = [021,010]
+Tsi05                = [021,011]
+Tsi06                = [021,012]
+Tsi07                = [021,013]
+Tsi08                = [021,014]
+Tso01                = [021,015]
+Tso02                = [021,016]
+Tso03                = [021,017]
+Tso04                = [021,018]
+Tso05                = [021,019]
+Tso06                = [021,020]
+Tso07                = [021,021]
+Tso08                = [021,022]
+Qcomi01              = [021,023] / 3.6    ! converted to W
+Qcomi02              = [021,024] / 3.6    ! converted to W
+Qcomi03              = [021,025] / 3.6    ! converted to W
+Qcomi04              = [021,026] / 3.6    ! converted to W
+Qcomi05              = [021,027] / 3.6    ! converted to W
+Qcomi06              = [021,028] / 3.6    ! converted to W
+Qcomi07              = [021,029] / 3.6    ! converted to W
+Qcomi08              = [021,030] / 3.6    ! converted to W
+Qcomo01              = [021,031] / 3.6    ! converted to W
+Qcomo02              = [021,032] / 3.6    ! converted to W
+Qcomo03              = [021,033] / 3.6    ! converted to W
+Qcomo04              = [021,034] / 3.6    ! converted to W
+Qcomo05              = [021,035] / 3.6    ! converted to W
+Qcomo06              = [021,036] / 3.6    ! converted to W
+Qcomo07              = [021,037] / 3.6    ! converted to W
+Qcomo08              = [021,038] / 3.6    ! converted to W
+Qabsi01              = [021,039] / 3.6    ! converted to W
+Qabsi02              = [021,040] / 3.6    ! converted to W
+Qabsi03              = [021,041] / 3.6    ! converted to W
+Qabsi04              = [021,042] / 3.6    ! converted to W
+Qabsi05              = [021,043] / 3.6    ! converted to W
+Qabsi06              = [021,044] / 3.6    ! converted to W
+Qabsi07              = [021,045] / 3.6    ! converted to W
+Qabsi08              = [021,046] / 3.6    ! converted to W
+Qabso01              = [021,047] / 3.6    ! converted to W
+Qabso02              = [021,048] / 3.6    ! converted to W
+Qabso03              = [021,049] / 3.6    ! converted to W
+Qabso04              = [021,050] / 3.6    ! converted to W
+Qabso05              = [021,051] / 3.6    ! converted to W
+Qabso06              = [021,052] / 3.6    ! converted to W
+Qabso07              = [021,053] / 3.6    ! converted to W
+Qabso08              = [021,054] / 3.6    ! converted to W
+hci01                = [021,055] / 3.6    ! converted to W/m^2
+hci02                = [021,056] / 3.6    ! converted to W/m^2
+hci03                = [021,057] / 3.6    ! converted to W/m^2
+hci04                = [021,058] / 3.6    ! converted to W/m^2
+hci05                = [021,059] / 3.6    ! converted to W/m^2
+hci06                = [021,060] / 3.6    ! converted to W/m^2
+hci07                = [021,061] / 3.6    ! converted to W/m^2
+hci08                = [021,062] / 3.6    ! converted to W/m^2
+hco01_T56            = [021,063] / 3.6    ! converted to W/m^2
+hco02_T56            = [021,064] / 3.6    ! converted to W/m^2
+hco03_T56            = [021,065] / 3.6    ! converted to W/m^2
+hco04_T56            = [021,066] / 3.6    ! converted to W/m^2
+hco05_T56            = [021,067] / 3.6    ! converted to W/m^2
+hco06_T56            = [021,068] / 3.6    ! converted to W/m^2
+hco07_T56            = [021,069] / 3.6    ! converted to W/m^2
+hco08_T56            = [021,070] / 3.6    ! converted to W/m^2
+Qsiconv01            = [021,071] / 3.6    ! converted to W
+Qsiconv02            = [021,072] / 3.6    ! converted to W
+Qsiconv03            = [021,073] / 3.6    ! converted to W
+Qsiconv04            = [021,074] / 3.6    ! converted to W
+Qsiconv05            = [021,075] / 3.6    ! converted to W
+Qsiconv06            = [021,076] / 3.6    ! converted to W
+Qsiconv07            = [021,077] / 3.6    ! converted to W
+Qsiconv08            = [021,078] / 3.6    ! converted to W
+Qabsilw01            = [021,079] / 3.6    ! converted to W
+Qabsilw02            = [021,080] / 3.6    ! converted to W
+Qabsilw03            = [021,081] / 3.6    ! converted to W
+Qabsilw04            = [021,082] / 3.6    ! converted to W
+Qabsilw05            = [021,083] / 3.6    ! converted to W
+Qabsilw06            = [021,084] / 3.6    ! converted to W
+Qabsilw07            = [021,085] / 3.6    ! converted to W
+Qabsilw08            = [021,086] / 3.6    ! converted to W
+Qsky01               = [021,087] / 3.6    ! converted to W
+Qsky02               = [021,088] / 3.6    ! converted to W
+Qsky03               = [021,089] / 3.6    ! converted to W
+Qsky04               = [021,090] / 3.6    ! converted to W
+Qsky05               = [021,091] / 3.6    ! converted to W
+Qsky06               = [021,092] / 3.6    ! converted to W
+Qsky07               = [021,093] / 3.6    ! converted to W
+Qsky08               = [021,094] / 3.6    ! converted to W
+Req01                = [021,095] * 3.6    ! converted to m^2-K/W
+Req02                = [021,096] * 3.6    ! converted to m^2-K/W
+Req03                = [021,097] * 3.6    ! converted to m^2-K/W
+Req04                = [021,098] * 3.6    ! converted to m^2-K/W
+Req05                = [021,099] * 3.6    ! converted to m^2-K/W
+Req06                = [021,100] * 3.6    ! converted to m^2-K/W
+Req07                = [021,101] * 3.6    ! converted to m^2-K/W
+Req08                = [021,102] * 3.6    ! converted to m^2-K/W
+a01                  = [021,103]
+a02                  = [021,104]
+a03                  = [021,105]
+a04                  = [021,106]
+a05                  = [021,107]
+a06                  = [021,108]
+a07                  = [021,109]
+a08                  = [021,110]
+QsolTrRoom           = [021,111] / 3.6    ! converted to W
+Gib01                = [021,112] / 3.6    ! converted to W
+Gib02                = [021,113] / 3.6    ! converted to W
+Gib03                = [021,114] / 3.6    ! converted to W
+Gib04                = [021,115] / 3.6    ! converted to W
+Gib05                = [021,116] / 3.6    ! converted to W
+Gib06                = [021,117] / 3.6    ! converted to W
+Gib07                = [021,118] / 3.6    ! converted to W
+Gib08                = [021,119] / 3.6    ! converted to W
+Gid01                = [021,120] / 3.6    ! converted to W
+Gid02                = [021,121] / 3.6    ! converted to W
+Gid03                = [021,122] / 3.6    ! converted to W
+Gid04                = [021,123] / 3.6    ! converted to W
+Gid05                = [021,124] / 3.6    ! converted to W
+Gid06                = [021,125] / 3.6    ! converted to W
+Gid07                = [021,126] / 3.6    ! converted to W
+Gid08                = [021,127] / 3.6    ! converted to W
+Gi01                 = [021,128] / 3.6    ! converted to W
+Gi02                 = [021,129] / 3.6    ! converted to W
+Gi03                 = [021,130] / 3.6    ! converted to W
+Gi04                 = [021,131] / 3.6    ! converted to W
+Gi05                 = [021,132] / 3.6    ! converted to W
+Gi06                 = [021,133] / 3.6    ! converted to W
+Gi07                 = [021,134] / 3.6    ! converted to W
+Gi08                 = [021,135] / 3.6    ! converted to W
+GibShaded01          = [021,136] / 3.6    ! converted to W
+GibShaded02          = [021,137] / 3.6    ! converted to W
+GibShaded03          = [021,138] / 3.6    ! converted to W
+GibShaded04          = [021,139] / 3.6    ! converted to W
+GibShaded05          = [021,140] / 3.6    ! converted to W
+GibShaded06          = [021,141] / 3.6    ! converted to W
+GibShaded07          = [021,142] / 3.6    ! converted to W
+GibShaded08          = [021,143] / 3.6    ! converted to W
+GidShaded01          = [021,144] / 3.6    ! converted to W
+GidShaded02          = [021,145] / 3.6    ! converted to W
+GidShaded03          = [021,146] / 3.6    ! converted to W
+GidShaded04          = [021,147] / 3.6    ! converted to W
+GidShaded05          = [021,148] / 3.6    ! converted to W
+GidShaded06          = [021,149] / 3.6    ! converted to W
+GidShaded07          = [021,150] / 3.6    ! converted to W
+GidShaded08          = [021,151] / 3.6    ! converted to W
+QsTrn05              = [021,152] / 3.6    ! converted to W/m^2
+QsTrn06              = [021,153] / 3.6    ! converted to W/m^2
+
+
+! --- Printer ----------------------------------------------------------------------------------------------------------
+
+unit 31 type 25 Printer
+
+parameters 10
+
+step                 ! 1 Printing interval
+start                ! 2 Start time
+stop                 ! 3 Stop time
+33                   ! 4 Logical unit
+0                    ! 5 Units printing mode
+0                    ! 6 Relative or absolute start time
+-1                   ! 7 Overwrite or Append
+-1                   ! 8 Print header
+0                    ! 9 Delimiter
+1                    ! 10 Print labels
+
+inputs 172
+
+! Weather
+TdbAmb
+rhAmb
+Tsky
+vWind
+dWind
+ocSky
+tcSky
+! External coefficients
+hco01
+hco02
+hco03
+hco04
+hco05
+hco05Win
+hco05Hcp
+hco06
+hco06Win
+hco06Hcp
+hco07
+hco08
+! Building outputs
+TdbRoom
+rhRoom
+TstarRoom
+TmsurfRoom
+QHeatRoom
+QCoolRoom
+Tsi01
+Tsi02
+Tsi03
+Tsi04
+Tsi05
+Tsi06
+Tsi07
+Tsi08
+Tso01
+Tso02
+Tso03
+Tso04
+Tso05
+Tso06
+Tso07
+Tso08
+Qcomi01
+Qcomi02
+Qcomi03
+Qcomi04
+Qcomi05
+Qcomi06
+Qcomi07
+Qcomi08
+Qcomo01
+Qcomo02
+Qcomo03
+Qcomo04
+Qcomo05
+Qcomo06
+Qcomo07
+Qcomo08
+Qabsi01
+Qabsi02
+Qabsi03
+Qabsi04
+Qabsi05
+Qabsi06
+Qabsi07
+Qabsi08
+Qabso01
+Qabso02
+Qabso03
+Qabso04
+Qabso05
+Qabso06
+Qabso07
+Qabso08
+hci01
+hci02
+hci03
+hci04
+hci05
+hci06
+hci07
+hci08
+hco01_T56
+hco02_T56
+hco03_T56
+hco04_T56
+hco05_T56
+hco06_T56
+hco07_T56
+hco08_T56
+Qsiconv01
+Qsiconv02
+Qsiconv03
+Qsiconv04
+Qsiconv05
+Qsiconv06
+Qsiconv07
+Qsiconv08
+Qabsilw01
+Qabsilw02
+Qabsilw03
+Qabsilw04
+Qabsilw05
+Qabsilw06
+Qabsilw07
+Qabsilw08
+Qsky01
+Qsky02
+Qsky03
+Qsky04
+Qsky05
+Qsky06
+Qsky07
+Qsky08
+Req01
+Req02
+Req03
+Req04
+Req05
+Req06
+Req07
+Req08
+a01
+a02
+a03
+a04
+a05
+a06
+a07
+a08
+QsolTrRoom
+Gib01
+Gib02
+Gib03
+Gib04
+Gib05
+Gib06
+Gib07
+Gib08
+Gid01
+Gid02
+Gid03
+Gid04
+Gid05
+Gid06
+Gid07
+Gid08
+Gi01
+Gi02
+Gi03
+Gi04
+Gi05
+Gi06
+Gi07
+Gi08
+GibShaded01
+GibShaded02
+GibShaded03
+GibShaded04
+GibShaded05
+GibShaded06
+GibShaded07
+GibShaded08
+GidShaded01
+GidShaded02
+GidShaded03
+GidShaded04
+GidShaded05
+GidShaded06
+GidShaded07
+GidShaded08
+QsTrn05
+QsTrn06
+
+
+! Initial values
+
+! Weather
+TdbAmb
+rhAmb
+Tsky
+vWind
+dWind
+ocSky
+tcSky
+! External coefficients
+hco01
+hco02
+hco03
+hco04
+hco05
+hco05Win
+hco05Hcp
+hco06
+hco06Win
+hco06Hcp
+hco07
+hco08
+! Building outputs
+TdbRoom
+rhRoom
+TstarRoom
+TmsurfRoom
+QHeatRoom
+QCoolRoom
+Tsi01
+Tsi02
+Tsi03
+Tsi04
+Tsi05
+Tsi06
+Tsi07
+Tsi08
+Tso01
+Tso02
+Tso03
+Tso04
+Tso05
+Tso06
+Tso07
+Tso08
+Qcomi01
+Qcomi02
+Qcomi03
+Qcomi04
+Qcomi05
+Qcomi06
+Qcomi07
+Qcomi08
+Qcomo01
+Qcomo02
+Qcomo03
+Qcomo04
+Qcomo05
+Qcomo06
+Qcomo07
+Qcomo08
+Qabsi01
+Qabsi02
+Qabsi03
+Qabsi04
+Qabsi05
+Qabsi06
+Qabsi07
+Qabsi08
+Qabso01
+Qabso02
+Qabso03
+Qabso04
+Qabso05
+Qabso06
+Qabso07
+Qabso08
+hci01
+hci02
+hci03
+hci04
+hci05
+hci06
+hci07
+hci08
+hco01_T56
+hco02_T56
+hco03_T56
+hco04_T56
+hco05_T56
+hco06_T56
+hco07_T56
+hco08_T56
+Qsiconv01
+Qsiconv02
+Qsiconv03
+Qsiconv04
+Qsiconv05
+Qsiconv06
+Qsiconv07
+Qsiconv08
+Qabsilw01
+Qabsilw02
+Qabsilw03
+Qabsilw04
+Qabsilw05
+Qabsilw06
+Qabsilw07
+Qabsilw08
+Qsky01
+Qsky02
+Qsky03
+Qsky04
+Qsky05
+Qsky06
+Qsky07
+Qsky08
+Req01
+Req02
+Req03
+Req04
+Req05
+Req06
+Req07
+Req08
+a01
+a02
+a03
+a04
+a05
+a06
+a07
+a08
+QsolTrRoom
+Gib01
+Gib02
+Gib03
+Gib04
+Gib05
+Gib06
+Gib07
+Gib08
+Gid01
+Gid02
+Gid03
+Gid04
+Gid05
+Gid06
+Gid07
+Gid08
+Gi01
+Gi02
+Gi03
+Gi04
+Gi05
+Gi06
+Gi07
+Gi08
+GibShaded01
+GibShaded02
+GibShaded03
+GibShaded04
+GibShaded05
+GibShaded06
+GibShaded07
+GibShaded08
+GidShaded01
+GidShaded02
+GidShaded03
+GidShaded04
+GidShaded05
+GidShaded06
+GidShaded07
+GidShaded08
+QsTrn05
+QsTrn06
+
+
+! Output file
+assign "***.out" 33
+
+
+! --- Printer: MoWiTT external convection coefficients -----------------------------------------------------------------
+
+unit 32 type 25 Printer
+
+parameters 10
+
+step                 ! 1 Printing interval
+start                ! 2 Start time
+stop                 ! 3 Stop time
+34                   ! 4 Logical unit
+0                    ! 5 Units printing mode
+0                    ! 6 Relative or absolute start time
+-1                   ! 7 Overwrite or Append
+-1                   ! 8 Print header
+0                    ! 9 Delimiter
+1                    ! 10 Print labels
+
+inputs 51
+
+vMet
+aMet
+a
+deltaMet
+delta
+zMet
+zWalls
+zWin
+zRoof
+vWalls
+vWin
+vRoof
+windWard02
+windWard03
+windWard04
+windWard05
+windWard06
+windWard07
+hn01
+hn02
+hn03
+hn04
+hn05
+hn06
+hn07
+hn08
+hcGlass02ww
+hcGlass03ww
+hcGlass04ww
+hcGlass05ww
+hcGlass06ww
+hcGlass07ww
+hcGlass08ww
+hcGlass02lw
+hcGlass03lw
+hcGlass04lw
+hcGlass05lw
+hcGlass06lw
+hcGlass07lw
+hco01MoWiTT
+hco02MoWiTT
+hco03MoWiTT
+hco04MoWiTT
+hco05MoWiTT
+hco05WinMoWiTT
+hco05HcpMoWiTT
+hco06MoWiTT
+hco06WinMoWiTT
+hco06HcpMoWiTT
+hco07MoWiTT
+hco08MoWiTT
+
+! Initial values
+
+vMet
+aMet
+a
+deltaMet
+delta
+zMet
+zWalls
+zWin
+zRoof
+vWalls
+vWin
+vRoof
+windWard02
+windWard03
+windWard04
+windWard05
+windWard06
+windWard07
+hn01
+hn02
+hn03
+hn04
+hn05
+hn06
+hn07
+hn08
+hcGlass02ww
+hcGlass03ww
+hcGlass04ww
+hcGlass05ww
+hcGlass06ww
+hcGlass07ww
+hcGlass08ww
+hcGlass02lw
+hcGlass03lw
+hcGlass04lw
+hcGlass05lw
+hcGlass06lw
+hcGlass07lw
+hco01MoWiTT
+hco02MoWiTT
+hco03MoWiTT
+hco04MoWiTT
+hco05MoWiTT
+hco05WinMoWiTT
+hco05HcpMoWiTT
+hco06MoWiTT
+hco06WinMoWiTT
+hco06HcpMoWiTT
+hco07MoWiTT
+hco08MoWiTT
+
+
+! Output file
+assign "***-hco.out" 34
+
+
+! --- End of deck file -------------------------------------------------------------------------------------------------
+end

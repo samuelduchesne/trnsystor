@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrnsysModel>
+    <object>Regulator / Inverter</object>
+    <author>Contributors are listed in manuals</author>
+    <organization>Solar Energy Laboratory, University of Wisconsin - Madison</organization>
+    <editor>SEL and TESS</editor>
+    <creationDate>2/12/1999</creationDate>
+    <modifictionDate>June 2015</modifictionDate>
+    <mode>2</mode>
+    <validation>2</validation>
+    <icon>.\Studio\Icon\Type48b.bmp</icon>
+    <type>48</type>
+    <maxInstance>9999</maxInstance>
+    <keywords/>
+    <details>In photovoltaic power systems, two power conditioning devices are needed. The first of these is a
+        regulator, which distributes DC power from the solar cell array to and from a battery (in systems with energy
+        storage) and to the second component, the inverter. If the battery is fully charged or needs only a taper
+        charge, excess power is either dumped or not collected by turning off parts of the array. The inverter converts
+        the DC power to AC and sends it to the load and/or feeds it back to the utility.
+        TYPE 48 models both the regulator and inverter, and can operate in one of four modes. Modes 0 and 3 are based
+        upon the "no battery/feedback system" and "direct charge system," respectively. Modes 1 and 2 are modifications
+        of the "parallel maximum power tracker system" in the same reference.
+        This proforma corresponds to Mode 1: Peak-power tracking collector, battery, monitoring of state of charge.
+    </details>
+    <variables>
+        <variable><!--parameter-1-->
+            <order>1</order>
+            <name>Mode</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>1</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1</default>
+            <symbol>SN</symbol>
+            <definition>Specify 1: Peak-power tracking collector, battery, monitoring of state of charge.</definition>
+        </variable>
+        <variable><!--parameter-2-->
+            <order>2</order>
+            <name>Regulator efficiency</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>1</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.78</default>
+            <symbol>SN</symbol>
+            <definition>Regulator efficiency (e.g. use this for non-perfect max-power tracker efficiency).</definition>
+        </variable>
+        <variable><!--input-1-->
+            <order>3</order>
+            <name>Input power</name>
+            <role>input</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>Power from charging device (e.g. solar PV array).</definition>
+        </variable>
+        <variable><!--input-2-->
+            <order>4</order>
+            <name>Load power</name>
+            <role>input</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>Power demanded by load.</definition>
+        </variable>
+        <variable><!--output-1-->
+            <order>5</order>
+            <name>Power in from generation</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>Power from solar PV array.</definition>
+        </variable>
+        <variable><!--output-2-->
+            <order>6</order>
+            <name>Power to or from battery</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>Power to (&gt;0) or from (&lt;0) battery.</definition>
+        </variable>
+        <variable><!--output-3-->
+            <order>7</order>
+            <name>Power to load</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>Power to load.</definition>
+        </variable>
+        <variable><!--parameter-3-->
+            <order>8</order>
+            <name>Inverter efficiency</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>1</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.96</default>
+            <symbol>SN</symbol>
+            <definition>Inverter efficiency, DC to AC.</definition>
+        </variable>
+        <variable><!--parameter-4-->
+            <order>9</order>
+            <name>High limit on fractional state of charge (FSOC)</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>1</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1</default>
+            <symbol>SN</symbol>
+            <definition>High limit on fractional state of charge (FSOC). If FSOC is higher than this value, charging is
+                not allowed.
+            </definition>
+        </variable>
+        <variable><!--parameter-5-->
+            <order>10</order>
+            <name>Low limit on FSOC</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>1</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>Low limit on fractional state of charge (FSOC). If FSOC is lower than this value, discharging is
+                not allowed.
+            </definition>
+        </variable>
+        <variable><!--parameter-6-->
+            <order>11</order>
+            <name>Charge to discharge limit on FSOC</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>1</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.85</default>
+            <symbol>SN</symbol>
+            <definition>FB: Charge to discharge limit on fractional state of charge (FSOC). If FSOC &lt; FB and the
+                battery has been charging, then the battery must be on "total charge." On "total charge," first priority
+                is given to recharging the battery with any array output, rather than sending the output to the load
+                until FSOC &gt; FB. Use FB&lt;Low Limit on FSOC to disable "total charge".
+            </definition>
+        </variable>
+        <variable><!--parameter-7-->
+            <order>12</order>
+            <name>Inverter output power capacity</name>
+            <role>parameter</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>3600</default>
+            <symbol>SN</symbol>
+            <definition>Output power capacity of inverter.</definition>
+        </variable>
+        <variable><!--input-3-->
+            <order>13</order>
+            <name>Battery fractional state of charge</name>
+            <role>input</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1</default>
+            <symbol>SN</symbol>
+            <definition>Battery fractional State of Charge (FSOC). 0 means the battery is fully discharged. 1 means the
+                battery is fully charged.
+            </definition>
+        </variable>
+        <variable><!--output-4-->
+            <order>14</order>
+            <name>Dumped generated power</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>PV Array power "dumped" or not collected due to full battery.</definition>
+        </variable>
+        <variable><!--output-5-->
+            <order>15</order>
+            <name>Power from grid</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>Power from electricity grid.</definition>
+        </variable>
+        <variable><!--output-6-->
+            <order>16</order>
+            <name>Power loss</name>
+            <role>output</role>
+            <dimension>Power</dimension>
+            <unit>kJ/hr</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The power lost by the regulator/inverter due to its inefficiency.</definition>
+        </variable>
+    </variables>
+    <cycles/>
+    <source>.\SourceCode\Types\Type48.f90</source>
+</TrnsysModel>

@@ -7,3 +7,4 @@ sphinx>=2.1
 networkx
 recommonmark
 sphinx_rtd_theme
+pytest-xdist

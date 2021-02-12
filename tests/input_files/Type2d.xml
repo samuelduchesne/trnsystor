@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrnsysModel>
+    <object>ON/OFF Differential Controller; Successive Substitution</object>
+    <author>Contributors are listed in manuals</author>
+    <organization>Solar Energy Laboratory, University of Wisconsin - Madison</organization>
+    <editor>CMR</editor>
+    <creationDate>TRNSYS 7.5</creationDate>
+    <modifictionDate>May 2011</modifictionDate>
+    <mode>2</mode>
+    <validation>32</validation>
+    <icon>C:\Users\saleta\Dropbox\Polytechnique\Doc\software\pytrnsys\tests\input_files\Type2d.bmp</icon>
+    <type>2</type>
+    <maxInstance>9999</maxInstance>
+    <keywords/>
+    <details>The on/off differential controller generates a control function which can have a value of 1 or 0. The value
+        of the control signal is chosen as a function of the difference between upper and lower temperatures Th and Tl,
+        compared with two dead band temperature differences DTh and DTl. The new value of the control function depends
+        on the value of the input control function at the previous timestep. The controller is normally used with the
+        input control signal connected to the output control signal, providing a hysteresis effect. However,
+        control signals from different components may be used as the input control signal for this component if a more
+        detailed form of hysteresis is desired.
+
+        For safety considerations, a high limit cut-out is included with this controller. Regardless of the dead band
+        conditions, the control function will be set to zero if the high limit condition is exceeded. This controller is
+        not restricted to sensing temperatures, even though temperature notation is used. This controller instance
+        avoids reference to unit descriptions (degC, kg/hr, etc.) so that it can be used as a generic differential
+        controller.
+
+        This instance of the Type2 controller is intended for use with the standard TRNSYS SOLVER 0 (Successive
+        Substitution)
+    </details>
+    <comment>NOTE: This controller can only be used with Solver 0 (Successive substitution)
+
+
+    </comment>
+    <variables>
+        <variable><!--output-1-->
+            <order>1</order>
+            <name>Output control function</name>
+            <role>output</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>1.0</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>Output control function: The output control function may be ON (=1) or OFF (=0).</definition>
+        </variable>
+        <variable><!--input-1-->
+            <order>2</order>
+            <name>Upper input value</name>
+            <role>input</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>20.0</default>
+            <symbol>SN</symbol>
+            <definition>Upper input temperature: The temperature difference that will be compared to the dead bands is
+                Th (this input) minus Tl (Input 2). Refer to the abstract for more details.
+            </definition>
+        </variable>
+        <variable><!--input-2-->
+            <order>3</order>
+            <name>Lower input value</name>
+            <role>input</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>10.0</default>
+            <symbol>SN</symbol>
+            <definition>Lower input temperature: The temperature difference that will be compared to the dead bands is
+                Th (Input 1) minus Tl (this input). Refer to the abstract for more details.
+            </definition>
+        </variable>
+        <variable><!--input-3-->
+            <order>4</order>
+            <name>Monitoring value</name>
+            <role>input</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>20.0</default>
+            <symbol>SN</symbol>
+            <definition>Temperature to monitor for high-limit cut-out checking. The controller signal will be set to OFF
+                if this Input exceeds the high limit cut-out temperature the controller will remain OFF until this input
+                falls below the high limit cut-out.
+            </definition>
+        </variable>
+        <variable><!--input-4-->
+            <order>5</order>
+            <name>Input control function</name>
+            <role>input</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>1</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>Input control function: The input control function is used to promote controller stability
+                by the use of hysteresis. The control decision will be based on the dead band conditions and controller
+                state at the previous timestep (this input). In most applications, the output control signal from this
+                component is hooked up to this input.
+            </definition>
+        </variable>
+        <variable><!--parameter-1-->
+            <order>6</order>
+            <name>No. of oscillations</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>5</default>
+            <symbol>SN</symbol>
+            <definition>The number of control oscillations allowed in one timestep before the controller is "Stuck" so
+                that the calculations can be solved. This parameter should be set to an odd number so that short-term
+                results are not biased.
+
+                NOTE: Setting the number of oscillations to a positive number REQUIRES the use of solver 0 (Successive
+                substitution).
+            </definition>
+        </variable>
+        <variable><!--input-5-->
+            <order>7</order>
+            <name>Upper dead band</name>
+            <role>input</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>10.0</default>
+            <symbol>SN</symbol>
+            <definition>The upper dead band temperature difference is used in the following way in the controller:
+                The controller is ON if it was previously OFF and Th (Input 1) minus Tl (Input 2) is greater than the
+                upper dead band. Otherwise the controller is OFF.
+                The controller is ON if it was previously ON and Th (Input 1) minus Tl (Input 2) is greater than the
+                lower dead band. Otherwise the controller is OFF.
+                Upper dead band should be greater than the lower dead band in most applications.
+            </definition>
+        </variable>
+        <variable><!--input-6-->
+            <order>8</order>
+            <name>Lower dead band</name>
+            <role>input</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>2.0</default>
+            <symbol>SN</symbol>
+            <definition>The lower dead band temperature difference is used in the folllowing way in the controller:
+                The controller is ON if it was previously ON and Th (Input 1) minus T (Input 2) is greater than the
+                lower dead band. Otherwise the controller is OFF.
+                The controller is ON if it was previously OFF and Th (Input 1) minus Tl (Input 2) is greater than the
+                upper dead band. Otherwise the controller is OFF.
+                In most applications, the upper dead band should be greater than the lower dead band.
+            </definition>
+        </variable>
+        <variable><!--parameter-2-->
+            <order>9</order>
+            <name>High limit cut-out</name>
+            <role>parameter</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>100.0</default>
+            <symbol>SN</symbol>
+            <definition>High limit cut-out: The controller will set the controller to the OFF position, regardless of
+                the dead bands, if the temperature being monitored (Input 3) exceeds the high limit cut-out. The
+                controller will remain OFF until the monitored temperature falls below the high limit cut-out
+                temperature.
+            </definition>
+        </variable>
+    </variables>
+    <cycles/>
+    <source>.\SourceCode\Types\Type2.f90</source>
+</TrnsysModel>

@@ -3,8 +3,9 @@ lxml
 pint
 beautifulsoup4
 tabulate
-path.py
+path
 shapely
 numpy
 matplotlib
-sympy==1.4
+pandas==1.2.2  # because of io.common methods
+sympy==1.5.1  # because of specific expression parsing

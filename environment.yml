@@ -1,4 +1,4 @@
-name: pyTrnsysType
+name: pytrnsys
 channels:
   - defaults
 dependencies:

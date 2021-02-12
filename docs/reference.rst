@@ -3,72 +3,93 @@
 Reference
 =========
 
-TrnsysModel
------------
+Main Classes
+------------
 
-.. currentmodule:: pyTrnsysType.trnsymodel
+.. currentmodule:: pytrnsys
 .. autosummary::
     :template: autosummary.rst
     :nosignatures:
     :toctree: reference/
 
+    statement.Constant
+    statement.Equation
+    controlcards.ControlCards
+    deck.Deck
     TrnsysModel
-    MetaData
-    Component
-    ComponentCollection
-    ExternalFile
-    ExternalFileCollection
-    TypeVariable
-    TypeCycle
-    CycleCollection
-    Parameter
-    Input
-    Output
-    Derivative
-    VariableCollection
-    InputCollection
-    OutputCollection
-    ParameterCollection
-    StudioHeader
-    LinkStyle
-    AnchorPoint
+    typevariable.Parameter
+    typevariable.Input
+    typevariable.Output
+    typevariable.Derivative
 
-Statements
-----------
+Trnsys Statements
+-----------------
 
-.. currentmodule:: pyTrnsysType
+.. currentmodule:: pytrnsys.statement
 .. autosummary::
     :template: autosummary.rst
     :nosignatures:
     :toctree: reference
 
-    statements.Statement
-    statements.Version
-    statements.NaNCheck
-    statements.OverwriteCheck
-    statements.TimeReport
-    statements.List
-    statements.Simulation
-    statements.Tolerances
-    statements.Limits
-    statements.DFQ
-    statements.NoCheck
-    statements.NoList
-    statements.Map
-    statements.EqSolver
-    statements.End
-    statements.Solver
-    input_file.Constant
-    input_file.Equation
-    input_file.ControlCards
-    input_file.ConstantCollection
-    input_file.EquationCollection
+    Statement
+    Version
+    NaNCheck
+    OverwriteCheck
+    TimeReport
+    List
+    Simulation
+    Tolerances
+    Limits
+    DFQ
+    NoCheck
+    NoList
+    Map
+    EqSolver
+    End
+    Solver
+
+Helper Classes
+--------------
+
+.. currentmodule:: pytrnsys
+.. autosummary::
+    :template: autosummary.rst
+    :nosignatures:
+    :toctree: reference/
+
+    trnsysmodel.MetaData
+    component.Component
+    externalfile.ExternalFile
+    typevariable.TypeVariable
+    typecycle.TypeCycle
+    studio.StudioHeader
+    linkstyle.LinkStyle
+    anchorpoint.AnchorPoint
+
+Collections
+-----------
+
+.. currentmodule:: pytrnsys.collections
+.. autosummary::
+    :template: autosummary.rst
+    :nosignatures:
+    :toctree: reference
+
+    ConstantCollection
+    EquationCollection
+    ComponentCollection
+    ExternalFileCollection
+    CycleCollection
+    VariableCollection
+    InputCollection
+    OutputCollection
+    ParameterCollection
 
 
 Utils
 -----
 
-.. currentmodule:: pyTrnsysType.utils
+.. currentmodule:: pytrnsys.utils
 .. autosummary::
     :template: autosummary.rst
     :nosignatures:

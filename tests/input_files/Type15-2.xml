@@ -1,44 +1,1145 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<TrnsysModel><object>Weather Data Processor; Combines data reading, radiation processing and sky temperature calculations</object><author>Jeff Thornton  </author><organization>Thermal Energy System Specialists, LLC</organization><editor>TESS</editor><creationDate>TRNSYS v16</creationDate><modifictionDate>November 2011</modifictionDate><mode>4</mode><validation>34</validation><icon>C:\Users\saleta\Dropbox\Polytechnique\Doc\software\pyTrnsysType\tests\input_files\Type15-2.bmp</icon><type>15</type><maxInstance>9999</maxInstance><keywords/><details>This component serves the purpose of reading data at regular time intervals from an external weather data file, interpolating the data (including solar radiation for tilted surfaces) at timesteps of less than one hour, and making it available to other TRNSYS components.  The model also calculates several useful terms including the mains water temperature, the effective sky temperature, and the heating and cooling season forcing functions.
+<TrnsysModel>
+    <object>Weather Data Processor; Combines data reading, radiation processing and sky temperature calculations
+    </object>
+    <author>Jeff Thornton</author>
+    <organization>Thermal Energy System Specialists, LLC</organization>
+    <editor>TESS</editor>
+    <creationDate>TRNSYS v16</creationDate>
+    <modifictionDate>November 2011</modifictionDate>
+    <mode>4</mode>
+    <validation>34</validation>
+    <icon>C:\Users\saleta\Dropbox\Polytechnique\Doc\software\pytrnsys\tests\input_files\Type15-2.bmp</icon>
+    <type>15</type>
+    <maxInstance>9999</maxInstance>
+    <keywords/>
+    <details>This component serves the purpose of reading data at regular time intervals from an external weather data
+        file, interpolating the data (including solar radiation for tilted surfaces) at timesteps of less than one hour,
+        and making it available to other TRNSYS components. The model also calculates several useful terms including the
+        mains water temperature, the effective sky temperature, and the heating and cooling season forcing functions.
 
-This component reads weather data files in the following formats:
+        This component reads weather data files in the following formats:
 
-Typical Meteorological Year (TMY) format (.TMY)
-Typical Meteorological Year Version 2 (TMY2) format (.TM2)
-Typical Meteorological Year Version 3 (TMY3) format (.TMY3)
-International Weather for Energy Calculations (IWEC) format
-Canadian Weather for Energy Calculations (CWEC) format
-Energy+ format  (.EPW)
-Meteonorm files for TRNSYS (.TM2)
-German 2004 and 2010 TRY formats</details><variables><variable><!--parameter-1--><order>1</order><name>File Type</name><role>parameter</role><dimension>Dimensionless</dimension><unit>-</unit><type>integer</type><min>2</min><max>2</max><boundaries>[ ; ]</boundaries><default>2</default><symbol>SN</symbol><definition>The type of file which is to be read: 1 = TMY format, 2 = TMY2 format, 3 = Energy+ format, 4 = IWEC format, 5 = CWEC format, 6=Metoenorm for TRNSYS format, 7 = TMY3 format, 8 = German TRY 2004 format, 8 = German TRY 2010 format</definition></variable><variable><!--parameter-2--><order>2</order><name>Logical unit</name><role>parameter</role><dimension>Dimensionless</dimension><unit>-</unit><type>integer</type><min>10</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>30</default><symbol>SN</symbol><definition>The logical unit through which the data reader will read the external weather file.
-</definition></variable><variable><!--output-1--><order>3</order><name>Dry bulb temperature</name><role>output</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The dry bulb (ambient) temperature.  (Interpolated at timestep less
-than one hour)
-</definition></variable><variable><!--output-2--><order>4</order><name>Dew point temperature</name><role>output</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The dew point temperature of the ambient air.
+        Typical Meteorological Year (TMY) format (.TMY)
+        Typical Meteorological Year Version 2 (TMY2) format (.TM2)
+        Typical Meteorological Year Version 3 (TMY3) format (.TMY3)
+        International Weather for Energy Calculations (IWEC) format
+        Canadian Weather for Energy Calculations (CWEC) format
+        Energy+ format (.EPW)
+        Meteonorm files for TRNSYS (.TM2)
+        German 2004 and 2010 TRY formats
+    </details>
+    <variables>
+        <variable><!--parameter-1-->
+            <order>1</order>
+            <name>File Type</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>2</min>
+            <max>2</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>2</default>
+            <symbol>SN</symbol>
+            <definition>The type of file which is to be read: 1 = TMY format, 2 = TMY2 format, 3 = Energy+ format, 4 =
+                IWEC format, 5 = CWEC format, 6=Metoenorm for TRNSYS format, 7 = TMY3 format, 8 = German TRY 2004
+                format, 8 = German TRY 2010 format
+            </definition>
+        </variable>
+        <variable><!--parameter-2-->
+            <order>2</order>
+            <name>Logical unit</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>10</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>30</default>
+            <symbol>SN</symbol>
+            <definition>The logical unit through which the data reader will read the external weather file.
+            </definition>
+        </variable>
+        <variable><!--output-1-->
+            <order>3</order>
+            <name>Dry bulb temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The dry bulb (ambient) temperature. (Interpolated at timestep less
+                than one hour)
+            </definition>
+        </variable>
+        <variable><!--output-2-->
+            <order>4</order>
+            <name>Dew point temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The dew point temperature of the ambient air.
 
-</definition></variable><variable><!--output-3--><order>5</order><name>Wet bulb temperature</name><role>output</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>10.0</default><symbol>SN</symbol><definition>The wet bulb temperature of the ambient air.</definition></variable><variable><!--output-4--><order>6</order><name>Effective sky temperature</name><role>output</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The effective sky temperature for long wave radiation calculations.</definition></variable><variable><!--output-5--><order>7</order><name>Mains water temperature</name><role>output</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>10.0</default><symbol>SN</symbol><definition>The temperature of the water available from the water main.</definition></variable><variable><!--output-6--><order>8</order><name>Humidity ratio</name><role>output</role><dimension>dimensionless</dimension><unit>-</unit><type>real</type><min>0.0</min><max>0.5</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The absolute humidity ratio of the ambient air.  (Interpolated at
-timesteps of less than one hour)
-</definition></variable><variable><!--output-7--><order>9</order><name>Percent relative humidity</name><role>output</role><dimension>Percentage</dimension><unit>% (base 100)</unit><type>real</type><min>0.0</min><max>100.0</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The relative humidity of the ambient air (percentage).
-</definition></variable><variable><!--output-8--><order>10</order><name>Wind velocity</name><role>output</role><dimension>Velocity</dimension><unit>m/s</unit><type>real</type><min>0.0</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The velocity of the wind.  (Interpolated at timesteps of less than
-one hour)
-</definition></variable><variable><!--output-9--><order>11</order><name>Wind direction</name><role>output</role><dimension>Direction (Angle)</dimension><unit>degrees</unit><type>real</type><min>0.0</min><max>360.0</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The direction from which the wind originates. (Interpolated for
-timesteps of less than one hour)
+            </definition>
+        </variable>
+        <variable><!--output-3-->
+            <order>5</order>
+            <name>Wet bulb temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>10.0</default>
+            <symbol>SN</symbol>
+            <definition>The wet bulb temperature of the ambient air.</definition>
+        </variable>
+        <variable><!--output-4-->
+            <order>6</order>
+            <name>Effective sky temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The effective sky temperature for long wave radiation calculations.</definition>
+        </variable>
+        <variable><!--output-5-->
+            <order>7</order>
+            <name>Mains water temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>10.0</default>
+            <symbol>SN</symbol>
+            <definition>The temperature of the water available from the water main.</definition>
+        </variable>
+        <variable><!--output-6-->
+            <order>8</order>
+            <name>Humidity ratio</name>
+            <role>output</role>
+            <dimension>dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>0.5</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The absolute humidity ratio of the ambient air. (Interpolated at
+                timesteps of less than one hour)
+            </definition>
+        </variable>
+        <variable><!--output-7-->
+            <order>9</order>
+            <name>Percent relative humidity</name>
+            <role>output</role>
+            <dimension>Percentage</dimension>
+            <unit>% (base 100)</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>100.0</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The relative humidity of the ambient air (percentage).
+            </definition>
+        </variable>
+        <variable><!--output-8-->
+            <order>10</order>
+            <name>Wind velocity</name>
+            <role>output</role>
+            <dimension>Velocity</dimension>
+            <unit>m/s</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The velocity of the wind. (Interpolated at timesteps of less than
+                one hour)
+            </definition>
+        </variable>
+        <variable><!--output-9-->
+            <order>11</order>
+            <name>Wind direction</name>
+            <role>output</role>
+            <dimension>Direction (Angle)</dimension>
+            <unit>degrees</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>360.0</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The direction from which the wind originates. (Interpolated for
+                timesteps of less than one hour)
 
-  0 = North
- 90 = East
-180 = South
-270 = West
-</definition></variable><variable><!--output-10--><order>12</order><name>Atmospheric pressure</name><role>output</role><dimension>Pressure</dimension><unit>atm</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol></variable><variable><!--output-11--><order>13</order><name>Total sky cover</name><role>output</role><dimension>Percentage</dimension><unit>% (base 100)</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol></variable><variable><!--output-12--><order>14</order><name>Opaque sky cover</name><role>output</role><dimension>Percentage</dimension><unit>% (base 100)</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol></variable><variable><!--output-13--><order>15</order><name>Extraterrestrial solar radiation</name><role>output</role><dimension>Flux</dimension><unit>kJ/hr.m^2</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The extraterrestrial radiation on a horizontal surface.</definition></variable><variable><!--output-14--><order>16</order><name>Global horizontal radiation (not interpolated)</name><role>output</role><dimension>Flux</dimension><unit>kJ/hr.m^2</unit><type>real</type><min>0.0</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The global solar radiation on a horizontal surface integrated over the previous hour (not interpolated at timesteps less than one hour).  For global horizontal solar radiation define a horizontal surface and use the radiation outputs for that surface.
-</definition></variable><variable><!--output-15--><order>17</order><name>Direct normal radiation (not interpolated)</name><role>output</role><dimension>Flux</dimension><unit>kJ/hr.m^2</unit><type>real</type><min>0.0</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The direct normal solar radiation integrated over the previous hour (not interpolated at timesteps less than one hour).  For interpolated direct normal radiation define a two-axis tracking surface and use the beam radiation outputs for that surface.</definition></variable><variable><!--output-16--><order>18</order><name>Solar zenith angle</name><role>output</role><dimension>Direction (Angle)</dimension><unit>degrees</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The solar zenith angle.</definition></variable><variable><!--output-17--><order>19</order><name>Solar azimuth angle</name><role>output</role><dimension>Direction (Angle)</dimension><unit>degrees</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The solar azimuth angle.</definition></variable><variable><!--output-18--><order>20</order><name>Total horizontal radiation</name><role>output</role><dimension>Flux</dimension><unit>kJ/hr.m^2</unit><type>real</type><min>0.0</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The total radiation (beam + diffuse) incident upon a horizontal surface.
-</definition></variable><variable><!--output-19--><order>21</order><name>Horizontal beam radiation</name><role>output</role><dimension>Flux</dimension><unit>kJ/hr.m^2</unit><type>real</type><min>0.0</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The beam radiation incident upon a horizontal surface.
-</definition></variable><variable><!--output-20--><order>22</order><name>Sky diffuse radiation on the horizontal</name><role>output</role><dimension>Flux</dimension><unit>kJ/hr.m^2</unit><type>real</type><min>0.0</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The sky diffuse incident on a horizontal surface.
-</definition></variable><variable><!--output-21--><order>23</order><name>Ground diffuse radiation on the horizontal</name><role>output</role><dimension>Flux</dimension><unit>kJ/hr.m^2</unit><type>real</type><min>0.0</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The ground-reflected diffuse incident on a horizontal surface.
-</definition></variable><variable><!--output-22--><order>24</order><name>Total diffuse radiation on the horizontal</name><role>output</role><dimension>Flux</dimension><unit>kJ/hr.m^2</unit><type>real</type><min>0.0</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The total diffuse radiation (sky + ground reflected) incident upon a horizontal surface.
-</definition></variable><variable><!--output-23--><order>25</order><name>Angle of incidence for horizontal</name><role>output</role><dimension>Direction (Angle)</dimension><unit>degrees</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The angle of incidence for the beam radiation relative to a horizontal surface.
-</definition></variable><variable><!--output-24--><order>26</order><name>Total tilted surface radiation for surface</name><role>output</role><dimension>Flux</dimension><unit>kJ/hr.m^2</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The total (beam + diffuse) radiation incident upon the specified surface.</definition></variable><variable><!--output-25--><order>27</order><name>Beam radiation for surface</name><role>output</role><dimension>Flux</dimension><unit>kJ/hr.m^2</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The beam radiation incident upon the specified surface.</definition></variable><variable><!--output-26--><order>28</order><name>Sky diffuse radiation for surface</name><role>output</role><dimension>Flux</dimension><unit>kJ/hr.m^2</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The incident sky diffuse radiation on the specified surface.</definition></variable><variable><!--output-27--><order>29</order><name>Ground reflected diffuse radiation for surface</name><role>output</role><dimension>Flux</dimension><unit>kJ/hr.m^2</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The incident ground reflected diffuse radiation on the specified surface.</definition></variable><variable><!--output-28--><order>30</order><name>Total diffuse radiation for surface</name><role>output</role><dimension>Flux</dimension><unit>kJ/hr.m^2</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The incident diffuse radiation (ground reflected + sky) on the specified surface.</definition></variable><variable><!--output-29--><order>31</order><name>Angle of incidence for surface</name><role>output</role><dimension>Direction (Angle)</dimension><unit>degrees</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The angle of incidence between incident beam radiation and the specified surface.</definition></variable><variable><!--output-30--><order>32</order><name>Slope of surface</name><role>output</role><dimension>Direction (Angle)</dimension><unit>degrees</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The slope of the specified surface.</definition></variable><variable><!--output-31--><order>33</order><name>Azimuth of surface</name><role>output</role><dimension>Direction (Angle)</dimension><unit>degrees</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The azimuth of the specified surface.</definition></variable><variable><!--output-32--><order>34</order><name>Latitude</name><role>output</role><dimension>Direction (Angle)</dimension><unit>degrees</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The latitude of the city for the chosen weather file.</definition></variable><variable><!--output-33--><order>35</order><name>Longitude</name><role>output</role><dimension>Direction (Angle)</dimension><unit>degrees</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The longitude of the city represented by the weather data file.</definition></variable><variable><!--output-34--><order>36</order><name>Shift in solar time hour angle</name><role>output</role><dimension>Direction (Angle)</dimension><unit>degrees</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The shift in solar time hour angle required to proces the weather data. This value is calculated by subtracting the longitude of the weather location from the standard longitude for the location.</definition></variable><variable><!--output-35--><order>37</order><name>Site elevation</name><role>output</role><dimension>Length</dimension><unit>m</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The elevation of the city above sea level.</definition></variable><variable><!--output-36--><order>38</order><name>Heating season indicator</name><role>output</role><dimension>Dimensionless</dimension><unit>-</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>This output indicates whether heating devices are typically enabled for the month: 1= enabled, 0 = disabled.</definition></variable><variable><!--output-37--><order>39</order><name>Cooling season indicator</name><role>output</role><dimension>Dimensionless</dimension><unit>-</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>This output indicates whether cooling devices are typically enabled for the month: 1= enabled, 0 = disabled.</definition></variable><variable><!--output-38--><order>40</order><name>Monthly average temperature</name><role>output</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The average temperature of the ambient air in the current month.</definition></variable><variable><!--output-39--><order>41</order><name>Monthly minimum temperature</name><role>output</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The minimum temperature of the ambient air in the current month.</definition></variable><variable><!--output-40--><order>42</order><name>Monthly maximum temperature</name><role>output</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The maximum temperature of the ambient air in the current month.</definition></variable><variable><!--output-41--><order>43</order><name>Annual average temperature</name><role>output</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The average temperature of the ambient air over the year.</definition></variable><variable><!--output-42--><order>44</order><name>Annual minimum temperature</name><role>output</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The minimum temperature of the ambient air over the year.</definition></variable><variable><!--output-43--><order>45</order><name>Annual maximum temperature</name><role>output</role><dimension>Temperature</dimension><unit>C</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The maximum temperature of the ambient air over the year.</definition></variable><variable><!--output-44--><order>46</order><name>Global horizontal illuminance</name><role>output</role><dimension>Illuminance</dimension><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol></variable><variable><!--output-45--><order>47</order><name>Direct normal illuminance</name><role>output</role><dimension>Illuminance</dimension><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol></variable><variable><!--output-46--><order>48</order><name>Diffuse illuminance on horizontal</name><role>output</role><dimension>Illuminance</dimension><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol></variable><variable><!--output-47--><order>49</order><name>Zenith luminance</name><role>output</role><dimension>Luminance</dimension><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol></variable><variable><!--output-48--><order>50</order><name>Horizontal visibility</name><role>output</role><dimension>Length</dimension><unit>km</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol></variable><variable><!--output-49--><order>51</order><name>Ceiling height</name><role>output</role><dimension>Length</dimension><unit>m</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol></variable><variable><!--output-50--><order>52</order><name>Precipitable water</name><role>output</role><dimension>Length</dimension><unit>mm</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol></variable><variable><!--output-51--><order>53</order><name>Aerosol optical depth</name><role>output</role><dimension>any</dimension><unit>any</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol></variable><variable><!--output-52--><order>54</order><name>Snow depth</name><role>output</role><dimension>Length</dimension><unit>cm</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol></variable><variable><!--output-53--><order>55</order><name>Days since last snowfall</name><role>output</role><dimension>Time</dimension><unit>day</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol></variable><variable><!--output-54--><order>56</order><name>Month</name><role>output</role><dimension>Dimensionless</dimension><unit>-</unit><type>integer</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The month of the year.
+                0 = North
+                90 = East
+                180 = South
+                270 = West
+            </definition>
+        </variable>
+        <variable><!--output-10-->
+            <order>12</order>
+            <name>Atmospheric pressure</name>
+            <role>output</role>
+            <dimension>Pressure</dimension>
+            <unit>atm</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-11-->
+            <order>13</order>
+            <name>Total sky cover</name>
+            <role>output</role>
+            <dimension>Percentage</dimension>
+            <unit>% (base 100)</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-12-->
+            <order>14</order>
+            <name>Opaque sky cover</name>
+            <role>output</role>
+            <dimension>Percentage</dimension>
+            <unit>% (base 100)</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-13-->
+            <order>15</order>
+            <name>Extraterrestrial solar radiation</name>
+            <role>output</role>
+            <dimension>Flux</dimension>
+            <unit>kJ/hr.m^2</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The extraterrestrial radiation on a horizontal surface.</definition>
+        </variable>
+        <variable><!--output-14-->
+            <order>16</order>
+            <name>Global horizontal radiation (not interpolated)</name>
+            <role>output</role>
+            <dimension>Flux</dimension>
+            <unit>kJ/hr.m^2</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The global solar radiation on a horizontal surface integrated over the previous hour (not
+                interpolated at timesteps less than one hour). For global horizontal solar radiation define a horizontal
+                surface and use the radiation outputs for that surface.
+            </definition>
+        </variable>
+        <variable><!--output-15-->
+            <order>17</order>
+            <name>Direct normal radiation (not interpolated)</name>
+            <role>output</role>
+            <dimension>Flux</dimension>
+            <unit>kJ/hr.m^2</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The direct normal solar radiation integrated over the previous hour (not interpolated at
+                timesteps less than one hour). For interpolated direct normal radiation define a two-axis tracking
+                surface and use the beam radiation outputs for that surface.
+            </definition>
+        </variable>
+        <variable><!--output-16-->
+            <order>18</order>
+            <name>Solar zenith angle</name>
+            <role>output</role>
+            <dimension>Direction (Angle)</dimension>
+            <unit>degrees</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The solar zenith angle.</definition>
+        </variable>
+        <variable><!--output-17-->
+            <order>19</order>
+            <name>Solar azimuth angle</name>
+            <role>output</role>
+            <dimension>Direction (Angle)</dimension>
+            <unit>degrees</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The solar azimuth angle.</definition>
+        </variable>
+        <variable><!--output-18-->
+            <order>20</order>
+            <name>Total horizontal radiation</name>
+            <role>output</role>
+            <dimension>Flux</dimension>
+            <unit>kJ/hr.m^2</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The total radiation (beam + diffuse) incident upon a horizontal surface.
+            </definition>
+        </variable>
+        <variable><!--output-19-->
+            <order>21</order>
+            <name>Horizontal beam radiation</name>
+            <role>output</role>
+            <dimension>Flux</dimension>
+            <unit>kJ/hr.m^2</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The beam radiation incident upon a horizontal surface.
+            </definition>
+        </variable>
+        <variable><!--output-20-->
+            <order>22</order>
+            <name>Sky diffuse radiation on the horizontal</name>
+            <role>output</role>
+            <dimension>Flux</dimension>
+            <unit>kJ/hr.m^2</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The sky diffuse incident on a horizontal surface.
+            </definition>
+        </variable>
+        <variable><!--output-21-->
+            <order>23</order>
+            <name>Ground diffuse radiation on the horizontal</name>
+            <role>output</role>
+            <dimension>Flux</dimension>
+            <unit>kJ/hr.m^2</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The ground-reflected diffuse incident on a horizontal surface.
+            </definition>
+        </variable>
+        <variable><!--output-22-->
+            <order>24</order>
+            <name>Total diffuse radiation on the horizontal</name>
+            <role>output</role>
+            <dimension>Flux</dimension>
+            <unit>kJ/hr.m^2</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The total diffuse radiation (sky + ground reflected) incident upon a horizontal surface.
+            </definition>
+        </variable>
+        <variable><!--output-23-->
+            <order>25</order>
+            <name>Angle of incidence for horizontal</name>
+            <role>output</role>
+            <dimension>Direction (Angle)</dimension>
+            <unit>degrees</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The angle of incidence for the beam radiation relative to a horizontal surface.
+            </definition>
+        </variable>
+        <variable><!--output-24-->
+            <order>26</order>
+            <name>Total tilted surface radiation for surface</name>
+            <role>output</role>
+            <dimension>Flux</dimension>
+            <unit>kJ/hr.m^2</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The total (beam + diffuse) radiation incident upon the specified surface.</definition>
+        </variable>
+        <variable><!--output-25-->
+            <order>27</order>
+            <name>Beam radiation for surface</name>
+            <role>output</role>
+            <dimension>Flux</dimension>
+            <unit>kJ/hr.m^2</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The beam radiation incident upon the specified surface.</definition>
+        </variable>
+        <variable><!--output-26-->
+            <order>28</order>
+            <name>Sky diffuse radiation for surface</name>
+            <role>output</role>
+            <dimension>Flux</dimension>
+            <unit>kJ/hr.m^2</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The incident sky diffuse radiation on the specified surface.</definition>
+        </variable>
+        <variable><!--output-27-->
+            <order>29</order>
+            <name>Ground reflected diffuse radiation for surface</name>
+            <role>output</role>
+            <dimension>Flux</dimension>
+            <unit>kJ/hr.m^2</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The incident ground reflected diffuse radiation on the specified surface.</definition>
+        </variable>
+        <variable><!--output-28-->
+            <order>30</order>
+            <name>Total diffuse radiation for surface</name>
+            <role>output</role>
+            <dimension>Flux</dimension>
+            <unit>kJ/hr.m^2</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The incident diffuse radiation (ground reflected + sky) on the specified surface.</definition>
+        </variable>
+        <variable><!--output-29-->
+            <order>31</order>
+            <name>Angle of incidence for surface</name>
+            <role>output</role>
+            <dimension>Direction (Angle)</dimension>
+            <unit>degrees</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The angle of incidence between incident beam radiation and the specified surface.</definition>
+        </variable>
+        <variable><!--output-30-->
+            <order>32</order>
+            <name>Slope of surface</name>
+            <role>output</role>
+            <dimension>Direction (Angle)</dimension>
+            <unit>degrees</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The slope of the specified surface.</definition>
+        </variable>
+        <variable><!--output-31-->
+            <order>33</order>
+            <name>Azimuth of surface</name>
+            <role>output</role>
+            <dimension>Direction (Angle)</dimension>
+            <unit>degrees</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The azimuth of the specified surface.</definition>
+        </variable>
+        <variable><!--output-32-->
+            <order>34</order>
+            <name>Latitude</name>
+            <role>output</role>
+            <dimension>Direction (Angle)</dimension>
+            <unit>degrees</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The latitude of the city for the chosen weather file.</definition>
+        </variable>
+        <variable><!--output-33-->
+            <order>35</order>
+            <name>Longitude</name>
+            <role>output</role>
+            <dimension>Direction (Angle)</dimension>
+            <unit>degrees</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The longitude of the city represented by the weather data file.</definition>
+        </variable>
+        <variable><!--output-34-->
+            <order>36</order>
+            <name>Shift in solar time hour angle</name>
+            <role>output</role>
+            <dimension>Direction (Angle)</dimension>
+            <unit>degrees</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The shift in solar time hour angle required to proces the weather data. This value is calculated
+                by subtracting the longitude of the weather location from the standard longitude for the location.
+            </definition>
+        </variable>
+        <variable><!--output-35-->
+            <order>37</order>
+            <name>Site elevation</name>
+            <role>output</role>
+            <dimension>Length</dimension>
+            <unit>m</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The elevation of the city above sea level.</definition>
+        </variable>
+        <variable><!--output-36-->
+            <order>38</order>
+            <name>Heating season indicator</name>
+            <role>output</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>This output indicates whether heating devices are typically enabled for the month: 1= enabled, 0
+                = disabled.
+            </definition>
+        </variable>
+        <variable><!--output-37-->
+            <order>39</order>
+            <name>Cooling season indicator</name>
+            <role>output</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>This output indicates whether cooling devices are typically enabled for the month: 1= enabled, 0
+                = disabled.
+            </definition>
+        </variable>
+        <variable><!--output-38-->
+            <order>40</order>
+            <name>Monthly average temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The average temperature of the ambient air in the current month.</definition>
+        </variable>
+        <variable><!--output-39-->
+            <order>41</order>
+            <name>Monthly minimum temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The minimum temperature of the ambient air in the current month.</definition>
+        </variable>
+        <variable><!--output-40-->
+            <order>42</order>
+            <name>Monthly maximum temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The maximum temperature of the ambient air in the current month.</definition>
+        </variable>
+        <variable><!--output-41-->
+            <order>43</order>
+            <name>Annual average temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The average temperature of the ambient air over the year.</definition>
+        </variable>
+        <variable><!--output-42-->
+            <order>44</order>
+            <name>Annual minimum temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The minimum temperature of the ambient air over the year.</definition>
+        </variable>
+        <variable><!--output-43-->
+            <order>45</order>
+            <name>Annual maximum temperature</name>
+            <role>output</role>
+            <dimension>Temperature</dimension>
+            <unit>C</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The maximum temperature of the ambient air over the year.</definition>
+        </variable>
+        <variable><!--output-44-->
+            <order>46</order>
+            <name>Global horizontal illuminance</name>
+            <role>output</role>
+            <dimension>Illuminance</dimension>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-45-->
+            <order>47</order>
+            <name>Direct normal illuminance</name>
+            <role>output</role>
+            <dimension>Illuminance</dimension>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-46-->
+            <order>48</order>
+            <name>Diffuse illuminance on horizontal</name>
+            <role>output</role>
+            <dimension>Illuminance</dimension>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-47-->
+            <order>49</order>
+            <name>Zenith luminance</name>
+            <role>output</role>
+            <dimension>Luminance</dimension>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-48-->
+            <order>50</order>
+            <name>Horizontal visibility</name>
+            <role>output</role>
+            <dimension>Length</dimension>
+            <unit>km</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-49-->
+            <order>51</order>
+            <name>Ceiling height</name>
+            <role>output</role>
+            <dimension>Length</dimension>
+            <unit>m</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-50-->
+            <order>52</order>
+            <name>Precipitable water</name>
+            <role>output</role>
+            <dimension>Length</dimension>
+            <unit>mm</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-51-->
+            <order>53</order>
+            <name>Aerosol optical depth</name>
+            <role>output</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-52-->
+            <order>54</order>
+            <name>Snow depth</name>
+            <role>output</role>
+            <dimension>Length</dimension>
+            <unit>cm</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-53-->
+            <order>55</order>
+            <name>Days since last snowfall</name>
+            <role>output</role>
+            <dimension>Time</dimension>
+            <unit>day</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+        </variable>
+        <variable><!--output-54-->
+            <order>56</order>
+            <name>Month</name>
+            <role>output</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The month of the year.
 
-</definition></variable><variable><!--output-55--><order>57</order><name>Hour of the month</name><role>output</role><dimension>Time</dimension><unit>hr</unit><type>real</type><min>0.0</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The hour of the month.
-</definition></variable><variable><!--output-56--><order>58</order><name>Hour of the day</name><role>output</role><dimension>Time</dimension><unit>hr</unit><type>real</type><min>0.0</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The hour of the day.</definition></variable><variable><!--output-57--><order>59</order><name>Day of the year</name><role>output</role><dimension>Dimensionless</dimension><unit>-</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The day of the year.</definition></variable><variable><!--output-58--><order>60</order><name>Day of the month</name><role>output</role><dimension>Dimensionless</dimension><unit>-</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The day of the current month.</definition></variable><variable><!--output-59--><order>61</order><name>Ground reflectance</name><role>output</role><dimension>Percentage</dimension><unit>Fraction</unit><type>real</type><min>-Inf</min><max>+Inf</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The reflectance of the ground under current conditions.</definition></variable><variable><!--parameter-3--><order>62</order><name>Tilted Surface Radiation Mode</name><role>parameter</role><dimension>Dimensionless</dimension><unit>-</unit><type>integer</type><min>1</min><max>5</max><boundaries>[ ; ]</boundaries><default>5</default><symbol>SN</symbol><definition>The radiation processing mode that will be used to calculate the radiation components on a tilited surface: 1= Isotropic Sky Model, 2 = Hay and Davies Model, 3 = Reindl Model, 4 = Perez 1988 Model.  5 = Perez 1999 Model. Refer to the documentation for the Type 16 model for more information.</definition></variable><variable><!--parameter-4--><order>63</order><name>Ground reflectance - no snow</name><role>parameter</role><dimension>Dimensionless</dimension><unit>-</unit><type>real</type><min>0.</min><max>1.</max><boundaries>[ ; ]</boundaries><default>0.2</default><symbol>SN</symbol><definition>The ground reflectance for the periods of the year in which there is no snow cover.</definition></variable><variable><!--parameter-5--><order>64</order><name>Ground reflectance - snow cover</name><role>parameter</role><dimension>Dimensionless</dimension><unit>-</unit><type>real</type><min>0.</min><max>1.</max><boundaries>[ ; ]</boundaries><default>0.7</default><symbol>SN</symbol><definition>The ground reflectance for the periods of the year in which there is snow cover.</definition></variable><variable><!--parameter-6--><order>65</order><name>Number of surfaces</name><role>parameter</role><dimension>Dimensionless</dimension><unit>-</unit><type>real</type><min>1</min><max>99</max><boundaries>[ ; ]</boundaries><default>1</default><symbol>SN</symbol><definition>The number of surfaces for which tilted surface radiation calculations will be performed.</definition></variable><variable><!--parameter-7--><order>66</order><name>Tracking mode</name><role>parameter</role><dimension>Dimensionless</dimension><unit>-</unit><type>integer</type><min>1</min><max>4</max><boundaries>[ ; ]</boundaries><default>1</default><symbol>SN</symbol><definition>The type of surface for the radiation calculations: 1 = fixed surface (no tracking), 2 = the surface rotates about a vertical axis in order to track the sun, 3 = the surface rotates about a fixed (user-defined) axis, 4 = the surface 2-axis tracks such that the beam radiation is always normal to the surface.</definition></variable><variable><!--parameter-8--><order>67</order><name>Slope of surface</name><role>parameter</role><dimension>Direction (Angle)</dimension><unit>degrees</unit><type>real</type><min>-360</min><max>360</max><boundaries>[ ; ]</boundaries><default>0.0</default><symbol>SN</symbol><definition>The slope of the surface or axis of rotation.  For tracking mode 1, this input is the fixed slope of the surface.  For tracking mode 2, this input is the slope of surface (which does not change as the collector rotates).  For tracking mode 3, this slope is the slope of the axis around which the collector rotates.  For tracking mode 4 this input is not used.
+            </definition>
+        </variable>
+        <variable><!--output-55-->
+            <order>57</order>
+            <name>Hour of the month</name>
+            <role>output</role>
+            <dimension>Time</dimension>
+            <unit>hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The hour of the month.
+            </definition>
+        </variable>
+        <variable><!--output-56-->
+            <order>58</order>
+            <name>Hour of the day</name>
+            <role>output</role>
+            <dimension>Time</dimension>
+            <unit>hr</unit>
+            <type>real</type>
+            <min>0.0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The hour of the day.</definition>
+        </variable>
+        <variable><!--output-57-->
+            <order>59</order>
+            <name>Day of the year</name>
+            <role>output</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The day of the year.</definition>
+        </variable>
+        <variable><!--output-58-->
+            <order>60</order>
+            <name>Day of the month</name>
+            <role>output</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The day of the current month.</definition>
+        </variable>
+        <variable><!--output-59-->
+            <order>61</order>
+            <name>Ground reflectance</name>
+            <role>output</role>
+            <dimension>Percentage</dimension>
+            <unit>Fraction</unit>
+            <type>real</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The reflectance of the ground under current conditions.</definition>
+        </variable>
+        <variable><!--parameter-3-->
+            <order>62</order>
+            <name>Tilted Surface Radiation Mode</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>5</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>5</default>
+            <symbol>SN</symbol>
+            <definition>The radiation processing mode that will be used to calculate the radiation components on a
+                tilited surface: 1= Isotropic Sky Model, 2 = Hay and Davies Model, 3 = Reindl Model, 4 = Perez 1988
+                Model. 5 = Perez 1999 Model. Refer to the documentation for the Type 16 model for more information.
+            </definition>
+        </variable>
+        <variable><!--parameter-4-->
+            <order>63</order>
+            <name>Ground reflectance - no snow</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.</min>
+            <max>1.</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.2</default>
+            <symbol>SN</symbol>
+            <definition>The ground reflectance for the periods of the year in which there is no snow cover.</definition>
+        </variable>
+        <variable><!--parameter-5-->
+            <order>64</order>
+            <name>Ground reflectance - snow cover</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>0.</min>
+            <max>1.</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.7</default>
+            <symbol>SN</symbol>
+            <definition>The ground reflectance for the periods of the year in which there is snow cover.</definition>
+        </variable>
+        <variable><!--parameter-6-->
+            <order>65</order>
+            <name>Number of surfaces</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>real</type>
+            <min>1</min>
+            <max>99</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1</default>
+            <symbol>SN</symbol>
+            <definition>The number of surfaces for which tilted surface radiation calculations will be performed.
+            </definition>
+        </variable>
+        <variable><!--parameter-7-->
+            <order>66</order>
+            <name>Tracking mode</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>1</min>
+            <max>4</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1</default>
+            <symbol>SN</symbol>
+            <definition>The type of surface for the radiation calculations: 1 = fixed surface (no tracking), 2 = the
+                surface rotates about a vertical axis in order to track the sun, 3 = the surface rotates about a fixed
+                (user-defined) axis, 4 = the surface 2-axis tracks such that the beam radiation is always normal to the
+                surface.
+            </definition>
+        </variable>
+        <variable><!--parameter-8-->
+            <order>67</order>
+            <name>Slope of surface</name>
+            <role>parameter</role>
+            <dimension>Direction (Angle)</dimension>
+            <unit>degrees</unit>
+            <type>real</type>
+            <min>-360</min>
+            <max>360</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0.0</default>
+            <symbol>SN</symbol>
+            <definition>The slope of the surface or axis of rotation. For tracking mode 1, this input is the fixed slope
+                of the surface. For tracking mode 2, this input is the slope of surface (which does not change as the
+                collector rotates). For tracking mode 3, this slope is the slope of the axis around which the collector
+                rotates. For tracking mode 4 this input is not used.
 
-Slopes are defined positive when tilted towards the azimuth: 0 = horizontal, 90 = vertical and facing the azimuth, -90 = vertical and facing away from the axis.</definition></variable><variable><!--parameter-9--><order>68</order><name>Azimuth of surface</name><role>parameter</role><dimension>Direction (Angle)</dimension><unit>degrees</unit><type>real</type><min>-360</min><max>360</max><boundaries>[ ; ]</boundaries><default>0</default><symbol>SN</symbol><definition>The azimuth of the surface or axis of rotation.  For tracking mode 1, this input is the fixed azimuth of the surface.  For tracking mode 2, this input is not used.  For tracking mode 3, this input is the azimuth of the axis around which the collector rotates.  For tracking mode 4 this input is not used.
+                Slopes are defined positive when tilted towards the azimuth: 0 = horizontal, 90 = vertical and facing
+                the azimuth, -90 = vertical and facing away from the axis.
+            </definition>
+        </variable>
+        <variable><!--parameter-9-->
+            <order>68</order>
+            <name>Azimuth of surface</name>
+            <role>parameter</role>
+            <dimension>Direction (Angle)</dimension>
+            <unit>degrees</unit>
+            <type>real</type>
+            <min>-360</min>
+            <max>360</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>The azimuth of the surface or axis of rotation. For tracking mode 1, this input is the fixed
+                azimuth of the surface. For tracking mode 2, this input is not used. For tracking mode 3, this input is
+                the azimuth of the axis around which the collector rotates. For tracking mode 4 this input is not used.
 
-Azimuths are defined positive when facing the equator: 0 = facing the equator,  90 = facing west, -90 = facing east.</definition></variable></variables><cycles><cycle><role>output</role><firstRow>1</firstRow><lastRow>59</lastRow><cycles><cycle><role>output</role><firstRow>24</firstRow><lastRow>24</lastRow><paramName>Number of surfaces</paramName><cycles/><minSize>1</minSize><maxSize>100</maxSize></cycle><cycle><role>output</role><firstRow>25</firstRow><lastRow>25</lastRow><paramName>Number of surfaces</paramName><cycles/><minSize>1</minSize><maxSize>100</maxSize></cycle><cycle><role>output</role><firstRow>26</firstRow><lastRow>26</lastRow><paramName>Number of surfaces</paramName><cycles/><minSize>1</minSize><maxSize>100</maxSize></cycle><cycle><role>output</role><firstRow>27</firstRow><lastRow>27</lastRow><paramName>Number of surfaces</paramName><cycles/><minSize>1</minSize><maxSize>100</maxSize></cycle><cycle><role>output</role><firstRow>28</firstRow><lastRow>28</lastRow><paramName>Number of surfaces</paramName><cycles/><minSize>1</minSize><maxSize>100</maxSize></cycle><cycle><role>output</role><firstRow>29</firstRow><lastRow>29</lastRow><paramName>Number of surfaces</paramName><cycles/><minSize>1</minSize><maxSize>100</maxSize></cycle><cycle><role>output</role><firstRow>30</firstRow><lastRow>30</lastRow><paramName>Number of surfaces</paramName><cycles/><minSize>1</minSize><maxSize>100</maxSize></cycle><cycle><role>output</role><firstRow>31</firstRow><lastRow>31</lastRow><paramName>Number of surfaces</paramName><cycles/><minSize>1</minSize><maxSize>100</maxSize></cycle></cycles><minSize>1</minSize><maxSize>50</maxSize></cycle><cycle><role>parameter</role><firstRow>1</firstRow><lastRow>9</lastRow><cycles><cycle><role>parameter</role><firstRow>7</firstRow><lastRow>9</lastRow><paramName>Number of surfaces</paramName><cycles/><minSize>1</minSize><maxSize>100</maxSize></cycle></cycles><minSize>1</minSize><maxSize>50</maxSize></cycle></cycles><externalFiles><externalFile><question>Which file contains the TMY-2 weather data?</question><answer>.\Weather\US-TMY2\US-WI-Madison-14837.tm2</answer><answers><answer>.\Weather\US-TMY2\US-WI-Madison-14837.tm2</answer></answers><parameter>Logical unit</parameter><designate>no</designate></externalFile></externalFiles><compileCommand>df /c</compileCommand><source>.\SourceCode\Types\Type15.f90</source></TrnsysModel>
+                Azimuths are defined positive when facing the equator: 0 = facing the equator, 90 = facing west, -90 =
+                facing east.
+            </definition>
+        </variable>
+    </variables>
+    <cycles>
+        <cycle>
+            <role>output</role>
+            <firstRow>1</firstRow>
+            <lastRow>59</lastRow>
+            <cycles>
+                <cycle>
+                    <role>output</role>
+                    <firstRow>24</firstRow>
+                    <lastRow>24</lastRow>
+                    <paramName>Number of surfaces</paramName>
+                    <cycles/>
+                    <minSize>1</minSize>
+                    <maxSize>100</maxSize>
+                </cycle>
+                <cycle>
+                    <role>output</role>
+                    <firstRow>25</firstRow>
+                    <lastRow>25</lastRow>
+                    <paramName>Number of surfaces</paramName>
+                    <cycles/>
+                    <minSize>1</minSize>
+                    <maxSize>100</maxSize>
+                </cycle>
+                <cycle>
+                    <role>output</role>
+                    <firstRow>26</firstRow>
+                    <lastRow>26</lastRow>
+                    <paramName>Number of surfaces</paramName>
+                    <cycles/>
+                    <minSize>1</minSize>
+                    <maxSize>100</maxSize>
+                </cycle>
+                <cycle>
+                    <role>output</role>
+                    <firstRow>27</firstRow>
+                    <lastRow>27</lastRow>
+                    <paramName>Number of surfaces</paramName>
+                    <cycles/>
+                    <minSize>1</minSize>
+                    <maxSize>100</maxSize>
+                </cycle>
+                <cycle>
+                    <role>output</role>
+                    <firstRow>28</firstRow>
+                    <lastRow>28</lastRow>
+                    <paramName>Number of surfaces</paramName>
+                    <cycles/>
+                    <minSize>1</minSize>
+                    <maxSize>100</maxSize>
+                </cycle>
+                <cycle>
+                    <role>output</role>
+                    <firstRow>29</firstRow>
+                    <lastRow>29</lastRow>
+                    <paramName>Number of surfaces</paramName>
+                    <cycles/>
+                    <minSize>1</minSize>
+                    <maxSize>100</maxSize>
+                </cycle>
+                <cycle>
+                    <role>output</role>
+                    <firstRow>30</firstRow>
+                    <lastRow>30</lastRow>
+                    <paramName>Number of surfaces</paramName>
+                    <cycles/>
+                    <minSize>1</minSize>
+                    <maxSize>100</maxSize>
+                </cycle>
+                <cycle>
+                    <role>output</role>
+                    <firstRow>31</firstRow>
+                    <lastRow>31</lastRow>
+                    <paramName>Number of surfaces</paramName>
+                    <cycles/>
+                    <minSize>1</minSize>
+                    <maxSize>100</maxSize>
+                </cycle>
+            </cycles>
+            <minSize>1</minSize>
+            <maxSize>50</maxSize>
+        </cycle>
+        <cycle>
+            <role>parameter</role>
+            <firstRow>1</firstRow>
+            <lastRow>9</lastRow>
+            <cycles>
+                <cycle>
+                    <role>parameter</role>
+                    <firstRow>7</firstRow>
+                    <lastRow>9</lastRow>
+                    <paramName>Number of surfaces</paramName>
+                    <cycles/>
+                    <minSize>1</minSize>
+                    <maxSize>100</maxSize>
+                </cycle>
+            </cycles>
+            <minSize>1</minSize>
+            <maxSize>50</maxSize>
+        </cycle>
+    </cycles>
+    <externalFiles>
+        <externalFile>
+            <question>Which file contains the TMY-2 weather data?</question>
+            <answer>.\Weather\US-TMY2\US-WI-Madison-14837.tm2</answer>
+            <answers>
+                <answer>.\Weather\US-TMY2\US-WI-Madison-14837.tm2</answer>
+            </answers>
+            <parameter>Logical unit</parameter>
+            <designate>no</designate>
+        </externalFile>
+    </externalFiles>
+    <compileCommand>df /c</compileCommand>
+    <source>.\SourceCode\Types\Type15.f90</source>
+</TrnsysModel>
