@@ -17,9 +17,9 @@ pip install trnsystor
 
 ## Usage
 
-Since TRNSYS 18, type proformas can be exported to XML schemas. *trnsystor* builds on
-this easy to read data structure to easily create TrnsysModels using the most popular
-scripting language in the data science community:
+Since TRNSYS 18, type proformas can be exported to XML schemas. *trnsystor* builds on this
+easy to read data structure to easily create TrnsysModels using the most popular scripting
+language in the data science community:
 [Python](https://www.economist.com/graphic-detail/2018/07/26/python-is-becoming-the-worlds-most-popular-coding-language).
 
 From the xml file of a type proforma, simply create a TrnsysModel object by invoking the
@@ -91,9 +91,9 @@ pipe1.connect_to(pipe2, mapping={0:0, 1:1})
 ## Equations
 
 In the TRNSYS studio, equations are components holding a list of user-defined expressions.
-In trnsystor a similar approach has been taken: the `Equation` class handles the
-creation of equations and the [EquationCollection` class handles the block of equations.
-Here's an example:
+In trnsystor a similar approach has been taken: the `Equation` class handles the creation
+of equations and the [EquationCollection` class handles the block of equations. Here's an
+example:
 
 First, create a series of Equation by invoking the [from_expression` constructor. This
 allows you to input the equation as a string.
@@ -149,8 +149,8 @@ and saving it to file.
 ### Simulation Cards
 
 The Simulation Cards is a chuck of code that informs TRNSYS of various simulation controls
-such as start time end time and time-step. trnsystor implements many of those
-*Statements* with a series of Statement objects.
+such as start time end time and time-step. trnsystor implements many of those *Statements*
+with a series of Statement objects.
 
 For instance, to create simulation cards using default values, simply call the `all()`
 constructor:
@@ -169,5 +169,22 @@ SIMULATION 0 8760 1   ! Start time  End time    Time step
 TOLERANCES 0.01 0.01  ! Integration Convergence
 LIMITS 25 10 25       ! Max iterations  Max warnings    Trace limit
 EQSOLVER 0            ! EQUATION SOLVER statement
+```
+
+### Selecting elements of components
+
+Inputs, Outputs, Parameters, Derivatives, SpecialCards and ExternalFiles can be accessed
+via their attribute in any TrnsysModel component. They are accessed via their position as
+for in a list. It is also possible to `slice` the collection to retrieved more than one
+element. In this case a list is returned:
+
+```python
+>>> from trnsystor.trnsysmodel import TrnsysModel
+>>> pipe = TrnsysModel.from_xml("tests/input_files/Type951.xml")
+>>> pipe.inputs[0:2]  # getting the first 2 inputs
+[Inlet Fluid Temperature - Pipe 1; units=C; value=15.0 °C
+The temperature of the fluid flowing into the first buried horizontal pipe., Inlet Fluid Flowrate - Pipe 1; units=(kg)/(hr); value=0.0 kg/hr
+The flowrate of fluid into the first buried horizontal pipe.]
+
 ```
 

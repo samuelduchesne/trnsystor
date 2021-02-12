@@ -1,14 +1,13 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+"""Constant module."""
 import itertools
 
 from trnsystor.statement.statement import Statement
 
 
 class Constant(Statement):
-    """The CONSTANTS statement is useful when simulating a number of systems
+    """CONSTANTS Statement.
+
+    The CONSTANTS statement is useful when simulating a number of systems
     with identical component configurations but with different parameter values,
     initial input values, or initial values of time dependent variables.
     """
@@ -17,7 +16,8 @@ class Constant(Statement):
     instances = {}
 
     def __init__(self, name=None, equals_to=None, doc=None):
-        """
+        """Initialize object.
+
         Args:
             name (str): The left hand side of the equation.
             equals_to (str, TypeVariable): The right hand side of the equation.
@@ -27,7 +27,7 @@ class Constant(Statement):
         super().__init__()
         try:
             c_ = Constant.instances[name]
-        except:
+        except KeyError:
             self._n = next(self._new_id)
             self.name = name
             self.equals_to = equals_to
@@ -42,9 +42,10 @@ class Constant(Statement):
 
     @classmethod
     def from_expression(cls, expression, doc=None):
-        """Create a Constant from a string expression. Anything before the equal
-        sign ("=") will become the Constant's name and anything after will
-        become the equality statement.
+        """Create a Constant from a string expression.
+
+        Anything before the equal sign ("=") will become the Constant's name and
+        anything after will become the equality statement.
 
         Hint:
             The simple expressions are processed much as FORTRAN arithmetic
@@ -68,8 +69,9 @@ class Constant(Statement):
 
     @property
     def constant_number(self):
-        """The equation number. Unique"""
+        """The equation number (unique)."""
         return self._n
 
     def _to_deck(self):
+        """Return deck representation of self."""
         return self.equals_to

@@ -1,20 +1,17 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+"""VariableCollection module."""
 import collections
 
 from pint.quantity import _Quantity
 
-from trnsystor import standerdized_name
 from trnsystor.statement import Constant, Equation
 from trnsystor.typevariable import TypeVariable
-from trnsystor.utils import _parse_value
+from trnsystor.utils import _parse_value, standardize_name
 
 
 class VariableCollection(collections.UserDict):
-    """A collection of :class:`VariableType` as a dict. Handles getting and
-    setting variable values.
+    """A collection of :class:`VariableType` as a dict.
+
+    Handles getting and setting variable values.
     """
 
     def __getattr__(self, key):
@@ -29,6 +26,8 @@ class VariableCollection(collections.UserDict):
         """Get item."""
         if isinstance(key, int):
             value = list(self.data.values())[key]
+        elif isinstance(key, slice):
+            value = list(self.data.values()).__getitem__(key)
         else:
             value = super(VariableCollection, self).__getitem__(key)
         return value
@@ -42,7 +41,6 @@ class VariableCollection(collections.UserDict):
 
     def __setitem__(self, key, value):
         """Set item."""
-
         if isinstance(value, TypeVariable):
             """if a TypeVariable is given, simply set it"""
             super().__setitem__(key, value)
@@ -67,22 +65,23 @@ class VariableCollection(collections.UserDict):
         return self._to_deck()
 
     def _to_deck(self):
+        """Return deck representation of self."""
         pass
 
     @classmethod
     def from_dict(cls, dictionary):
-        """
-        Args:
-            dictionary:
+        """Return VariableCollection from dict.
+
+        Sets also the class attribute using ``named_key``.
         """
         item = cls()
         for key in dictionary:
-            named_key = standerdized_name(dictionary[key].name)
+            named_key = standardize_name(dictionary[key].name)
             item.__setitem__(named_key, dictionary[key])
             setattr(item, named_key, dictionary[key])
         return item
 
     @property
     def size(self):
-        """The number of parameters"""
+        """The number of variable in the collection."""
         return len(self)

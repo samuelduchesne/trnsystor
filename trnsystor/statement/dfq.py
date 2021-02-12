@@ -1,19 +1,18 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+"""DFQ Statement."""
 from trnsystor.statement.statement import Statement
 
 
 class DFQ(Statement):
-    """The optional DFQ card allows the user to select one of three algorithms
+    """DFQ Statement.
+
+    The optional DFQ card allows the user to select one of three algorithms
     built into TRNSYS to numerically solve differential equations (see Manual
     08-Programmer’s Guide for additional information about solution of
     differential equations).
     """
 
     def __init__(self, k=1):
-        """Initialize the Differential Equation Solving Method Statement
+        """Initialize the Differential Equation Solving Method Statement.
 
         Args:
             k (int, optional): an integer between 1 and 3. If a DFQ card is not
@@ -33,4 +32,5 @@ class DFQ(Statement):
         self.doc = "TRNSYS numerical integration solver method"
 
     def _to_deck(self):
+        """Return deck representation of self."""
         return str("DFQ {}".format(self.k))

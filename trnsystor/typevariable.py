@@ -1,19 +1,17 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+"""TypeVariable module."""
 import collections
 import copy
 import re
 
 from bs4 import Tag
 
-from trnsystor import parse_type, standerdized_name
 from trnsystor.linkstyle import LinkStyle
-from trnsystor.utils import _parse_value
+from trnsystor.utils import _parse_value, parse_type, standardize_name
 
 
 class TypeVariable(object):
-    """
+    """TypeVariable class.
+
     :class:`TypeVariable` is the main object class that handles storage of
     TRNSYS component parameters, inputs, outputs and derivatives. Parameters,
     Inputs, Outputs and Derivatives are all subclasses of TypeVariable.
@@ -41,11 +39,11 @@ class TypeVariable(object):
         definition=None,
         model=None,
     ):
-        """Initialize a TypeVariable with the following attributes:
+        """Initialize a TypeVariable with the following attributes.
 
         Args:
             val (int, float, _Quantity): The actual value hold by this object.
-            order (str):
+            order (str): The order of the variable.
             name (str): This name will be seen by the user in the connections
                 window and all other variable information windows.
             role (str): The role of the variables such as input, output, etc.
@@ -75,7 +73,7 @@ class TypeVariable(object):
                 the inputs and derivatives and suppressed for the outputs.
             symbol (str): The symbol of the unit (not used).
             definition (str): A short description of the variable.
-            model:
+            model (TrnsysModel): the TrnsysModel this TypeVariable belongs to.
         """
         super().__init__()
         self._is_question = False
@@ -110,18 +108,17 @@ class TypeVariable(object):
 
         Args:
             tag (Tag): The XML tag with its attributes and contents.
-            model (TrnsysModel):
+            model (TrnsysModel): The model.
         """
         role = tag.find("role").text
         val = tag.find("default").text
         try:
             val = float(val)
-        except:  # todo: find type of error
-            # val is a string
+        except ValueError:
+            # could not convert string to float.
             if val == "STEP":
                 val = 1
-                # Todo: figure out better logic when default value
-                #  is 'STEP
+                # Todo: figure out better logic when default value is 'STEP'
             elif val == "START":
                 val = 1
             elif val == "STOP":
@@ -143,18 +140,23 @@ class TypeVariable(object):
             )
 
     def __float__(self):
+        """Return magnitude of self."""
         return self.value.m
 
     def __int__(self):
+        """Return int(self)."""
         return int(self.value.m)
 
     def __mul__(self, other):
+        """Return self * other."""
         return float(self) * other
 
     def __add__(self, other):
+        """Return self + other."""
         return float(self) + other
 
     def __sub__(self, other):
+        """Return self - other."""
         return float(self) - other
 
     def _parse_types(self):
@@ -168,7 +170,7 @@ class TypeVariable(object):
                 self.__setattr__(attr, int(value))
 
     def copy(self):
-        """TypeVariable: Make a copy of :attr:`self`"""
+        """TypeVariable: Make a copy of :attr:`self`."""
         new_self = copy.copy(self)
         return new_self
 
@@ -176,7 +178,8 @@ class TypeVariable(object):
     def is_connected(self):
         """Whether or not this TypeVariable is connected to another TypeVariable.
 
-        Checks if self is in any keys"""
+        Checks if self is in any keys
+        """
         return self.predecessor is not None
 
     @property
@@ -202,10 +205,10 @@ class TypeVariable(object):
 
     @property
     def idx(self):
-        """The 0-based index of the TypeVariable"""
+        """Get the 0-based variable index of self."""
         ordered_dict = collections.OrderedDict(
             (
-                standerdized_name(self.model._meta.variables[attr].name),
+                standardize_name(self.model._meta.variables[attr].name),
                 [self.model._meta.variables[attr], 0],
             )
             for attr in sorted(
@@ -213,7 +216,7 @@ class TypeVariable(object):
                     lambda kv: isinstance(
                         self.model._meta.variables[kv], self.__class__
                     )
-                    and self.model._meta.variables[kv]._iscyclebase == False,
+                    and self.model._meta.variables[kv]._iscyclebase is False,
                     self.model._meta.variables,
                 ),
                 key=lambda key: self.model._meta.variables[key].order,
@@ -225,10 +228,11 @@ class TypeVariable(object):
             value[1] = i
             i += 1
 
-        return ordered_dict[standerdized_name(self.name)][1]
+        return ordered_dict[standardize_name(self.name)][1]
 
     @property
     def one_based_idx(self):
+        """Get the 1-based variable index of self such as it appears in Trnsys."""
         return self.idx + 1
 
     def connect_to(self, other, link_style_kwargs=None):
@@ -271,8 +275,12 @@ class TypeVariable(object):
         )
 
     def __repr__(self):
+        """Return repr(self)."""
         try:
-            return f"{self.name}; units={self.unit}; value={self.value:~P}\n{self.definition}"
+            return (
+                f"{self.name}; units={self.unit}; "
+                f"value={self.value:~P}\n{self.definition}"
+            )
         except Exception:
             return (
                 f"{self.name}; units={self.unit}; value={self.value}\n"
@@ -281,71 +289,52 @@ class TypeVariable(object):
 
 
 class Parameter(TypeVariable):
-    """A subclass of :class:`TypeVariable` specific to parameters"""
+    """A subclass of :class:`TypeVariable` specific to parameters."""
 
     def __init__(self, val, **kwargs):
-        """A subclass of :class:`TypeVariable` specific to parameters.
-
-        Args:
-            val:
-            **kwargs:
-        """
+        """A subclass of :class:`TypeVariable` specific to parameters."""
         super().__init__(val, **kwargs)
 
         self._parse_types()
 
 
 class Input(TypeVariable):
-    """A subclass of :class:`TypeVariable` specific to inputs"""
+    """A subclass of :class:`TypeVariable` specific to inputs."""
 
     def __init__(self, val, **kwargs):
-        """A subclass of :class:`TypeVariable` specific to inputs.
-
-        Args:
-            val:
-            **kwargs:
-        """
+        """A subclass of :class:`TypeVariable` specific to inputs."""
         super().__init__(val, **kwargs)
 
         self._parse_types()
 
 
 class InitialInputValue(TypeVariable):
-    """A subclass of :class:`TypeVariable` specific to Initial Input Values"""
+    """A subclass of :class:`TypeVariable` specific to Initial Input Values."""
 
     def __init__(self, val, **kwargs):
-        """A subclass of :class:`TypeVariable` specific to inputs.
-
-        Args:
-            val:
-            **kwargs:
-        """
+        """A subclass of :class:`TypeVariable` specific to inputs."""
         super().__init__(val, **kwargs)
 
         self._parse_types()
 
 
 class Output(TypeVariable):
-    """A subclass of :class:`TypeVariable` specific to outputs"""
+    """A subclass of :class:`TypeVariable` specific to outputs."""
 
     def __init__(self, val, **kwargs):
-        """A subclass of :class:`TypeVariable` specific to outputs.
-
-        Args:
-            val:
-            **kwargs:
-        """
+        """A subclass of :class:`TypeVariable` specific to outputs."""
         super().__init__(val, **kwargs)
 
         self._parse_types()
 
     @property
-    def is_connected(self):
+    def is_connected(self) -> bool:
+        """Return True of self has any successor."""
         return len(self.successors) > 0
 
     @property
     def successors(self):
-        """Other TypeVariables to which this TypeVariable is connected. Successors"""
+        """Other TypeVariables to which this TypeVariable is connected. Successors."""
         successors = []
         for suc in self.model.UNIT_GRAPH.successors(self.model):
             for key in self.model.UNIT_GRAPH[self.model][suc]:
@@ -356,18 +345,15 @@ class Output(TypeVariable):
 
 
 class Derivative(TypeVariable):
-    """the DERIVATIVES for a given :class:`TrnsysModel` specify initial values,
+    """Derivatives class.
+
+    the DERIVATIVES for a given :class:`TrnsysModel` specify initial values,
     such as the initial temperatures of various nodes in a thermal storage tank
     or the initial zone temperatures in a multi zone building.
     """
 
     def __init__(self, val, **kwargs):
-        """A subclass of :class:`TypeVariable` specific to derivatives.
-
-        Args:
-            val:
-            **kwargs:
-        """
+        """A subclass of :class:`TypeVariable` specific to derivatives."""
         super().__init__(val, **kwargs)
 
         self._parse_types()

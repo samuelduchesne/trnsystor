@@ -1,19 +1,20 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+"""EqSolver Statement."""
 from trnsystor.statement.statement import Statement
 
 
 class EqSolver(Statement):
-    """With the release of TRNSYS 16, new methods for solving blocks of
+    """EqSolver Statement.
+
+    With the release of TRNSYS 16, new methods for solving blocks of
     EQUATIONS statements were added. For additional information on EQUATIONS
     statements, please refer to section 6.3.9. The order in which blocks of
-    EQUATIONS are solved is controlled by the EQSOLVER statement.
+    EQUATIONS are solved is controlled by the EQSOLVER Statement.
     """
 
     def __init__(self, n=0):
-        """Hint:
+        """Initialize object.
+
+        Hint:
             :attr:`n` can have any of the following values:
 
             1. n=0 (default if no value is provided) if a component output or
@@ -39,4 +40,5 @@ class EqSolver(Statement):
         self.doc = "EQUATION SOLVER statement"
 
     def _to_deck(self):
+        """Return deck representation of self."""
         return "EQSOLVER {}".format(self.n)

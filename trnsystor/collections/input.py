@@ -1,31 +1,48 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+"""InputCollection module."""
 import tabulate
 
 from trnsystor.collections.variable import VariableCollection
-from trnsystor.statement import Equation, Constant
+from trnsystor.statement import Constant, Equation
 from trnsystor.typevariable import TypeVariable
 
 
 class InputCollection(VariableCollection):
-    """Subclass of :class:`VariableCollection` specific to Inputs"""
+    """Subclass of :class:`VariableCollection` specific to Inputs.
 
-    def __init__(self):
-        super().__init__()
-        pass
+    Hint:
+        Iterating over `InputCollection` will not pass Inputs that considered
+        ``questions``. For example, Type15 (printer) has a question for the number
+        of variables to be printed by the component. This question can be accessed
+        with `.inputs["How_many_variables_are_to_be_printed_by_this_component_"]` to
+        modify the number of values. But when iterating over the inputs, the question
+        will not be returned in the iterator; only regular inputs will.
+    """
 
     def __repr__(self):
+        """Return Deck representation of self."""
         num_inputs = "{} Inputs:\n".format(self.size)
-        inputs = "\n".join(
-            ['"{}": {:~P}'.format(key, value.value) for key, value in self.data.items()]
-        )
+        try:
+            inputs = "\n".join(
+                [
+                    '"{}": {:~P}'.format(key, value.value)
+                    for key, value in self.data.items()
+                ]
+            )
+        except ValueError:  # Invalid format specifier
+            inputs = "\n".join(
+                [
+                    '"{}": {}'.format(key, value.value)
+                    for key, value in self.data.items()
+                ]
+            )
         return num_inputs + inputs
 
-    def _to_deck(self):
-        """Returns the string representation for the Input File (.dck)"""
+    def __iter__(self):
+        """Iterate over inputs except questions."""
+        return iter({k: v for k, v in self.data.items() if not v._is_question})
 
+    def _to_deck(self):
+        """Return deck representation of self."""
         if self.size == 0:
             # Don't need to print empty inputs
             return ""
@@ -89,3 +106,8 @@ class InputCollection(VariableCollection):
                 )
         core = tabulate.tabulate(_ins, tablefmt="plain", numalign="left")
         return str(head) + core + "\n"
+
+    @property
+    def size(self):
+        """Return the number of inputs excluding questions."""
+        return len([i for i in self])

@@ -1,13 +1,15 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+"""ComponentCollection module."""
 
 import collections
 
 
 class ComponentCollection(collections.UserList):
-    """A class that handles collections of components, eg.; TrnsysModels,
-    EquationCollections and ConstantCollections
+    """A class that handles collections of components.
+
+    Supported members:
+        - :class:`TrnsysModels`
+        - :class:`EquationCollections`
+        - :class:`ConstantCollections`
 
     Get a component from a ComponentCollection using either the component's
     unit numer or its full name.
@@ -25,8 +27,15 @@ class ComponentCollection(collections.UserList):
 
     @property
     def iloc(self):
+        """Access a component by its :attr:`unit_number`."""
         return dict({item.unit_number: item for item in self.data})
 
     @property
     def loc(self):
+        """Access a components by its identify (self).
+
+        Examples:
+            >>> cc = ComponentCollection([tank_type])
+            >>> assert cc.loc[tank_type] == cc.iloc[tank_type.unit_number]
+        """
         return dict({item: item for item in self.data})

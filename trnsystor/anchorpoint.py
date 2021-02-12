@@ -1,6 +1,4 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+"""AnchorPoint module."""
 
 import itertools
 
@@ -8,10 +6,11 @@ from shapely.geometry import MultiPoint
 
 
 class AnchorPoint(object):
-    """Handles the anchor point. There are 6 anchor points around a component"""
+    """Handles the anchor point. There are 6 anchor points around a component."""
 
     def __init__(self, model, offset=20, height=40, width=40):
-        """
+        """Initialize object.
+
         Args:
             model (Component): The Component.
             offset (float): The offset to give the anchor points from the center
@@ -28,8 +27,9 @@ class AnchorPoint(object):
         """Return the studio anchor based on a location.
 
         Args:
-            other: TrnsysModel
-            loc (2-tuple):
+            other (TrnsysModel): The other TrnsysModel used to find the anchor of self.
+            loc (2-tuple): A 2-tuple of location, eg.: ("best", "best") or
+                of :attr:`anchor_ids`.
         """
         if "best" not in loc:
             return loc
@@ -41,10 +41,7 @@ class AnchorPoint(object):
         return u_loc, v_loc
 
     def find_best_anchors(self, other):
-        """
-        Args:
-            other:
-        """
+        """Find best anchor points to connect self and other."""
         dist = {}
         for u in self.anchor_points.values():
             for v in other.anchor_points.values():
@@ -58,15 +55,18 @@ class AnchorPoint(object):
 
     @property
     def anchor_points(self):
+        """Return dict of anchor points str->tuple."""
         return self.get_octo_pts_dict(self.offset)
 
     @property
     def reverse_anchor_points(self):
+        """Return dict of anchor points tuple->str."""
         pts = self.get_octo_pts_dict(self.offset)
         return {(pt.x, pt.y): key for key, pt in pts.items()}
 
     @property
     def studio_anchor_mapping(self):
+        """Return dict of anchor mapping str->tuple."""
         from shapely.affinity import translate
 
         p_ = {}
@@ -85,6 +85,7 @@ class AnchorPoint(object):
 
     @property
     def studio_anchor_reverse_mapping(self):
+        """Return dict of anchor mapping tuple->str."""
         return {
             (0, 0): "top-left",
             (20, 0): "top-center",
@@ -97,13 +98,15 @@ class AnchorPoint(object):
         }
 
     def get_octo_pts_dict(self, offset=10):
-        """Define 8-anchor :class:`Point` around the :class:`TrnsysModel` in
-        cartesian space and return a named-dict with human readable meaning.
-        These points are equally dispersed at the four corners and 4 edges of
-        the center, at distance = :attr:`offset`
+        """Define 8-anchor :class:`Point` around the :class:`TrnsysModel`.
 
-        See :func:`~trnsysmodel.TrnsysType.set_link_style` or
-        :class:`trnsysmodel.LinkStyle` for more details.
+        In cartesian space and returns a named-dict with human readable meaning.
+        These points are equally dispersed at the four corners and 4 edges of
+        the center, at distance = :attr:`offset`.
+
+        See Also:
+            - :meth:`trnsystor.component.Component.set_link_style`
+            - :class:`trnsystor.linkstyle.LinkStyle`
 
         Args:
             offset (float): The offset around the center point of :attr:`self`.
@@ -131,4 +134,5 @@ class AnchorPoint(object):
 
     @property
     def centroid(self):
+        """Return centroid of self."""
         return self.model.studio.position

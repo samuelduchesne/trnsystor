@@ -1,20 +1,15 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Copyright (c) 2019 - 2021. Samuel Letellier-Duchesne and trnsystor contributors  +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+"""EquationCollection module."""
 
 import collections
 
 import tabulate
-from trnsystor.component import Component
 
-from trnsystor.name import Name
+from trnsystor.component import Component
 from trnsystor.statement import Equation
-from trnsystor.studio import StudioHeader
 
 
 class EquationCollection(Component, collections.UserDict):
-    """A class that behaves like a dict and that collects one or more
-    :class:`Equations`.
+    """Behaves like a dict and collects one or more :class:`Equations`.
 
     This class behaves a little bit like the equation component in the TRNSYS Studio,
     meaning that you can list equation in a block, give it a name, etc.
@@ -53,29 +48,32 @@ class EquationCollection(Component, collections.UserDict):
         super(EquationCollection, self).__init__(_dict, meta=None, name=name, **kwargs)
 
     def __getitem__(self, key):
-        """
-        Args:
-            key:
-        """
+        """Get item."""
         if isinstance(key, int):
             value = list(self.data.values())[key]
+        elif isinstance(key, slice):
+            value = list(self.data.values()).__getitem__(key)
         else:
             value = super().__getitem__(key)
         return value
 
     def __hash__(self):
+        """Return hash(self)."""
         return self.unit_number
 
     def __repr__(self):
+        """Return Deck representation of self."""
         return self._to_deck()
 
     def __setitem__(self, key, value):
+        """Set item."""
         # optional processing here
         value.model = self
         super().__setitem__(key, value)
 
     def update(self, E=None, **F):
-        """D.update([E, ]**F). Update D from a dict/list/iterable E and F.
+        """Update D from a dict/list/iterable E and F.
+
         If E is present and has a .keys() method, then does:  for k in E: D[
         k] = E[k]
         If E is present and lacks a .keys() method, then does:  for eq.name,
@@ -117,22 +115,26 @@ class EquationCollection(Component, collections.UserDict):
             _e.update(_f)
         super(EquationCollection, self).update(_e)
 
-    def setdefault(self, key, value=None):
-        if key not in self:
-            self[key] = value
-        return self[key]
-
     @property
     def size(self):
+        """Return len(self)."""
         return len(self)
 
     @property
     def unit_number(self):
+        """Return the unit_number of self. Negative by design.
+
+        Hint:
+            Only :class:`TrnsysModel` objects have a positive unit_number.
+        """
         return self._unit * -1
 
     @property
     def unit_name(self):
-        """This type does not have a unit_name. Return component name"""
+        """Return ``name`` of self.
+
+        This type does not have a unit_name.
+        """
         return self.name
 
     @property
@@ -141,7 +143,7 @@ class EquationCollection(Component, collections.UserDict):
         return self.__class__.__name__
 
     def _to_deck(self):
-        """To deck representation
+        """Return deck representation of self.
 
         Examples::
 
@@ -160,19 +162,14 @@ class EquationCollection(Component, collections.UserDict):
         return str(header_comment) + str(head) + str(core)
 
     def _get_inputs(self):
-        """inputs getter. Sorts by order number each time it is called"""
+        """Sort by order number each time it is called."""
         return self
 
     def _get_outputs(self):
-        """outputs getter. Since self is already a  dict, return self."""
+        """Return outputs. Since self is already a dict, return self."""
         return self
 
     def _get_ordered_filtered_types(self, classe_, store):
-        """
-        Args:
-            classe_:
-            store:
-        """
         return collections.OrderedDict(
             (attr, self._meta[store][attr])
             for attr in sorted(
@@ -182,11 +179,6 @@ class EquationCollection(Component, collections.UserDict):
         )
 
     def _get_filtered_types(self, classe_, store):
-        """
-        Args:
-            classe_:
-            store:
-        """
         return filter(
             lambda kv: isinstance(self._meta[store][kv], classe_), self._meta[store]
         )

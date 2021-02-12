@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrnsysModel>
+    <object>Printer - No units printed to output file</object>
+    <author>See the list of contributors in the main manual</author>
+    <organization>Solar Energy Laboratory, University of Wisconsin-Madison</organization>
+    <editor>SEL and TESS</editor>
+    <creationDate>TRNSYS v7.5</creationDate>
+    <modifictionDate>February 2016</modifictionDate>
+    <mode>4</mode>
+    <validation>32</validation>
+    <icon>C:\software\pyTrnsysType\tests\input_files\Type25c.bmp</icon>
+    <type>25</type>
+    <maxInstance>9999</maxInstance>
+    <keywords/>
+    <details>The printer component is used to output (or print) selected system variables at specified (even) intervals
+        of time. In this mode, unit descriptors (kJ/hr, degC, W, etc.) are NOT printed to the output file with each
+        column heading. Output can be printed in even time intervals starting relative to the simulation start time or
+        can be printed in absolute time. If relative printing is chosen with a one hour print interval and the
+        simulation starts at time 0.5, values will be printed at times 0.5, 1.5, 2.5, etc. If absolute printing is
+        selected, for the same simulation, values will be printed at times 0.5, 1.0, 2.0, 3.0, etc. Type25 is also able
+        to print simulation information as a header to the output file (name of input file, and time of simulation run).
+        It is further able to append new data to an existing file or can be set to overwrite the existing file.
+    </details>
+    <variables>
+        <variable><!--input-1-->
+            <order>1</order>
+            <name>Input to be printed</name>
+            <role>input</role>
+            <dimension>any</dimension>
+            <unit>any</unit>
+            <type>string</type>
+            <min>-Inf</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>label</default>
+            <symbol>SN</symbol>
+            <definition>Input to be printed</definition>
+        </variable>
+        <variable><!--parameter-1-->
+            <order>2</order>
+            <name>Printing interval</name>
+            <role>parameter</role>
+            <dimension>Time</dimension>
+            <unit>hr</unit>
+            <type>real</type>
+            <min>-12</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>STEP</default>
+            <symbol>SN</symbol>
+            <definition>The time interval at which printing is to occur. If the time interval is less than zero, then
+                the print interval will be measured in the absolute value of this parameter expressed in months.
+                Examples:
+                1: print every hour
+                -1: print every month
+                The default value (STEP) is a TRNSYS parameter equal to the simulation time step
+            </definition>
+        </variable>
+        <variable><!--parameter-2-->
+            <order>3</order>
+            <name>Start time</name>
+            <role>parameter</role>
+            <dimension>Time</dimension>
+            <unit>hr</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>START</default>
+            <symbol>SN</symbol>
+            <definition>The time of the year in hours at which printing is to start.
+                The default value (START) is a TRNSYS parameter equal to the simulation start time
+            </definition>
+        </variable>
+        <variable><!--parameter-3-->
+            <order>4</order>
+            <name>Stop time</name>
+            <role>parameter</role>
+            <dimension>Time</dimension>
+            <unit>hr</unit>
+            <type>real</type>
+            <min>0</min>
+            <max>+Inf</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>STOP</default>
+            <symbol>SN</symbol>
+            <definition>The time of the year in hours at which printing is to stop.
+                The default value (STOP) is a TRNSYS parameter equal to the simulation stop time
+            </definition>
+        </variable>
+        <variable><!--parameter-4-->
+            <order>5</order>
+            <name>Logical unit</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>30</min>
+            <max>999</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>30</default>
+            <symbol>SN</symbol>
+            <definition>This parameter sets the Fortran Logical Unit (File reference number) of the output file. It is
+                used internally by TRNSYS to refer to the file. This parameter will automatically be assigned to a
+                unique value by the TRNSYS Studio
+            </definition>
+        </variable>
+        <variable><!--parameter-5-->
+            <order>6</order>
+            <name>Units printing mode</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>0</min>
+            <max>0</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>This parameter is set to 0, so no units are printed to the output file</definition>
+        </variable>
+        <variable><!--parameter-6-->
+            <order>7</order>
+            <name>Relative or absolute start time</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>0</min>
+            <max>1</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>This parameter controls whether the print intervals are relative or absolute
+                0: print at time intervals relative to the simulation start time
+                1: print at absolute time intervals
+                For example, if the simulation start time is 0.5, the simulation time step is 0.25 and the printing time
+                step is 1:
+                If this parameter is set to 0, printing will occur at 0.5, 1.5, 2.5, etc.
+                If this parameter is set to 1, printing will occur at 1, 2, 3, etc.
+            </definition>
+        </variable>
+        <variable><!--parameter-7-->
+            <order>8</order>
+            <name>Overwrite or Append</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>-1</min>
+            <max>1</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>-1</default>
+            <symbol>SN</symbol>
+            <definition>This parameter decides whether the file is appended to or overwritten:
+                -1: Overwrite the output file
+                1: Append to the output file
+            </definition>
+        </variable>
+        <variable><!--parameter-8-->
+            <order>9</order>
+            <name>Print header</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>-1</min>
+            <max>1</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>-1</default>
+            <symbol>SN</symbol>
+            <definition>This parameters decides whether or not a header with input file information will be printed to
+                the output file or not
+                -1: Do not print header
+                1: Print header
+            </definition>
+        </variable>
+        <variable><!--parameter-9-->
+            <order>10</order>
+            <name>Delimiter</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>0</min>
+            <max>2</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>0</default>
+            <symbol>SN</symbol>
+            <definition>This parameter controls the delimiter used in the output file:
+                0: use tabs to delimit columns
+                1: use spaces to delimit columns
+                2: use commas to delimit columns
+            </definition>
+        </variable>
+        <variable><!--parameter-10-->
+            <order>11</order>
+            <name>Print labels</name>
+            <role>parameter</role>
+            <dimension>Dimensionless</dimension>
+            <unit>-</unit>
+            <type>integer</type>
+            <min>-1</min>
+            <max>1</max>
+            <boundaries>[ ; ]</boundaries>
+            <default>1</default>
+            <symbol>SN</symbol>
+            <definition>This parameter decides whether or not labels (variable descriptors) should be printed as column
+                headers:
+                -1: Do not print descriptors
+                1: Print descriptors
+            </definition>
+        </variable>
+    </variables>
+    <cycles>
+        <cycle>
+            <role>input</role>
+            <firstRow>1</firstRow>
+            <lastRow>1</lastRow>
+            <cycles>
+                <cycle>
+                    <role>input</role>
+                    <firstRow>1</firstRow>
+                    <lastRow>1</lastRow>
+                    <cycles/>
+                    <question>How many variables are to be printed by this component?</question>
+                    <minSize>1</minSize>
+                    <maxSize>100</maxSize>
+                </cycle>
+            </cycles>
+            <minSize>1</minSize>
+            <maxSize>50</maxSize>
+        </cycle>
+    </cycles>
+    <externalFiles>
+        <externalFile>
+            <question>Output file for printed results</question>
+            <answer>***.out</answer>
+            <answers>
+                <answer>***.out</answer>
+            </answers>
+            <parameter>Logical unit</parameter>
+            <designate>no</designate>
+        </externalFile>
+    </externalFiles>
+    <compileCommand>df /c</compileCommand>
+    <source>.\SourceCode\Types\Type25.f90</source>
+</TrnsysModel>
