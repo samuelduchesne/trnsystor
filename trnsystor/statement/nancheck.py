@@ -37,5 +37,5 @@ class NaNCheck(Statement):
         self.doc = "The NAN_CHECK Statement"
 
     def _to_deck(self):
-        "Return deck representation of self."
+        """Return deck representation of self."""
         return "NAN_CHECK {}".format(self.n)

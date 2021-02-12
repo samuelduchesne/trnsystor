@@ -21,5 +21,5 @@ class NoList(Statement):
         self.doc = "NOLIST statement"
 
     def _to_deck(self):
-        "Return deck representation of self."
+        """Return deck representation of self."""
         return "NOLIST" if self.active else ""
