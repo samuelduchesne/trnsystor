@@ -40,6 +40,7 @@ jobs:
     - name: Test with pytest
       run: |
         pytest --cov=trnsystor tests/
+        coverage report -m
     - name: Coveralls
       uses: coverallsapp/github-action@master
       with:
