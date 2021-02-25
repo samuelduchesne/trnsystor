@@ -1,7 +1,5 @@
 outdated
-lxml
 pint
-beautifulsoup4
 tabulate
 path
 shapely
