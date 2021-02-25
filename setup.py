@@ -38,7 +38,8 @@ dev_requires = [r.strip() for r in requirements_lines]
 package = "trnsystor"
 setup(
     name=package,
-    version=find_version(package, "__init__.py"),
+    use_scm_version=True,
+    setup_requires=["setuptools_scm"],
     packages=find_packages(),
     url="https://github.com/samuelduchesne/{}".format(package),
     license="MIT",
