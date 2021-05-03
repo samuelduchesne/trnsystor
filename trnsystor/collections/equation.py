@@ -121,15 +121,6 @@ class EquationCollection(Component, collections.UserDict):
         return len(self)
 
     @property
-    def unit_number(self):
-        """Return the unit_number of self. Negative by design.
-
-        Hint:
-            Only :class:`TrnsysModel` objects have a positive unit_number.
-        """
-        return self._unit * -1
-
-    @property
     def unit_name(self):
         """Return ``name`` of self.
 
