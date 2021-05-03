@@ -146,11 +146,23 @@ class EquationCollection(Component, collections.UserDict):
             •
             NAMEn = ... equation n ...
         """
-        header_comment = '* EQUATIONS "{}"\n\n'.format(self.name)
+        header_comment = '* EQUATIONS "{}"\n*\n'.format(self.name)
         head = "EQUATIONS {}\n".format(len(self))
         v_ = ((equa.name, "=", equa._to_deck()) for equa in self.values())
         core = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
-        return str(header_comment) + str(head) + str(core)
+
+        def _studio(self):
+            """Return deck representation of self."""
+            unit_name = "*$UNIT_NAME {}".format(self.unit_name)
+            layer = "*$LAYER {}".format(" ".join(self.studio.layer))
+            position = "*$POSITION {} {}".format(
+                self.studio.position.x, self.studio.position.y
+            )
+            unit_number = "*UNIT_NUMBER {}".format(self.unit_number)
+            return "\n" + "\n".join([unit_name, layer, position, unit_number]) + "\n"
+
+        tail = _studio(self)
+        return str(header_comment) + str(head) + str(core) + str(tail)
 
     def _get_inputs(self):
         """Sort by order number each time it is called."""
