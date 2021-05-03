@@ -443,7 +443,7 @@ class Deck(object):
                         dck.update_models(component)
                 else:
                     pass
-            if key in ("parameters", "inputs"):
+            if key in ("parameters", "inputs") and component._meta is not None:
                 if component._meta.variables:
                     n_vars = int(match.group(key).strip())
                     init_at = n_vars
@@ -549,7 +549,8 @@ class Deck(object):
                             f"at {proforma_root}"
                         )
                     meta = MetaData.from_xml(xml)
-                component.update_meta(meta)
+                if isinstance(component, TrnsysModel):
+                    component.update_meta(meta)
 
             line = dcklines.readline()
         return line
