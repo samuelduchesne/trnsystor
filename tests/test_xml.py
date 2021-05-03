@@ -619,10 +619,6 @@ class TestConstantsAndEquations:
 
         yield c_block
 
-    def test_unit_number(self, equation_block):
-        """Equation block unit numbers are negative."""
-        assert equation_block.unit_number < 0
-
     def test_symbolic_expression(self, tank_type, fan_type):
         from trnsystor.statement.constant import Constant
 
@@ -717,11 +713,6 @@ class TestConstantsAndEquations:
         equa1 = Equation("T_out", fan_type.outputs[0])
         equa_block = EquationCollection([equa1])
         assert str(equa1) == "T_out = [1, 1]"
-        assert (
-            str(equa_block) == '* EQUATIONS "None"\n\nEQUATIONS '
-            "1\nT_out  =  ["
-            "1, 1]"
-        )
 
     def test_two_unnamed_equationcollection(self, fan_type):
         """Make sure objects with same name=None can be created."""
@@ -783,10 +774,6 @@ class TestConstantsAndEquations:
     def test_eq_one_based_idx(self, equation_block):
         for equation in equation_block.values():
             assert equation.one_based_idx >= 1
-
-    def test_eq_unit_number(self, equation_block):
-        for equation in equation_block.values():
-            assert equation.unit_number < 1
 
     def test_eq_is_connected(self, equation_block):
         for equation in equation_block.values():
