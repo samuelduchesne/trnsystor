@@ -1,5 +1,5 @@
 [![PyPI version fury.io](https://badge.fury.io/py/trnsystor.svg)](https://pypi.python.org/pypi/trnsystor/)
-[![codecov](https://codecov.io/gh/samuelduchesne/trnsystor/branch/master/graph/badge.svg?token=kY9pzjlDZJ)](https://codecov.io/gh/samuelduchesne/trnsystor)
+[![codecov](https://codecov.io/gh/samuelduchesne/trnsystor/branch/main/graph/badge.svg?token=kY9pzjlDZJ)](https://codecov.io/gh/samuelduchesne/trnsystor)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/trnsystor.svg)](https://pypi.python.org/pypi/trnsystor/)
 
 # trnsystor
