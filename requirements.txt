@@ -6,6 +6,6 @@ shapely~=1.7.1
 numpy~=1.20.1
 matplotlib~=3.3.4
 pandas~=1.2.2  # because of io.common methods
-sympy~=1.5.1  # because of specific expression parsing
+sympy==1.5.*  # because of specific expression parsing
 beautifulsoup4~=4.9.3
 lxml~=4.6.3
