@@ -8,4 +8,4 @@ shapely
 numpy
 matplotlib
 pandas==1.2.4  # because of io.common methods
-sympy==1.5.1  # because of specific expression parsing
+sympy==1.8  # because of specific expression parsing
