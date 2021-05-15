@@ -303,7 +303,7 @@ class TrnsysModel(Component):
         Returns:
             TrnsysModel: The TRNSYS model.
         """
-        name = kwargs.pop("name", tag.find("object").text)
+        name = kwargs.pop("name", tag.find("object").text).strip()
         meta = MetaData.from_tag(tag, **kwargs)
 
         model = cls(meta, name)
