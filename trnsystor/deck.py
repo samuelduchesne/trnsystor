@@ -188,6 +188,17 @@ class Deck(object):
         """Return deck representation of self."""
         return self._to_string()
 
+    def __repr__(self):
+        """Return repr."""
+        name = f"{self.name}\n"
+        by = (
+            f"Created by {self.author} on {self.date_created}.\n"
+            if self.author
+            else f"Created on {self.date_created:%Y-%m-%d %H:%M}.\n"
+        )
+        contains = f"Contains {len(self.models)} components."
+        return name + by + contains
+
     @property
     def graph(self):
         """Return the :class:`MultiDiGraph` of self."""
