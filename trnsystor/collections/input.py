@@ -55,33 +55,24 @@ class InputCollection(VariableCollection):
         _ins = []
         for input in self.values():
             if input.is_connected:
-                if isinstance(input.predecessor, TypeVariable):
+                # Equations and Constants behave differently than TypeVariables.
+                # Equations and Constants use the name of the variable.
+                # TypeVariables use the 0,0 digit tuple.
+                if isinstance(input.predecessor, (Equation, Constant)):
+                    _ins.append(
+                        (
+                            input.predecessor.name,
+                            self._help_text(input),
+                        )
+                    )
+                elif isinstance(input.predecessor, TypeVariable):
                     _ins.append(
                         (
                             "{},{}".format(
                                 input.predecessor.model.unit_number,
                                 input.predecessor.one_based_idx,
                             ),
-                            "! {out_model_name}:{output_name} -> {in_model_name}:{"
-                            "input_name}".format(
-                                out_model_name=input.predecessor.model.name,
-                                output_name=input.predecessor.name,
-                                in_model_name=input.model.name,
-                                input_name=input.name,
-                            ),
-                        )
-                    )
-                elif isinstance(input.predecessor, (Equation, Constant)):
-                    _ins.append(
-                        (
-                            input.predecessor.name,
-                            "! {out_model_name}:{output_name} -> {in_model_name}:{"
-                            "input_name}".format(
-                                out_model_name=input.predecessor.model.name,
-                                output_name=input.predecessor.name,
-                                in_model_name=input.model.name,
-                                input_name=input.name,
-                            ),
+                            self._help_text(input),
                         )
                     )
                 else:
@@ -106,6 +97,15 @@ class InputCollection(VariableCollection):
                 )
         core = tabulate.tabulate(_ins, tablefmt="plain", numalign="left")
         return str(head) + core + "\n"
+
+    @staticmethod
+    def _help_text(input_type):
+        """Generate help text for input connection.
+
+        Examples:
+            None:flowRateDoubled -> Ecoflex 2-Pipe:Inlet Fluid Flowrate - Pipe 1
+        """
+        return f"! {input_type.predecessor.model.name}:{input_type.predecessor.name} -> {input_type.model.name}:{input_type.name}"
 
     @property
     def size(self):
