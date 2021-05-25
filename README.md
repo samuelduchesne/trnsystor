@@ -11,7 +11,7 @@ specify parameters, connect components together and more throught python code.
 
 ## Installation
 
-```python
+```cmd
 pip install trnsystor
 ```
 
@@ -25,7 +25,7 @@ language in the data science community:
 From the xml file of a type proforma, simply create a TrnsysModel object by invoking the
 `from_xml()` constructor:
 
-```python
+```pydocstring
 >>> from trnsystor import TrnsysModel
 >>> xml = "tests/input_files/Type951.xml"
 >>> pipe1 = TrnsysModel.from_xml(xml)
@@ -33,7 +33,7 @@ From the xml file of a type proforma, simply create a TrnsysModel object by invo
 
 Calling `pipe1` will display its Type number and Name:
 
-```python
+```pydocstring
 >>> pipe1
 Type951: Ecoflex 2-Pipe: Buried Piping System
 ```
@@ -42,7 +42,7 @@ Then, `pipe1` can be used to **get** and **set** attributes such as inputs, outp
 parameters and external files. For example, to set the *Number of Fluid Nodes*, simply set
 the new value as you would change a dict value:
 
-```python
+```pydocstring
 >>> pipe1.parameters['Number_of_Fluid_Nodes'] = 50
 >>> pipe1.parameters['Number_of_Fluid_Nodes']
 NNumber of Fluid Nodes; units=-; value=50
@@ -56,7 +56,7 @@ calling [pipe1.outputs` should display 116 Outputs.
 
 The new outputs are now accessible and can also be accessed with loops:
 
-```python
+```pydocstring
 >>> for i in range(1,50):
 ...    print(pipe1.outputs["Average_Fluid_Temperature_Pipe_1_{}".format(i)])
 Average Fluid Temperature - Pipe 1-1; units=C; value=0.0 celsius
@@ -81,7 +81,7 @@ For convenience, the mapping can also be done using the output/input names such 
 `mapping = {'Outlet_Air_Temperature': 'Inlet_Air_Temperature',
 'Outlet_Air_Humidity_Ratio': 'Inlet_Air_Humidity_Ratio'}`:
 
-```python
+```pydocstring
 # First let's create a second pipe, by copying the first one:
 pipe2 = pipe1.copy()
 # Then, connect pipe1 to pipe2:
@@ -98,8 +98,8 @@ example:
 First, create a series of Equation by invoking the [from_expression` constructor. This
 allows you to input the equation as a string.
 
-```python
->>> from trnsystor import Equation, EquationCollection
+```pydocstring
+>>> from trnsystor import Equation
 >>> equa1 = Equation.from_expression("TdbAmb = [011,001]")
 >>> equa2 = Equation.from_expression("rhAmb = [011,007]")
 >>> equa3 = Equation.from_expression("Tsky = [011,004]")
@@ -108,9 +108,8 @@ allows you to input the equation as a string.
 
 One can create a equation block:
 
-```python
->>> equa_col_1 = EquationCollection([equa1, equa2, equa3, equa4],
-                                    name='test')
+```pydocstring
+>>> equa_col_1 = EquationCollection([equa1, equa2, equa3, equa4], name='test')
 ```
 
 ## Changing Initial Input Values
@@ -119,7 +118,7 @@ To change the initial value of an input, simply call it by name or with it's zer
 index and set a new value. This new value will be checked against the bounds set by the
 proforma as for a regular input or parameter.
 
-```python
+```pydocstring
 >>> pipe1.parameters['Number_of_Fluid_Nodes'] = 50
 >>> pipe_type.initial_input_values["Inlet_Fluid_Temperature_Pipe_1"] = 70
 >>> pipe_type.initial_input_values["Inlet_Fluid_Temperature_Pipe_1"].default  # or, pipe_type.initial_input_values[0]
@@ -133,7 +132,7 @@ method `.save()`. The Deck object contains the Simulation Cards and the differen
 (components) for the project. The following code block shows one way of creating a Deck
 and saving it to file.
 
-```python
+```pydocstring
 >>> from trnsystor import Deck, ControlCards
 >>> 
 >>> control_card = ControlCards.debug_template(). # Specifies a predefined set of control cards. See section bellow.
@@ -155,7 +154,7 @@ with a series of Statement objects.
 For instance, to create simulation cards using default values, simply call the `all()`
 constructor:
 
-```python
+```pydocstring
 >>> from trnsystor import ControlCards
 >>> cc = ControlCards.all()
 >>> print(cc)
@@ -178,7 +177,7 @@ via their attribute in any TrnsysModel component. They are accessed via their po
 for in a list. It is also possible to `slice` the collection to retrieved more than one
 element. In this case a list is returned:
 
-```python
+```pydocstring
 >>> from trnsystor.trnsysmodel import TrnsysModel
 >>> pipe = TrnsysModel.from_xml("tests/input_files/Type951.xml")
 >>> pipe.inputs[0:2]  # getting the first 2 inputs
