@@ -140,9 +140,9 @@ class Deck(object):
         self.name = name
         self.author = author
         self.date_created = (
-            to_datetime(date_created, infer_datetime_format=True).isoformat()
+            to_datetime(date_created, infer_datetime_format=True)
             if date_created
-            else datetime.datetime.now().isoformat()
+            else datetime.datetime.now()
         )
 
     @classmethod
