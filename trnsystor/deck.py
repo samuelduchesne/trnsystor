@@ -448,8 +448,11 @@ class Deck(object):
                     try:
                         component = TrnsysModel.from_xml(next(iter(xml)), name=n)
                     except StopIteration:
-                        raise ValueError(f"Could not find proforma for Type{t}")
-                    else:
+                        # could not find a proforma. Initializing component without
+                        # metadata in the hopes that we can parse the xml when key ==
+                        # "model" a couple lines further in the file.
+                        component = TrnsysModel(None, name=n)
+                    finally:
                         component._unit = int(u)
                         dck.update_models(component)
                 else:
