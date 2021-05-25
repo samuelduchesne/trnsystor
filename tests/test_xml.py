@@ -832,11 +832,10 @@ class TestDeck:
         dck.update_models([tank_type, pipe_type])
         assert len(dck.models) == 3
 
-    def test_deck_graph(self, pvt_deck, G):
+    def test_deck_graph(self, G):
         import matplotlib.pyplot as plt
         import networkx as nx
 
-        print(len(pvt_deck.models))
         assert not nx.is_empty(G)
         pos = {
             unit: tuple((pos.x, pos.y)) if pos else tuple((50, 50))
@@ -849,7 +848,7 @@ class TestDeck:
         "pygraphviz" not in sys.modules,
         reason="Skipping this test on Travis CI.",
     )
-    def test_deck_graphviz(self, pvt_deck, G):
+    def test_deck_graphviz(self, G):
         import matplotlib.pyplot as plt
         import networkx as nx
 
