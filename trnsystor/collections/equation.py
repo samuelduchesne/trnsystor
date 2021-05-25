@@ -158,7 +158,7 @@ class EquationCollection(Component, collections.UserDict):
             position = "*$POSITION {} {}".format(
                 self.studio.position.x, self.studio.position.y
             )
-            unit_number = "*UNIT_NUMBER {}".format(self.unit_number)
+            unit_number = "*$UNIT_NUMBER {}".format(self.unit_number)
             return "\n" + "\n".join([unit_name, layer, position, unit_number]) + "\n"
 
         tail = _studio(self)
