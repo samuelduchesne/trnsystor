@@ -776,3 +776,16 @@ class Deck(object):
             "end": re.compile(r"END"),
         }
         return rx_dict
+
+    def simulate(self):
+        """Simulate the deck file using TRNSYSExe.exe"""
+        import subprocess
+
+        cwd = Path.getcwd()
+        trnsysexe_path = Path(r"D:\TRNSYS18\Exe\TrnEXE64.exe").expand()
+        project_location = Path(self.to_file(f"{self.name}.dck")).expand()
+        cmd = f'{trnsysexe_path} "{project_location}"'
+        subprocess.call(
+            cmd,
+            cwd=cwd,
+        )
