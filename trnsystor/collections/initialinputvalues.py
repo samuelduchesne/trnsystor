@@ -26,12 +26,21 @@ class InitialInputValuesCollection(VariableCollection):
         """Return repr(self)."""
         num_inputs = "{} Initial Input Values:\n".format(self.size)
         value: TypeVariable
-        inputs = "\n".join(
-            [
-                '"{}": {:~P}'.format(key, value.default)
-                for key, value in self.data.items()
-            ]
-        )
+        try:
+            inputs = "\n".join(
+                [
+                    f'"{key}": {value.value:~P}'
+                    for key, value in self.data.items()
+                ]
+            )
+        except ValueError:
+            # ~P formatting (above) can fail on strings
+            inputs = "\n".join(
+                [
+                    f'"{key}": {value.value}'
+                    for key, value in self.data.items()
+                ]
+            )
         return num_inputs + inputs
 
     def __iter__(self):
@@ -58,11 +67,11 @@ class InitialInputValuesCollection(VariableCollection):
             value = _parse_value(
                 value, self[key].type, self[key].unit, (self[key].min, self[key].max)
             )
-            self[key].__setattr__("default", value)
+            self[key].__setattr__("value", value)
         elif isinstance(value, _Quantity):
-            self[key].__setattr__("default", value.to(self[key].value.units))
+            self[key].__setattr__("value", value.to(self[key].value.units))
         elif isinstance(value, (Equation, Constant)):
-            self[key].__setattr__("default", value)
+            self[key].__setattr__("value", value)
         else:
             raise TypeError(
                 "Cannot set a default value of type {} in this "
@@ -78,7 +87,7 @@ class InitialInputValuesCollection(VariableCollection):
         head = "*** INITIAL INPUT VALUES\n"
         input_tuples = [
             (
-                v.default.m if isinstance(v.default, _Quantity) else v.default,
+                v.value.m if isinstance(v.value, _Quantity) else v.value,
                 "! {}".format(v.name),
             )
             for v in self.values()

@@ -9,10 +9,11 @@ from path import Path
 from shapely.geometry import LineString, Point
 
 from trnsystor.component import Component
+from trnsystor.statement import Constant
 from trnsystor.trnsysmodel import TrnsysModel
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def fan_type():
     """Fixture to create a TrnsysModel from xml."""
     from trnsystor.trnsysmodel import TrnsysModel
@@ -21,7 +22,7 @@ def fan_type():
     yield fan1
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def pipe_type():
     """Fixture to create a TrnsysModel from xml. Also tests using a Path."""
     from trnsystor.trnsysmodel import TrnsysModel
@@ -30,7 +31,7 @@ def pipe_type():
     yield pipe
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def tank_type():
     from trnsystor.trnsysmodel import TrnsysModel
 
@@ -220,6 +221,36 @@ class TestTrnsysModel:
         """Test to Input File representation of a TrnsysModel."""
         print(fan_type._to_deck())
 
+    def test_initial_input_values_slice_getter(self, fan_type):
+        """Test getter using a slide."""
+        assert len(fan_type.initial_input_values[0:3]) == 3
+
+    def test_initial_input_values(self, fan_type):
+        """Assert initial input values repr and modification."""
+        assert (
+            repr(fan_type.initial_input_values)
+            == '7 Initial Input Values:\n"Inlet_Air_Temperature": 20.0 '
+            '°C\n"Inlet_Air_Humidity_Ratio": 0.008\n'
+            '"Inlet_Air_Relative_Humidity": 50.0 %\n"Air_Flow_Rate": 2000.0 kg/hr\n'
+            '"Inlet_Air_Pressure": 1.0 atm\n"Control_Signal": 1.0\n'
+            '"Air_Side_Pressure_Increase": 0.0 atm'
+        )
+
+        assert fan_type.initial_input_values[0].value.m == 20
+        fan_type.initial_input_values[0] = 21
+        assert fan_type.initial_input_values[0].value.m == 21
+
+        # set using a Quantity instead of a
+        Q_ = fan_type.initial_input_values[0].value
+        fan_type.initial_input_values[0] = Q_.__class__(21, Q_.units)
+
+        # set using Equation or Constant
+        fan_type.initial_input_values[0] = Constant("A=21")
+
+        # assert error when using wring type (e.g. a list)
+        with pytest.raises(TypeError):
+            fan_type.initial_input_values[0] = [0, 1, 2]
+
     def test_initial_input_values_to_deck(self, fan_type):
         """Test to Input File representation of a TrnsysModel."""
         print(fan_type.initial_input_values._to_deck())
@@ -245,7 +276,8 @@ class TestTrnsysModel:
     def test_trnsysmodel_repr(self, tank_type):
         """Test the __repr__ for :class:`TrnsysModel`."""
         assert (
-            repr(tank_type)[3:] == "Type4: Storage Tank; Fixed Inlets, Uniform Losses"
+            repr(tank_type).strip()[-49:]
+            == "Type4: Storage Tank; Fixed Inlets, Uniform Losses"
         )
 
     def test_typecycle_repr(self, tank_type):
