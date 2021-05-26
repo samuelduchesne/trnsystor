@@ -2,10 +2,13 @@
 
 import datetime
 import itertools
+import json
 import logging as lg
+import os
 import re
 import tempfile
 from io import StringIO
+from typing import Union
 
 from pandas import to_datetime
 from pandas.io.common import _get_filepath_or_buffer, get_handle
@@ -146,7 +149,9 @@ class Deck(object):
         )
 
     @classmethod
-    def read_file(cls, file, author=None, date_created=None, proforma_root=None):
+    def read_file(
+        cls, file, author=None, date_created=None, proforma_root=None, **kwargs
+    ):
         """Returns a Deck from a file.
 
         Args:
@@ -157,28 +162,18 @@ class Deck(object):
                 datetime.datetime.now().
             proforma_root (str): Either the absolute or relative path to the
                 folder where proformas (in xml format) are stored.
+            **kwargs: Keywords passed to the Deck constructor.
         """
         file = Path(file)
         with open(file) as dcklines:
-            cc = ControlCards()
-            dck = cls(
+            dck = cls.load(
+                dcklines,
+                proforma_root,
                 name=file.basename(),
                 author=author,
                 date_created=date_created,
-                control_cards=cc,
+                **kwargs
             )
-            no_whitelines = list(filter(None, (line.rstrip() for line in dcklines)))
-            with tempfile.TemporaryFile("r+") as dcklines:
-                dcklines.writelines("\n".join(no_whitelines))
-                dcklines.seek(0)
-                line = dcklines.readline()
-                # parse whole file once
-                cls._parse_logic(cc, dck, dcklines, line, proforma_root)
-
-                # parse a second time to complete links
-                dcklines.seek(0)
-                line = dcklines.readline()
-                cls._parse_logic(cc, dck, dcklines, line, proforma_root)
 
         # assert missing types
         # todo: list types that could not be parsed
@@ -331,7 +326,67 @@ class Deck(object):
         return "\n".join([cc, models, end]) + styles
 
     @classmethod
-    def _parse_logic(cls, cc, dck, dcklines, line, proforma_root):
+    def load(cls, fp, proforma_root=None, dck=None, **kwargs):
+        """Deserialize fp as a Deck object.
+
+        Args:
+
+            fp (SupportsRead[Union[str, bytes]]): a ``.read()``-supporting file-like
+                object containing a Component.
+            proforma_root (Union[str, os.PathLike]): The path to a directory of xml
+                proformas.
+            dck (Deck): Optionally pass a Deck object to act upon it. This is used in Deck.read_file where
+            **kwargs: Keywords passed to the Deck constructor.
+
+        Returns:
+            (Deck): A Deck object containing the parsed TrnsysModel objects.
+        """
+        return cls.loads(fp.read(), proforma_root=proforma_root, dck=dck, **kwargs)
+
+    @classmethod
+    def loads(cls, s, proforma_root=None, dck=None, **kwargs):
+        """Deserialize ``s`` to a Python object.
+
+        Args:
+            dck:
+            s (Union[str, bytes]): a ``str``, ``bytes`` or ``bytearray``
+                instance containing a TRNSYS Component.
+            proforma_root (Union[str, os.PathLike]): The path to a directory of xml
+                proformas.
+
+        Returns:
+            (Deck): A Deck object containing the parsed TrnsysModel objects.
+        """
+        # prep model
+        cc = ControlCards()
+        if dck is None:
+            dck = cls(control_cards=cc, name=kwargs.pop("name", "unnamed"), **kwargs)
+
+        # decode string of bytes, bytearray
+        if isinstance(s, str):
+            pass
+        else:
+            if not isinstance(s, (bytes, bytearray)):
+                raise TypeError(
+                    f"the DCK object must be str, bytes or bytearray, "
+                    f"not {s.__class__.__name__}"
+                )
+            s = s.decode(json.detect_encoding(s), "surrogatepass")
+        # Remove empty lines from string
+        s = os.linesep.join([s.strip() for s in s.splitlines() if s])
+
+        # First pass
+        cls._parse_string(cc, dck, proforma_root, s)
+
+        # parse a second time to complete links using previous dck object.
+        cls._parse_string(cc, dck, proforma_root, s)
+        return dck
+
+    @classmethod
+    def _parse_string(cls, cc, dck, proforma_root, s):
+        # iterate
+        deck_lines = iter(s.splitlines())
+        line = next(deck_lines)
         if proforma_root is None:
             proforma_root = Path.getcwd()
         else:
@@ -351,7 +406,7 @@ class Deck(object):
                 n_cnts = match.group(key)
                 cb = ConstantCollection()
                 for n in range(int(n_cnts)):
-                    line = next(iter(dcklines))
+                    line = next(deck_lines)
                     cb.update(Constant.from_expression(line))
                 cc.set_statement(cb)
             if key == "simulation":
@@ -397,7 +452,7 @@ class Deck(object):
                 k = match.group(key)
                 cc.set_statement(EqSolver(*k.strip().split()))
             if key == "userconstants":
-                line = dcklines.readline()
+                line = next(deck_lines)
                 key, match = dck._parse_line(line)
             # identify an equation block (EquationCollection)
             if key == "equations":
@@ -405,7 +460,7 @@ class Deck(object):
                 n_equations = match.group("equations")
                 # read each line of the table until a blank line
                 list_eq = []
-                for line in [next(iter(dcklines)) for x in range(int(n_equations))]:
+                for line in [next(deck_lines) for x in range(int(n_equations))]:
                     # extract number and value
                     if line == "\n":
                         continue
@@ -421,8 +476,13 @@ class Deck(object):
                     print("Empty UserConstants block")
             # read studio markup
             if key == "unitnumber":
-                dck.remove_models(component)
                 unit_number = match.group(key)
+                try:
+                    model_ = dck.models.iloc[unit_number]
+                except KeyError:
+                    pass
+                else:
+                    dck.models.pop(model_)
                 component._unit = int(unit_number)
                 dck.update_models(component)
             if key == "unitname":
@@ -466,7 +526,7 @@ class Deck(object):
                         n_vars = n_vars * 2
                     i = 0
                     while line:
-                        line = dcklines.readline()
+                        line = next(deck_lines)
                         if not line.strip():
                             line = "\n"
                         else:
@@ -499,7 +559,7 @@ class Deck(object):
                 # identify u,v unit numbers
                 u, v = match.group(key).strip().split(":")
 
-                line = dcklines.readline()
+                line = next(deck_lines)
                 key, match = dck._parse_line(line)
 
                 # identify linkstyle attributes
@@ -560,14 +620,19 @@ class Deck(object):
                     if not xml:
                         raise ValueError(
                             f"The proforma {xml_basename} could not be found "
-                            f"at {proforma_root}"
+                            f"at '{proforma_root}'\nnor at '{tmf.dirname()}' as "
+                            f"specified in the input string."
                         )
                     meta = MetaData.from_xml(xml)
                 if isinstance(component, TrnsysModel):
+                    if component._meta is None:
+                        component._meta = meta
                     component.update_meta(meta)
 
-            line = dcklines.readline()
-        return line
+            try:
+                line = next(deck_lines)
+            except StopIteration:
+                line = None
 
     def return_equation_or_constant(self, name):
         """Return Equation or Constant for name.

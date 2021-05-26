@@ -107,7 +107,7 @@ class MetaData(object):
         self.organization = organization
         self.editor = editor
         self.creationDate = creationDate
-        self.modifictionDate = modifictionDate
+        self.modifictionDate = modifictionDate  # has a typo in proforma xml
         self.mode = mode
         self.validation = validation
         self.icon = icon

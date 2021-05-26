@@ -184,6 +184,54 @@ element. In this case a list is returned:
 [Inlet Fluid Temperature - Pipe 1; units=C; value=15.0 °C
 The temperature of the fluid flowing into the first buried horizontal pipe., Inlet Fluid Flowrate - Pipe 1; units=(kg)/(hr); value=0.0 kg/hr
 The flowrate of fluid into the first buried horizontal pipe.]
+```
 
+## Parsing string snippets
+
+Since version 1.4, it is possible to parse string snippets of TRNSYS components.
+Deck.load() and Deck.loads() (similarly to json.load and json.loads for users who are
+familiar with json deserializing in python).
+
+For example, one can load the following string into a Deck object:
+
+```pythonstub
+from trnsystor import Deck
+s = r"""
+UNIT 3 TYPE  11 Tee Piece
+*$UNIT_NAME Tee Piece
+*$MODEL district\xmltypes\Type11h.xml
+*$POSITION 50.0 50.0
+*$LAYER Main
+PARAMETERS 1
+1  ! 1 Tee piece mode
+INPUTS 4
+0,0  ! [unconnected] Tee Piece:Temperature at inlet 1
+flowRateDoubled  ! double:flowRateDoubled -> Tee Piece:Flow rate at inlet 1
+0,0  ! [unconnected] Tee Piece:Temperature at inlet 2
+0,0  ! [unconnected] Tee Piece:Flow rate at inlet 2
+*** INITIAL INPUT VALUES
+20   ! Temperature at inlet 1
+100  ! Flow rate at inlet 1
+20   ! Temperature at inlet 2
+100  ! Flow rate at inlet 2
+
+* EQUATIONS "double"
+*
+EQUATIONS 1
+flowRateDoubled  =  2*[1, 2]
+*$UNIT_NAME double
+*$LAYER Main
+*$POSITION 50.0 50.0
+*$UNIT_NUMBER 2
+"""
+dck = Deck.loads(s, proforma_root="tests/input_files")
+```
+
+If the same string was in a file, it could be as easily parsed using Deck.load():
+
+```pydocstring
+>>> from trnsystor import Deck
+>>> with open("file.txt", "r") as fp:
+>>>     dck = Deck.load(fp, proforma_root="tests/input_files")
 ```
 

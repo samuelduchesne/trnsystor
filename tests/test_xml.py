@@ -871,6 +871,44 @@ class TestDeck:
     def test_save(self, pvt_deck):
         pvt_deck.to_file("test.dck", None, "w")
 
+    @pytest.fixture()
+    def components_string(self):
+        yield r"""
+        UNIT 3 TYPE  11 Tee Piece
+        *$UNIT_NAME Tee Piece
+        *$MODEL tests\input_files\Type11h.xml
+        *$POSITION 50.0 50.0
+        *$LAYER Main
+        PARAMETERS 1
+        1  ! 1 Tee piece mode
+        INPUTS 4
+        0,0  ! [unconnected] Tee Piece:Temperature at inlet 1
+        flowRateDoubled  ! double:flowRateDoubled -> Tee Piece:Flow rate at inlet 1
+        0,0  ! [unconnected] Tee Piece:Temperature at inlet 2
+        0,0  ! [unconnected] Tee Piece:Flow rate at inlet 2
+        *** INITIAL INPUT VALUES
+        20   ! Temperature at inlet 1
+        100  ! Flow rate at inlet 1
+        20   ! Temperature at inlet 2
+        100  ! Flow rate at inlet 2
+
+        * EQUATIONS "double"
+        *
+        EQUATIONS 1
+        flowRateDoubled  =  2*[1, 2]
+        *$UNIT_NAME double
+        *$LAYER Main
+        *$POSITION 50.0 50.0
+        *$UNIT_NUMBER 2
+        """
+
+    @pytest.mark.parametrize("proforma_root", [None, "tests/input_files"])
+    def test_load(self, components_string, proforma_root):
+        from trnsystor import Deck
+
+        dck = Deck.loads(components_string, proforma_root=proforma_root)
+        assert len(dck.models) == 2
+
 
 class TestComponent:
     def test_unique_hash(self, fan_type):
