@@ -476,8 +476,13 @@ class Deck(object):
                     print("Empty UserConstants block")
             # read studio markup
             if key == "unitnumber":
-                dck.remove_models(component)
                 unit_number = match.group(key)
+                try:
+                    model_ = dck.models.iloc[unit_number]
+                except KeyError:
+                    pass
+                else:
+                    dck.models.pop(model_)
                 component._unit = int(unit_number)
                 dck.update_models(component)
             if key == "unitname":
@@ -620,6 +625,8 @@ class Deck(object):
                         )
                     meta = MetaData.from_xml(xml)
                 if isinstance(component, TrnsysModel):
+                    if component._meta is None:
+                        component._meta = meta
                     component.update_meta(meta)
 
             try:

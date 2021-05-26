@@ -876,7 +876,7 @@ class TestDeck:
         yield r"""
         UNIT 3 TYPE  11 Tee Piece
         *$UNIT_NAME Tee Piece
-        *$MODEL district\xmltypes\Type11h.xml
+        *$MODEL tests\input_files\Type11h.xml
         *$POSITION 50.0 50.0
         *$LAYER Main
         PARAMETERS 1
@@ -902,10 +902,11 @@ class TestDeck:
         *$UNIT_NUMBER 2
         """
 
-    def test_load(self, components_string):
+    @pytest.mark.parametrize("proforma_root", [None, "tests/input_files"])
+    def test_load(self, components_string, proforma_root):
         from trnsystor import Deck
 
-        dck = Deck.loads(components_string, proforma_root="tests/input_files")
+        dck = Deck.loads(components_string, proforma_root=proforma_root)
         assert len(dck.models) == 2
 
 
