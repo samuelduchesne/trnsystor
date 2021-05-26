@@ -290,7 +290,7 @@ class Deck(object):
         if path_or_buf is None:
             return formatter.path_or_buf.getvalue()
 
-        return None
+        return path_or_buf
 
     def save(self, path_or_buf, encoding=None, mode="w"):
         """Save Deck to file.
