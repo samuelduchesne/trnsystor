@@ -373,7 +373,7 @@ class Deck(object):
                 )
             s = s.decode(json.detect_encoding(s), "surrogatepass")
         # Remove empty lines from string
-        s = os.linesep.join([s for s in s.splitlines() if s])
+        s = os.linesep.join([s.strip() for s in s.splitlines() if s])
 
         # First pass
         cls._parse_string(cc, dck, proforma_root, s)
