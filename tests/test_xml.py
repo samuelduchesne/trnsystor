@@ -222,7 +222,14 @@ class TestTrnsysModel:
 
     def test_initial_input_values(self, fan_type):
         """Assert initial input values repr and modification."""
-        assert repr(fan_type.initial_input_values)
+        assert (
+            repr(fan_type.initial_input_values)
+            == '7 Initial Input Values:\n"Inlet_Air_Temperature": 20.0 '
+            '°C\n"Inlet_Air_Humidity_Ratio": 0.008\n'
+            '"Inlet_Air_Relative_Humidity": 50.0 %\n"Air_Flow_Rate": 2000.0 kg/hr\n'
+            '"Inlet_Air_Pressure": 1.0 atm\n"Control_Signal": 1.0\n'
+            '"Air_Side_Pressure_Increase": 0.0 atm'
+        )
 
         assert fan_type.initial_input_values[0].value.m == 20
         fan_type.initial_input_values[0] = 21
