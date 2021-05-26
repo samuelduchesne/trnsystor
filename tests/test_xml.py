@@ -12,7 +12,7 @@ from trnsystor.component import Component
 from trnsystor.trnsysmodel import TrnsysModel
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def fan_type():
     """Fixture to create a TrnsysModel from xml."""
     from trnsystor.trnsysmodel import TrnsysModel
@@ -21,7 +21,7 @@ def fan_type():
     yield fan1
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def pipe_type():
     """Fixture to create a TrnsysModel from xml. Also tests using a Path."""
     from trnsystor.trnsysmodel import TrnsysModel
@@ -30,7 +30,7 @@ def pipe_type():
     yield pipe
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def tank_type():
     from trnsystor.trnsysmodel import TrnsysModel
 
@@ -260,7 +260,8 @@ class TestTrnsysModel:
     def test_trnsysmodel_repr(self, tank_type):
         """Test the __repr__ for :class:`TrnsysModel`."""
         assert (
-            repr(tank_type)[3:] == "Type4: Storage Tank; Fixed Inlets, Uniform Losses"
+            repr(tank_type).strip()[-49:]
+            == "Type4: Storage Tank; Fixed Inlets, Uniform Losses"
         )
 
     def test_typecycle_repr(self, tank_type):
