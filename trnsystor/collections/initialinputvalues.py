@@ -28,7 +28,7 @@ class InitialInputValuesCollection(VariableCollection):
         value: TypeVariable
         inputs = "\n".join(
             [
-                '"{}": {:~P}'.format(key, value.default)
+                '"{}": {}'.format(key, value.value)
                 for key, value in self.data.items()
             ]
         )
@@ -78,7 +78,7 @@ class InitialInputValuesCollection(VariableCollection):
         head = "*** INITIAL INPUT VALUES\n"
         input_tuples = [
             (
-                v.default.m if isinstance(v.default, _Quantity) else v.default,
+                v.value.m if isinstance(v.value, _Quantity) else v.value,
                 "! {}".format(v.name),
             )
             for v in self.values()
