@@ -220,6 +220,14 @@ class TestTrnsysModel:
         """Test to Input File representation of a TrnsysModel."""
         print(fan_type._to_deck())
 
+    def test_initial_input_values(self, fan_type):
+        """Assert initial input values repr and modification."""
+        assert repr(fan_type.initial_input_values)
+
+        assert fan_type.initial_input_values[0].value.m == 20
+        fan_type.initial_input_values[0] = 21
+        assert fan_type.initial_input_values[0].value.m == 21
+
     def test_initial_input_values_to_deck(self, fan_type):
         """Test to Input File representation of a TrnsysModel."""
         print(fan_type.initial_input_values._to_deck())
