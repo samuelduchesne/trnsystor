@@ -58,11 +58,11 @@ class InitialInputValuesCollection(VariableCollection):
             value = _parse_value(
                 value, self[key].type, self[key].unit, (self[key].min, self[key].max)
             )
-            self[key].__setattr__("default", value)
+            self[key].__setattr__("value", value)
         elif isinstance(value, _Quantity):
-            self[key].__setattr__("default", value.to(self[key].value.units))
+            self[key].__setattr__("value", value.to(self[key].value.units))
         elif isinstance(value, (Equation, Constant)):
-            self[key].__setattr__("default", value)
+            self[key].__setattr__("value", value)
         else:
             raise TypeError(
                 "Cannot set a default value of type {} in this "
