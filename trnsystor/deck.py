@@ -172,6 +172,7 @@ class Deck(object):
                 name=file.basename(),
                 author=author,
                 date_created=date_created,
+                **kwargs
             )
 
         # assert missing types
