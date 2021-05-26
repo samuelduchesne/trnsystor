@@ -26,12 +26,21 @@ class InitialInputValuesCollection(VariableCollection):
         """Return repr(self)."""
         num_inputs = "{} Initial Input Values:\n".format(self.size)
         value: TypeVariable
-        inputs = "\n".join(
-            [
-                '"{}": {}'.format(key, value.value)
-                for key, value in self.data.items()
-            ]
-        )
+        try:
+            inputs = "\n".join(
+                [
+                    f'"{key}": {value.value:~P}'
+                    for key, value in self.data.items()
+                ]
+            )
+        except ValueError:
+            # ~P formatting (above) can fail on strings
+            inputs = "\n".join(
+                [
+                    f'"{key}": {value.value}'
+                    for key, value in self.data.items()
+                ]
+            )
         return num_inputs + inputs
 
     def __iter__(self):
