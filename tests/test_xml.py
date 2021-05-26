@@ -9,6 +9,7 @@ from path import Path
 from shapely.geometry import LineString, Point
 
 from trnsystor.component import Component
+from trnsystor.statement import Constant
 from trnsystor.trnsysmodel import TrnsysModel
 
 
@@ -220,6 +221,10 @@ class TestTrnsysModel:
         """Test to Input File representation of a TrnsysModel."""
         print(fan_type._to_deck())
 
+    def test_initial_input_values_slice_getter(self, fan_type):
+        """Test getter using a slide."""
+        assert len(fan_type.initial_input_values[0:3]) == 3
+
     def test_initial_input_values(self, fan_type):
         """Assert initial input values repr and modification."""
         assert (
@@ -234,6 +239,17 @@ class TestTrnsysModel:
         assert fan_type.initial_input_values[0].value.m == 20
         fan_type.initial_input_values[0] = 21
         assert fan_type.initial_input_values[0].value.m == 21
+
+        # set using a Quantity instead of a
+        Q_ = fan_type.initial_input_values[0].value
+        fan_type.initial_input_values[0] = Q_.__class__(21, Q_.units)
+
+        # set using Equation or Constant
+        fan_type.initial_input_values[0] = Constant("A=21")
+
+        # assert error when using wring type (e.g. a list)
+        with pytest.raises(TypeError):
+            fan_type.initial_input_values[0] = [0, 1, 2]
 
     def test_initial_input_values_to_deck(self, fan_type):
         """Test to Input File representation of a TrnsysModel."""
