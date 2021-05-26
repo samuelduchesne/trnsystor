@@ -163,10 +163,10 @@ class Equation(Statement, TypeVariable):
             )
         for i, arg in enumerate(sorted(exp.free_symbols, key=lambda sym: sym.name)):
             new_symbol = args[i]
-            if isinstance(new_symbol, TypeVariable):
-                exp = exp.subs(arg, TypeVariableSymbol(new_symbol))
-            elif isinstance(new_symbol, (Equation, Constant)):
+            if isinstance(new_symbol, (Equation, Constant)):
                 exp = exp.subs(arg, Symbol(new_symbol.name))
+            elif isinstance(new_symbol, TypeVariable):
+                exp = exp.subs(arg, TypeVariableSymbol(new_symbol))
             else:
                 exp = exp.subs(arg, Symbol(new_symbol))
         return cls(name, exp, doc=doc)
