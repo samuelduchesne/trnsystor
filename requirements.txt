@@ -1,5 +1,5 @@
 outdated~=0.2.1
-pint~=0.17
+pint~=0.20
 tabulate~=0.8.9
 path~=16.0.0
 shapely~=1.7.1
