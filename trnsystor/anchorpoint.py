@@ -125,7 +125,7 @@ class AnchorPoint(object):
             "top-center": (0, offset),
             "top-right": (offset, offset),
             "center-right": (offset, 0),
-            "bottom-right": (-offset, -offset),
+            "bottom-right": (offset, -offset),
             "bottom-center": (0, -offset),
             "bottom-left": (-offset, -offset),
             "center-left": (-offset, 0),
