@@ -1,0 +1,57 @@
+[build-system]
+requires = ["uv", "setuptools>=61", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trnsystor"
+dynamic = ["version"]
+description = "A python TRNSYS type parser"
+readme = "README.md"
+authors = [{ name = "Samuel Letellier-Duchesne", email = "samuel.letellier-duchesne@polymtl.ca" }]
+license = { file = "LICENSE.md" }
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "outdated",
+    "pint",
+    "tabulate",
+    "path",
+    "shapely",
+    "numpy",
+    "matplotlib",
+    "pandas",
+    "sympy",
+    "beautifulsoup4",
+    "lxml",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "mock",
+    "pytest-cov",
+    "coverage",
+    "coveralls",
+    "sphinx",
+    "networkx",
+    "recommonmark",
+    "sphinx_rtd_theme",
+    "pytest-xdist",
+]
+
+[tool.setuptools_scm]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "E501"]
+docstring-convention = "google"
+exclude = [".git", "__pycache__", "docs/conf.py", "tests", "setup.py"]
