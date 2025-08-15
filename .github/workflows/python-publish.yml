@@ -19,6 +19,8 @@ jobs:
       with:
         python-version: '3.12'
     - uses: astral-sh/setup-uv@v1
+    - name: Create virtual environment
+      run: uv venv
     - name: Build and publish
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
@@ -26,4 +28,4 @@ jobs:
       run: |
         uv pip install twine
         uv build
-        twine upload dist/*
+        uv run twine upload dist/*
