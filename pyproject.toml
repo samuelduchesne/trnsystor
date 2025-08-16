@@ -21,17 +21,17 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    "outdated",
-    "pint",
-    "tabulate",
-    "path",
-    "shapely",
-    "numpy",
-    "matplotlib",
-    "pandas",
-    "sympy",
     "beautifulsoup4",
     "lxml",
+    "matplotlib",
+    "numpy",
+    "outdated",
+    "pandas",
+    "path",
+    "pint",
+    "shapely",
+    "sympy",
+    "tabulate",
 ]
 
 [project.optional-dependencies]
