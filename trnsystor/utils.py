@@ -29,7 +29,7 @@ def affine_transform(geom, matrix=None):
     import numpy as np
     from shapely.affinity import affine_transform
 
-    if not matrix:
+    if matrix is None:
         matrix = np.array([[1, 0, 0], [0, -1, 0], [0, 0, 0]])
     matrix_l = matrix[0:2, 0:2].flatten().tolist() + matrix[0:2, 2].flatten().tolist()
     return affine_transform(geom, matrix_l)
