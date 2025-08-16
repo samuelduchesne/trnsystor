@@ -48,6 +48,8 @@ dev = [
     "sphinx_rtd_theme",
     "pytest-xdist",
     "flake8",
+    "ruff",
+    "pre-commit",
 ]
 
 [tool.setuptools_scm]
