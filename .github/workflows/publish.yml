@@ -1,0 +1,20 @@
+name: Publish
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v2
+        with:
+          uv-version: latest
+      - run: uv python install 3.12
+      - run: uv sync --all-extras
+      - run: uv build
+      - run: uv publish
+        env:
+          PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
