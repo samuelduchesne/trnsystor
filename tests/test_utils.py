@@ -1,7 +1,7 @@
 """Test utils module."""
 import pytest
 
-from trnsystor.utils import parse_unit, redistribute_vertices, ureg
+from trnsystor.utils import affine_transform, parse_unit, redistribute_vertices, ureg
 
 
 class TestRedistributeVertices:
@@ -53,3 +53,44 @@ def test_parse_unit_fraction_multiple_calls():
     for _ in range(3):
         Q_, unit = parse_unit("fraction")
         assert unit == ureg.fraction
+
+
+def test_parse_unit_custom_unit_repeated_calls():
+    """Custom units defined at runtime are parsed correctly multiple times."""
+    if "widget" not in ureg:
+        ureg.define("widget = 3 * meter")
+    for _ in range(3):
+        Q_, unit = parse_unit("widget")
+        assert unit == ureg.widget
+
+
+def test_affine_transform_default_flip():
+    """Without a matrix, geometry should be mirrored across the x-axis."""
+    from shapely.geometry import Point
+
+    geom = Point(2, 3)
+    new_geom = affine_transform(geom, matrix=None)
+    assert new_geom.x == pytest.approx(2)
+    assert new_geom.y == pytest.approx(-3)
+
+
+def test_affine_transform_with_matrix_translation():
+    """Affine transform should apply provided matrix."""
+    import numpy as np
+    from shapely.geometry import Point
+
+    class MatrixWrapper:
+        def __init__(self, data):
+            self.array = np.array(data)
+
+        def __getitem__(self, idx):
+            return self.array[idx]
+
+        def __bool__(self):
+            return True
+
+    geom = Point(1, 2)
+    matrix = MatrixWrapper([[1, 0, 5], [0, 1, 3], [0, 0, 1]])
+    new_geom = affine_transform(geom, matrix=matrix)
+    assert new_geom.x == pytest.approx(6)
+    assert new_geom.y == pytest.approx(5)
