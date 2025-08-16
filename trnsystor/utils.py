@@ -2,9 +2,13 @@
 import math
 import re
 
-from pint import UnitRegistry
-from pint.quantity import _Quantity
+from pint import UnitRegistry, Quantity
 from shapely.geometry import LineString
+from path import Path as _Path
+
+# Backwards-compatibility for older ``path`` APIs used in tests.
+if not hasattr(_Path, "getcwd"):
+    _Path.getcwd = _Path.cwd
 from sympy import Expr, Symbol, cacheit
 from sympy.core.assumptions import StdFactKB
 from sympy.core.logic import fuzzy_bool
@@ -90,8 +94,8 @@ def get_int_from_rgb(rgb):
 
 
 def resolve_type(args):
-    """Return float for :class:`_Quantity` or number."""
-    if isinstance(args, _Quantity):
+    """Return float for :class:`Quantity` or number."""
+    if isinstance(args, Quantity):
         return args.m
     else:
         return float(args)
@@ -224,6 +228,12 @@ _CUSTOM_UNITS = {
 for name, definition in _CUSTOM_UNITS.items():
     if name not in ureg:
         ureg.define(definition)
+
+# Ensure "hr" is used for hour so quantities display as "kg/hr" instead of "kg/h".
+try:
+    ureg.define("hr = hour")
+except Exception:
+    pass
 
 
 class DeckFilePrinter(StrPrinter):

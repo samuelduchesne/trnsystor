@@ -1,7 +1,7 @@
 """InitialInputValuesCollection module."""
 
 import tabulate
-from pint.quantity import _Quantity
+from pint import Quantity
 
 from trnsystor.collections.variable import VariableCollection
 from trnsystor.statement import Constant, Equation
@@ -68,7 +68,7 @@ class InitialInputValuesCollection(VariableCollection):
                 value, self[key].type, self[key].unit, (self[key].min, self[key].max)
             )
             self[key].__setattr__("value", value)
-        elif isinstance(value, _Quantity):
+        elif isinstance(value, Quantity):
             self[key].__setattr__("value", value.to(self[key].value.units))
         elif isinstance(value, (Equation, Constant)):
             self[key].__setattr__("value", value)
@@ -87,7 +87,7 @@ class InitialInputValuesCollection(VariableCollection):
         head = "*** INITIAL INPUT VALUES\n"
         input_tuples = [
             (
-                v.value.m if isinstance(v.value, _Quantity) else v.value,
+                v.value.m if isinstance(v.value, Quantity) else v.value,
                 "! {}".format(v.name),
             )
             for v in self.values()

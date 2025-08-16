@@ -42,7 +42,7 @@ class TypeVariable(object):
         """Initialize a TypeVariable with the following attributes.
 
         Args:
-            val (int, float, _Quantity): The actual value hold by this object.
+            val (int, float, Quantity): The actual value hold by this object.
             order (str): The order of the variable.
             name (str): This name will be seen by the user in the connections
                 window and all other variable information windows.
@@ -59,16 +59,16 @@ class TypeVariable(object):
                 requires for the specified dimension (C, F, K etc.)
             type (type or str): The type of the variable: Real, integer,
                 Boolean, or string.
-            min (int, float or pint._Quantity): The minimum value. The minimum
+            min (int, float or pint.Quantity): The minimum value. The minimum
                 and maximum can be "-INF" or "+INF" to indicate no limit
                 (infinity). +/-INF is the default value.
-            max (int, float or pint._Quantity): The maximum value. The minimum
+            max (int, float or pint.Quantity): The maximum value. The minimum
                 and maximum can be "-INF" or "+INF" to indicate no limit
                 (infinity). +/-INF is the default value.
             boundaries (str): This setting determines if the minimum and maximum
                 are included or not in the range. choices are "[;]", "[;[",
                 "];]" ,"];["
-            default (int, float or pint._Quantity): the default value of the
+            default (int, float or pint.Quantity): the default value of the
                 variable. The default value is replaced by the initial value for
                 the inputs and derivatives and suppressed for the outputs.
             symbol (str): The symbol of the unit (not used).
