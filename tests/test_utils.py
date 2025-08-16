@@ -1,7 +1,7 @@
 """Test utils module."""
 import pytest
 
-from trnsystor.utils import redistribute_vertices
+from trnsystor.utils import redistribute_vertices, affine_transform
 
 
 class TestRedistributeVertices:
@@ -39,3 +39,14 @@ class TestRedistributeVertices:
         new_goem = redistribute_vertices(zero_geom, 10)
         assert new_goem.length == 0
         assert new_goem == zero_geom
+
+
+def test_affine_transform_with_numpy_array():
+    """Ensure affine_transform accepts NumPy arrays without error."""
+    import numpy as np
+    from shapely.geometry import Point
+
+    geom = Point(1, 2)
+    matrix = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    result = affine_transform(geom, matrix)
+    assert result.equals(geom)
