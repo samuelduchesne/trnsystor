@@ -1,5 +1,6 @@
 """StudioCanvas module."""
 import networkx as nx
+from shapely.errors import GEOSException
 from shapely.geometry import LineString, box
 
 
@@ -80,5 +81,5 @@ class StudioCanvas:
         # create linestring and simplify to unit and return
         try:
             return LineString(shortest_path).simplify(1)
-        except ValueError:
+        except (ValueError, GEOSException):
             return shortest_path

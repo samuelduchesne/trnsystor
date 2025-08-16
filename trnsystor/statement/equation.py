@@ -151,9 +151,16 @@ class Equation(Statement, TypeVariable):
         Returns:
             Equation: The Equation Statement object.
         """
+        from sympy import Piecewise
         from sympy.parsing.sympy_parser import parse_expr
 
-        exp = parse_expr(exp)
+        def _lt(a, b):
+            return Piecewise((1, a < b), (0, True))
+
+        def _ge(a, b):
+            return Piecewise((1, a >= b), (0, True))
+
+        exp = parse_expr(exp, local_dict={"Lt": _lt, "Ge": _ge})
 
         if len(exp.free_symbols) != len(args):
             raise AttributeError(

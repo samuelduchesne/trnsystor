@@ -174,7 +174,7 @@ class MetaData(object):
         xml_file = Path(xml)
         with open(xml_file) as xml:
             soup = BeautifulSoup(xml, "xml")
-            my_objects = soup.findAll("TrnsysModel")
+            my_objects = soup.find_all("TrnsysModel")
             for trnsystype in my_objects:
                 kwargs.pop("name", None)
                 meta = cls.from_tag(trnsystype, **kwargs)
@@ -225,7 +225,7 @@ class TrnsysModel(Component):
         with open(xml_file) as xml:
             all_types = []
             soup = BeautifulSoup(xml, "xml")
-            my_objects = soup.findAll("TrnsysModel")
+            my_objects = soup.find_all("TrnsysModel")
             for trnsystype in my_objects:
                 t = cls._from_tag(trnsystype, **kwargs)
                 t._meta.model = xml_file

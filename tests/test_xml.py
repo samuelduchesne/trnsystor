@@ -65,7 +65,7 @@ class TestTrnsysModel:
         from trnsystor.trnsysmodel import TrnsysModel
 
         fan1 = TrnsysModel.from_xml("tests/input_files/Type107-simplified.xml")
-        return fan1
+        assert fan1 is not None
 
     def test_unit_name(self, pipe_type):
         assert pipe_type.unit_name == "Type951"
@@ -831,7 +831,6 @@ class TestDeck:
             dck = Deck.read_file(deck_file, proforma_root="tests/input_files")
             yield dck
 
-    @pytest.mark.xfail(raises=ValueError)
     @pytest.fixture(scope="class")
     def irregular_deck(self):
         from trnsystor.deck import Deck

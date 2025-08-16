@@ -11,7 +11,6 @@ if not hasattr(_Path, "getcwd"):
     _Path.getcwd = _Path.cwd
 from sympy import Expr, Symbol, cacheit
 from sympy.core.assumptions import StdFactKB
-from sympy.core.logic import fuzzy_bool
 from sympy.printing import StrPrinter
 
 
@@ -295,11 +294,13 @@ class TypeVariableSymbol(Symbol):
 
         tmp_asm_copy = assumptions.copy()
 
-        # be strict about commutativity
-        is_commutative = fuzzy_bool(assumptions.get("commutative", True))
-        assumptions["commutative"] = is_commutative
-        obj._assumptions = StdFactKB(assumptions)
+        assumptions_kb, assumptions_orig, assumptions0 = Symbol._canonical_assumptions(
+            **assumptions
+        )
+        obj._assumptions = assumptions_kb
         obj._assumptions._generator = tmp_asm_copy  # Issue #8873
+        obj._assumptions_orig = assumptions_orig
+        obj._assumptions0 = tuple(sorted(assumptions0.items()))
         return obj
 
     __xnew__ = staticmethod(__new_stage2__)  # never cached (e.g. dummy)
