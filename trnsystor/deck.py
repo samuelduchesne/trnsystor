@@ -384,6 +384,16 @@ class Deck(object):
 
     @classmethod
     def _parse_string(cls, cc, dck, proforma_root, s):
+        """Parse the deck string ``s`` into the ``Deck`` instance ``dck``.
+
+        This implementation relies solely on local variables which makes the
+        parser reentrant and thread-safe. Previously the parser used module
+        level globals to keep track of the currently parsed component and the
+        index of type variables. Sharing state at the module level made the
+        function unsafe when invoked concurrently.  By keeping the state local
+        to the function we ensure that multiple parses can happen at the same
+        time without interfering with each other.
+        """
         # iterate
         deck_lines = iter(s.splitlines())
         line = next(deck_lines)
@@ -391,7 +401,12 @@ class Deck(object):
             proforma_root = Path.getcwd()
         else:
             proforma_root = Path(proforma_root)
-        global component, i
+
+        # reference to the component currently being parsed.  This was
+        # previously stored in a module level global which prevented reentrant
+        # calls to this function.
+        component = None
+
         while line:
             key, match = dck._parse_line(line)
             if key == "end":
@@ -470,9 +485,10 @@ class Deck(object):
                     list_eq.append(Equation.from_expression(value))
                 component = EquationCollection(list_eq, name=Name("block"))
             if key == "userconstantend":
-                try:
+                if component is not None:
                     dck.update_models(component)
-                except NameError:
+                    component = None
+                else:
                     print("Empty UserConstants block")
             # read studio markup
             if key == "unitnumber":
