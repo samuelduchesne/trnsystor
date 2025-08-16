@@ -15,6 +15,14 @@ specify parameters, connect components together and more throught python code.
 pip install trnsystor
 ```
 
+## Studio Canvas Grid
+
+Paths between component ports are routed on a logical grid.  The
+``StudioCanvas`` now exposes a configurable ``step`` parameter which controls
+the resolution of that grid.  Shortest paths are computed on-demand without
+building the full NetworkX grid graph, dramatically reducing memory usage for
+large canvases.
+
 ## Usage
 
 Since TRNSYS 18, type proformas can be exported to XML schemas. *trnsystor* builds on this
