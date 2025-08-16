@@ -391,7 +391,8 @@ class Deck(object):
             proforma_root = Path.getcwd()
         else:
             proforma_root = Path(proforma_root)
-        global component, i
+
+        component = None
         while line:
             key, match = dck._parse_line(line)
             if key == "end":
@@ -470,9 +471,9 @@ class Deck(object):
                     list_eq.append(Equation.from_expression(value))
                 component = EquationCollection(list_eq, name=Name("block"))
             if key == "userconstantend":
-                try:
+                if component is not None:
                     dck.update_models(component)
-                except NameError:
+                else:
                     print("Empty UserConstants block")
             # read studio markup
             if key == "unitnumber":
@@ -535,13 +536,14 @@ class Deck(object):
                                 tvar_group = match.group("typevariable").strip()
                                 for j, tvar in enumerate(tvar_group.split(" ")):
                                     try:
+                                        tv_key = key
                                         if i >= init_at:
-                                            key = "initial_input_values"
+                                            tv_key = "initial_input_values"
                                             j = j + i - init_at
                                         else:
                                             j = i
                                         cls.set_typevariable(
-                                            dck, j, component, tvar, key
+                                            dck, j, component, tvar, tv_key
                                         )
                                     except (KeyError, IndexError, ValueError):
                                         continue
