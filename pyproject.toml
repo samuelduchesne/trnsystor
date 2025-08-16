@@ -9,16 +9,15 @@ description = "A python TRNSYS type parser"
 readme = "README.md"
 authors = [{ name = "Samuel Letellier-Duchesne", email = "samuel.letellier-duchesne@polymtl.ca" }]
 license = { file = "LICENSE.md" }
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
     "beautifulsoup4",
@@ -36,26 +35,91 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
+test = [
     "pytest",
-    "mock",
     "pytest-cov",
+    "mock",
+    "pytest-xdist",
+]
+docs = [
+    "sphinx",
+    "sphinx_rtd_theme",
+    "recommonmark",
+]
+dev = [
+    "pre-commit",
+    "ruff",
+    "mypy",
     "coverage",
     "coveralls",
-    "sphinx",
-    "networkx",
-    "recommonmark",
-    "sphinx_rtd_theme",
-    "pytest-xdist",
-    "flake8",
-    "ruff",
-    "pre-commit",
 ]
 
 [tool.setuptools_scm]
 
-[tool.flake8]
-max-line-length = 88
-extend-ignore = ["E203", "E501"]
-docstring-convention = "google"
-exclude = [".git", "__pycache__", "docs/conf.py", "tests", "setup.py"]
+[tool.setuptools.package-data]
+"trnsystor" = ["py.typed"]
+
+[tool.uv]
+
+[tool.uv.scripts]
+fmt = "ruff format ."
+lint = "ruff check ."
+typecheck = "mypy"
+test = "pytest"
+cov = "pytest --cov=trnsystor --cov-report=term-missing --cov-fail-under=90"
+docs = "sphinx-build -b html docs docs/_build"
+build = "uv build"
+release = "uv publish"
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+fix = true
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.lint]
+select = [
+    "E","F","I","UP","ANN","SIM","PERF","PL","PD","DTZ","B","PTH","NPY",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ANN", "PLC0415", "PLR2004", "PTH123"]
+"trnsystor/*" = [
+    "ANN",
+    "PLR0913",
+    "SIM105",
+    "PLC0415",
+    "PLW2901",
+    "B020",
+    "PLR1714",
+    "B007",
+    "PERF102",
+    "SIM113",
+    "PLR0911",
+]
+
+[tool.mypy]
+strict = true
+warn_return_any = true
+no_implicit_optional = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+extra_checks = true
+python_version = "3.12"
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "trnsystor.*"
+ignore_errors = true
+
+[tool.pytest.ini_options]
+addopts = "--cov=trnsystor --cov-report=term-missing --cov-fail-under=90"
+testpaths = ["tests"]

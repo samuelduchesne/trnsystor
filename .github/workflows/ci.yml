@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v2
+        with:
+          uv-version: latest
+      - run: uv python install 3.12
+      - run: uv sync --all-extras
+      - run: uv run ruff format --check .
+      - run: uv run ruff check .
+      - run: uv run mypy
+      - run: uv run pytest --cov=trnsystor --cov-report=term-missing --cov-fail-under=90
+      - uses: codecov/codecov-action@v3
+        if: ${{ github.event_name == 'push' }}
+        with:
+          files: coverage.xml

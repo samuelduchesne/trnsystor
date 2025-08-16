@@ -1,23 +1,15 @@
-"""Docs module."""
-# Configuration file for the Sphinx documentation builder.
-#
-# This file only contains a selection of the most common options. For a full
-# list see the documentation:
-# http://www.sphinx-doc.org/en/master/config
+"""Sphinx configuration."""
 
-# -- Path setup --------------------------------------------------------------
+from __future__ import annotations
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-#
 import os
 import sys
-
-from trnsystor import __version__
+from importlib import metadata
 
 sys.path.insert(0, os.path.abspath("."))
 sys.path.insert(0, os.path.abspath("trnsystor"))
+
+__version__ = metadata.version("trnsystor")
 
 # -- Project information -----------------------------------------------------
 
@@ -57,9 +49,9 @@ templates_path = ["_templates"]
 
 
 def setup(app):
-    app.add_stylesheet("theme_overrides.css")
+    app.add_css_file("theme_overrides.css")
     # app.connect("autodoc-skip-member", skip)
-    app.add_javascript("copybutton.js")
+    app.add_js_file("copybutton.js")
     # Add the 'copybutton' javascript, to hide/show the prompt in code examples
 
 
@@ -96,7 +88,7 @@ intersphinx_mapping = {
     "pandas": ("http://pandas.pydata.org/pandas-docs/stable/", None),
     "numpy": ("https://docs.scipy.org/doc/numpy/", None),
     "networkx": (
-        "https://networkx.github.io/documentation/stable" "/index" ".html",
+        "https://networkx.github.io/documentation/stable/index.html",
         "https://networkx.github.io/objects.inv",
     ),
     "pint": ("https://pint.readthedocs.io/en/0.9/", None),

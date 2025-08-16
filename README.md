@@ -11,8 +11,23 @@ specify parameters, connect components together and more throught python code.
 
 ## Installation
 
-```cmd
-pip install trnsystor
+We use [uv](https://github.com/astral-sh/uv) for dependency management. After
+installing uv, create a local development environment and run the test suite:
+
+```bash
+uv sync --all-extras
+uv run pytest
+```
+
+Common development tasks are exposed via `uv run` scripts:
+
+```bash
+uv run fmt       # format with ruff
+uv run lint      # lint with ruff
+uv run typecheck # static type checking with mypy
+uv run test      # run tests
+uv run cov       # run tests with coverage
+uv run docs      # build documentation
 ```
 
 ## Studio Canvas Grid
