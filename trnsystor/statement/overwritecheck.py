@@ -34,4 +34,4 @@ class OverwriteCheck(Statement):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        return "OVERWRITE_CHECK {}".format(self.n)
+        return f"OVERWRITE_CHECK {self.n}"

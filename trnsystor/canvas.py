@@ -1,5 +1,6 @@
 """StudioCanvas module."""
 from collections import deque
+
 from shapely.errors import GEOSException
 from shapely.geometry import LineString, box
 
@@ -108,7 +109,7 @@ class StudioCanvas:
         path.reverse()
 
         if donotcross:
-            for edge in zip(path, path[1:]):
+            for edge in zip(path, path[1:], strict=False):
                 self._blocked_edges.add(tuple(sorted(edge)))
 
         try:

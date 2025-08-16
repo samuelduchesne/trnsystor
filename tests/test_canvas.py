@@ -1,4 +1,3 @@
-import pytest
 from shapely.geometry import Point
 
 from trnsystor.canvas import StudioCanvas

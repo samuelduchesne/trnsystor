@@ -31,5 +31,5 @@ class Tolerances(Statement):
         Examples:
             TOLERANCES 0.001 0.001
         """
-        head = "TOLERANCES {} {}".format(self.epsilon_d, self.epsilon_a)
+        head = f"TOLERANCES {self.epsilon_d} {self.epsilon_a}"
         return str(head)

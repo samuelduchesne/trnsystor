@@ -1,0 +1,13 @@
+line-length = 88
+target-version = "py312"
+fix = true
+
+[lint]
+select = ["E","F","I","UP","ANN","SIM","PERF","PL","PD","DTZ","B","PTH","NPY"]
+
+[lint.isort]
+known-first-party = ["trnsystor"]
+combine-as-imports = true
+
+[lint.per-file-ignores]
+"tests/*" = ["ANN"]

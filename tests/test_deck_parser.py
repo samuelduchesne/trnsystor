@@ -1,9 +1,10 @@
+import itertools
+
+import networkx as nx
 from path import Path
 
-from trnsystor.deck import Deck
 from trnsystor.component import Component
-import itertools
-import networkx as nx
+from trnsystor.deck import Deck
 
 
 def _parse_deck():

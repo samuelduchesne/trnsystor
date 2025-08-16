@@ -36,4 +36,4 @@ class Simulation(Statement):
 
         SIMULATION to tf Δt
         """
-        return "SIMULATION {} {} {}".format(self.start, self.stop, self.step)
+        return f"SIMULATION {self.start} {self.stop} {self.step}"

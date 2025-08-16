@@ -24,4 +24,4 @@ class TimeReport(Statement):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        return "TIME_REPORT {n}".format(n=self.n)
+        return f"TIME_REPORT {self.n}"

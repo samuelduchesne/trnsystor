@@ -5,7 +5,7 @@ from bs4 import Tag
 from path import Path
 
 
-class ExternalFile(object):
+class ExternalFile:
     """ExternalFile class.
 
     The External File Specification allows the user to associate a TRNSYS parameter (

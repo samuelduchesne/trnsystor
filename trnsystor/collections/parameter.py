@@ -12,15 +12,15 @@ class ParameterCollection(VariableCollection):
 
     def __repr__(self):
         """Return repr(self)."""
-        num_inputs = "{} Parameters:\n".format(self.size)
+        num_inputs = f"{self.size} Parameters:\n"
         inputs = "\n".join(
-            ['"{}": {:~P}'.format(key, value.value) for key, value in self.data.items()]
+            [f'"{key}": {value.value:~P}' for key, value in self.data.items()]
         )
         return num_inputs + inputs
 
     def _to_deck(self):
         """Return deck representation of self."""
-        head = "PARAMETERS {}\n".format(self.size)
+        head = f"PARAMETERS {self.size}\n"
         # loop through parameters and print the (value, name) tuples.
         v_ = []
         param: TypeVariable
@@ -30,22 +30,20 @@ class ParameterCollection(VariableCollection):
                     v_.append(
                         (
                             param.value.name,
-                            "! {} {}".format(param.one_based_idx, param.name),
+                            f"! {param.one_based_idx} {param.name}",
                         )
                     )
                 elif isinstance(param.value, Quantity):
                     v_.append(
                         (
                             param.value.m,
-                            "! {} {}".format(param.one_based_idx, param.name),
+                            f"! {param.one_based_idx} {param.name}",
                         )
                     )
                 else:
                     raise NotImplementedError(
-                        "Printing parameter '{}' of type '{}' from unit '{}' is not "
-                        "supported".format(
-                            param.name, type(param.value), param.model.name
-                        )
+                        f"Printing parameter '{param.name}' of type '{type(param.value)}' from unit '{param.model.name}' is not "
+                        "supported"
                     )
         params_str = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
         return head + params_str + "\n"

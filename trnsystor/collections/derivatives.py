@@ -11,9 +11,9 @@ class DerivativesCollection(VariableCollection):
 
     def __repr__(self):
         """Return repr(self)."""
-        num_inputs = "{} Inputs:\n".format(self.size)
+        num_inputs = f"{self.size} Inputs:\n"
         inputs = "\n".join(
-            ['"{}": {:~P}'.format(key, value.value) for key, value in self.data.items()]
+            [f'"{key}": {value.value:~P}' for key, value in self.data.items()]
         )
         return num_inputs + inputs
 
@@ -23,11 +23,11 @@ class DerivativesCollection(VariableCollection):
             # Don't need to print empty inputs
             return ""
 
-        head = "DERIVATIVES {}\n".format(self.size)
+        head = f"DERIVATIVES {self.size}\n"
         _ins = []
         derivative: TypeVariable
         for derivative in self.values():
-            _ins.append((derivative.value.m, "! {}".format(derivative.name)))
+            _ins.append((derivative.value.m, f"! {derivative.name}"))
         core = tabulate.tabulate(_ins, tablefmt="plain", numalign="left")
 
         return head + core + "\n"

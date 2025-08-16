@@ -56,8 +56,8 @@ class VariableCollection(collections.UserDict):
             self[key].__setattr__("value", value)
         else:
             raise TypeError(
-                "Cannot set a value of type {} in this "
-                "VariableCollection".format(type(value))
+                f"Cannot set a value of type {type(value)} in this "
+                "VariableCollection"
             )
 
     def __str__(self):

@@ -33,4 +33,4 @@ class DFQ(Statement):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        return str("DFQ {}".format(self.k))
+        return str(f"DFQ {self.k}")

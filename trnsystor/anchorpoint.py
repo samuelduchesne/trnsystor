@@ -5,7 +5,7 @@ import itertools
 from shapely.geometry import MultiPoint
 
 
-class AnchorPoint(object):
+class AnchorPoint:
     """Handles the anchor point. There are 6 anchor points around a component."""
 
     def __init__(self, model, offset=20, height=40, width=40):
@@ -79,7 +79,7 @@ class AnchorPoint(object):
         for k, p in p_.items():
             p_[k] = translate(p, 0, -miny)
         return {
-            k: tuple(itertools.chain(*tuple((map(abs, p) for p in p.coords))))
+            k: tuple(itertools.chain(*tuple(map(abs, p) for p in p.coords)))
             for k, p in p_.items()
         }
 

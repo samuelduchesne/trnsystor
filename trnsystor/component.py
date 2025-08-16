@@ -98,8 +98,8 @@ class Component(metaclass=ABCMeta):
             self.studio.position = pt
         else:
             raise ValueError(
-                "Can't set canvas position {} because it falls outside "
-                "the bounds of the studio canvas size".format(pt)
+                f"Can't set canvas position {pt} because it falls outside "
+                "the bounds of the studio canvas size"
             )
 
     def set_component_layer(self, layers):
@@ -125,7 +125,7 @@ class Component(metaclass=ABCMeta):
     @property
     def unit_name(self) -> str:
         """Return the model's unit name, eg.: 'Type104'."""
-        return "Type{}".format(self.type_number)
+        return f"Type{self.type_number}"
 
     @property
     def model(self) -> str:
@@ -259,15 +259,8 @@ class Component(metaclass=ABCMeta):
                 v = other.inputs[to_other]
                 if self.UNIT_GRAPH.has_edge(self, other, (u, v)):
                     msg = (
-                        'The output "{}: {}" of model "{}" is already '
-                        'connected to the input "{}: {}" of model "{}"'.format(
-                            u.idx,
-                            u.name,
-                            u.model.name,
-                            v.idx,
-                            v.name,
-                            v.model.name,
-                        )
+                        f'The output "{u.idx}: {u.name}" of model "{u.model.name}" is already '
+                        f'connected to the input "{v.idx}: {v.name}" of model "{v.model.name}"'
                     )
                     raise ValueError(msg)
                 else:

@@ -6,9 +6,7 @@ import json
 import logging as lg
 import os
 import re
-import tempfile
 from io import StringIO
-from typing import Union
 
 from pandas import to_datetime
 from pandas.io.common import _get_filepath_or_buffer, get_handle
@@ -86,7 +84,7 @@ class DeckFormatter:
                     _fh.close()
 
 
-class Deck(object):
+class Deck:
     """Deck class.
 
     The Deck class holds :class:`TrnsysModel` objects, the
@@ -133,7 +131,7 @@ class Deck(object):
             else:
                 raise TypeError(
                     "Cant't create a Deck object with models of "
-                    "type '{}'".format(type(models))
+                    f"type '{type(models)}'"
                 )
             self.models = ComponentCollection(models)
         if control_cards:
@@ -677,7 +675,7 @@ class Deck(object):
             else:
                 try:
                     # one Equation or Constant has this tvar
-                    other = next((n for n in dck.models if (tvar in n.outputs)))
+                    other = next(n for n in dck.models if (tvar in n.outputs))
                     other[tvar].connect_to(getattr(model, key)[i])
                 except StopIteration:
                     pass

@@ -22,7 +22,7 @@ from trnsystor.statement import (
 )
 
 
-class ControlCards(object):
+class ControlCards:
     """ControlCards class.
 
     The :class:`ControlCards` is a container for all the TRNSYS Simulation
@@ -199,7 +199,7 @@ class ControlCards(object):
             if isinstance(param, Component):
                 v_.append((str(param), None))
             if hasattr(param, "doc"):
-                v_.append((str(param), "! {}".format(param.doc)))
+                v_.append((str(param), f"! {param.doc}"))
             else:
                 pass
         statements = tabulate.tabulate(tuple(v_), tablefmt="plain", numalign="left")

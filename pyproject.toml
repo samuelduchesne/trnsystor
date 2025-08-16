@@ -9,7 +9,7 @@ description = "A python TRNSYS type parser"
 readme = "README.md"
 authors = [{ name = "Samuel Letellier-Duchesne", email = "samuel.letellier-duchesne@polymtl.ca" }]
 license = { file = "LICENSE.md" }
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
@@ -36,26 +36,56 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest",
-    "mock",
+test = [
+    "pytest>=8",
     "pytest-cov",
-    "coverage",
-    "coveralls",
-    "sphinx",
-    "networkx",
+    "mock",
+]
+docs = [
+    "sphinx>=7",
     "recommonmark",
     "sphinx_rtd_theme",
-    "pytest-xdist",
-    "flake8",
-    "ruff",
+]
+dev = [
     "pre-commit",
+    "ruff",
+    "mypy",
+    "pytest>=8",
+    "pytest-cov",
+    "sphinx>=7",
+    "recommonmark",
+    "sphinx_rtd_theme",
 ]
 
 [tool.setuptools_scm]
 
-[tool.flake8]
-max-line-length = 88
-extend-ignore = ["E203", "E501"]
-docstring-convention = "google"
-exclude = [".git", "__pycache__", "docs/conf.py", "tests", "setup.py"]
+[tool.setuptools.package-data]
+trnsystor = ["py.typed"]
+
+[tool.uv]
+dev-dependencies = [
+    "pre-commit",
+    "ruff",
+    "mypy",
+    "pytest>=8",
+    "pytest-cov",
+    "mock",
+    "sphinx>=7",
+    "recommonmark",
+    "sphinx_rtd_theme",
+]
+
+[tool.mypy]
+strict = true
+warn_return_any = true
+no_implicit_optional = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+extra_checks = true
+exclude = ["tests"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=trnsystor --cov-report=term-missing --cov-fail-under=90"
+testpaths = ["tests"]

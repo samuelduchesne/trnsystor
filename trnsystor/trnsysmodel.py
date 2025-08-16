@@ -24,7 +24,7 @@ from trnsystor.typecycle import TypeCycle
 from trnsystor.typevariable import Derivative, Input, Output, Parameter, TypeVariable
 
 
-class MetaData(object):
+class MetaData:
     """General information that is associated with a :class:`TrnsysModel`."""
 
     def __init__(
@@ -560,7 +560,7 @@ class TrnsysModel(Component):
                         (
                             key
                             for key, value in mydict.items()
-                            if value.name == basename + "-{}".format(n)
+                            if value.name == basename + f"-{n}"
                         ),
                         None,
                     )
@@ -569,7 +569,7 @@ class TrnsysModel(Component):
                     if item._iscycle:
                         self._meta.variables.update({id(item): item})
                     else:
-                        item.name = basename + "-{}".format(n)
+                        item.name = basename + f"-{n}"
                         item.order += 1 if n_time > 1 else 0
                         item._iscycle = True
                         self._meta.variables.update({id(item): item})

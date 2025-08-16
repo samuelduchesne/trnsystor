@@ -40,7 +40,7 @@ class Solver(Statement):
     def _to_deck(self):
         """Return deck representation of self."""
         return (
-            "SOLVER {} {} {}".format(self.k, self.rf_min, self.rf_max)
+            f"SOLVER {self.k} {self.rf_min} {self.rf_max}"
             if self.k == 0
-            else "SOLVER {}".format(self.k)
+            else f"SOLVER {self.k}"
         )

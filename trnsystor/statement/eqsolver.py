@@ -41,4 +41,4 @@ class EqSolver(Statement):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        return "EQSOLVER {}".format(self.n)
+        return f"EQSOLVER {self.n}"

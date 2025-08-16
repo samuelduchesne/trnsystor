@@ -7,8 +7,8 @@ class OutputCollection(VariableCollection):
 
     def __repr__(self):
         """Return repr(self)."""
-        num_inputs = "{} Outputs:\n".format(self.size)
+        num_inputs = f"{self.size} Outputs:\n"
         inputs = "\n".join(
-            ['"{}": {:~P}'.format(key, value.value) for key, value in self.data.items()]
+            [f'"{key}": {value.value:~P}' for key, value in self.data.items()]
         )
         return num_inputs + inputs

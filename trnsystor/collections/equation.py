@@ -98,7 +98,7 @@ class EquationCollection(Component, collections.UserDict):
                 if not isinstance(v, Equation):
                     raise TypeError(
                         "Can only update an EquationCollection with an"
-                        "Equation, not a {}".format(type(v))
+                        f"Equation, not a {type(v)}"
                     )
             _e = {v.name: v for v in E.values()}
         k: Equation
@@ -110,7 +110,7 @@ class EquationCollection(Component, collections.UserDict):
             else:
                 raise TypeError(
                     "Can only update an EquationCollection with an"
-                    "Equation, not a {}".format(type(F[k]))
+                    f"Equation, not a {type(F[k])}"
                 )
             _e.update(_f)
         super(EquationCollection, self).update(_e)
@@ -146,19 +146,17 @@ class EquationCollection(Component, collections.UserDict):
             •
             NAMEn = ... equation n ...
         """
-        header_comment = '* EQUATIONS "{}"\n*\n'.format(self.name)
-        head = "EQUATIONS {}\n".format(len(self))
+        header_comment = f'* EQUATIONS "{self.name}"\n*\n'
+        head = f"EQUATIONS {len(self)}\n"
         v_ = ((equa.name, "=", equa._to_deck()) for equa in self.values())
         core = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
 
         def _studio(self):
             """Return deck representation of self."""
-            unit_name = "*$UNIT_NAME {}".format(self.unit_name)
+            unit_name = f"*$UNIT_NAME {self.unit_name}"
             layer = "*$LAYER {}".format(" ".join(self.studio.layer))
-            position = "*$POSITION {} {}".format(
-                self.studio.position.x, self.studio.position.y
-            )
-            unit_number = "*$UNIT_NUMBER {}".format(self.unit_number)
+            position = f"*$POSITION {self.studio.position.x} {self.studio.position.y}"
+            unit_number = f"*$UNIT_NUMBER {self.unit_number}"
             return "\n" + "\n".join([unit_name, layer, position, unit_number]) + "\n"
 
         tail = _studio(self)

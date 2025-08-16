@@ -26,7 +26,7 @@ class Width(Statement):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        return str("WIDTH {}".format(self.k))
+        return str(f"WIDTH {self.k}")
 
     @staticmethod
     def _check_range(n):

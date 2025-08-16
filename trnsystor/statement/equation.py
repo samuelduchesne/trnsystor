@@ -197,10 +197,7 @@ class Equation(Statement, TypeVariable):
     def _to_deck(self):
         """Return deck representation of self."""
         if isinstance(self.equals_to, TypeVariable):
-            return "[{unit_number}, {output_id}]".format(
-                unit_number=self.equals_to.model.unit_number,
-                output_id=self.equals_to.one_based_idx,
-            )
+            return f"[{self.equals_to.model.unit_number}, {self.equals_to.one_based_idx}]"
         elif isinstance(self.equals_to, Expr):
             return print_my_latex(self.equals_to)
         else:
