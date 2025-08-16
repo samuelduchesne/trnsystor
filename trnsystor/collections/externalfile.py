@@ -27,7 +27,7 @@ class ExternalFileCollection(collections.UserDict):
         if isinstance(value, ExternalFile):
             """if a ExternalFile is given, simply set it"""
             super().__setitem__(key, value)
-        elif isinstance(value, (str, Path)):
+        elif isinstance(value, str | Path):
             """a str, or :class:Path is passed"""
             value = Path(value)
             self[key].__setattr__("value", value)

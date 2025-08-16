@@ -3,7 +3,6 @@
 import tabulate
 
 from trnsystor.collections.variable import VariableCollection
-from trnsystor.typevariable import TypeVariable
 
 
 class DerivativesCollection(VariableCollection):
@@ -24,10 +23,10 @@ class DerivativesCollection(VariableCollection):
             return ""
 
         head = f"DERIVATIVES {self.size}\n"
-        _ins = []
-        derivative: TypeVariable
-        for derivative in self.values():
-            _ins.append((derivative.value.m, f"! {derivative.name}"))
+        _ins = [
+            (derivative.value.m, f"! {derivative.name}")
+            for derivative in self.values()
+        ]
         core = tabulate.tabulate(_ins, tablefmt="plain", numalign="left")
 
         return head + core + "\n"

@@ -1,7 +1,5 @@
 """Trnsystor Module."""
 
-from outdated import warn_if_outdated
-
 # Version of the package
 from pkg_resources import DistributionNotFound, get_distribution
 
@@ -19,6 +17,7 @@ except DistributionNotFound:
 else:
     # warn if a newer version of trnsystor is available
     from outdated import warn_if_outdated
+    warn_if_outdated("trnsystor", __version__)
 
 __all__ = [
     "Equation",

@@ -25,7 +25,6 @@ class InitialInputValuesCollection(VariableCollection):
     def __repr__(self):
         """Return repr(self)."""
         num_inputs = f"{self.size} Initial Input Values:\n"
-        value: TypeVariable
         try:
             inputs = "\n".join(
                 [
@@ -62,7 +61,7 @@ class InitialInputValuesCollection(VariableCollection):
         if isinstance(value, TypeVariable):
             """if a TypeVariable is given, simply set it"""
             super().__setitem__(key, value)
-        elif isinstance(value, (int, float, str)):
+        elif isinstance(value, int | float | str):
             """a str, float, int, etc. is passed"""
             value = _parse_value(
                 value, self[key].type, self[key].unit, (self[key].min, self[key].max)
@@ -70,7 +69,7 @@ class InitialInputValuesCollection(VariableCollection):
             self[key].__setattr__("value", value)
         elif isinstance(value, Quantity):
             self[key].__setattr__("value", value.to(self[key].value.units))
-        elif isinstance(value, (Equation, Constant)):
+        elif isinstance(value, Equation | Constant):
             self[key].__setattr__("value", value)
         else:
             raise TypeError(

@@ -1,9 +1,12 @@
 """Utils module."""
+import contextlib
 import math
 import re
 
+import numpy as np
 from path import Path as _Path
 from pint import Quantity, UnitRegistry
+from shapely.affinity import affine_transform as _affine_transform
 from shapely.geometry import LineString
 
 # Backwards-compatibility for older ``path`` APIs used in tests.
@@ -28,13 +31,10 @@ def affine_transform(geom, matrix=None):
         matrix (np.array): The coefficient matrix is provided as a list or
             tuple.
     """
-    import numpy as np
-    from shapely.affinity import affine_transform
-
     if not matrix:
         matrix = np.array([[1, 0, 0], [0, -1, 0], [0, 0, 0]])
     matrix_l = matrix[0:2, 0:2].flatten().tolist() + matrix[0:2, 2].flatten().tolist()
-    return affine_transform(geom, matrix_l)
+    return _affine_transform(geom, matrix_l)
 
 
 def get_rgb_from_int(rgb_int):
@@ -109,7 +109,7 @@ def _parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
         f = _type(value)
     except ValueError:
         # invalid literal for int() with base 10: '+Inf'
-        if value == "STEP" or value == "START":
+        if value in {"STEP", "START"}:
             value = 1
         elif value == "STOP":
             value = 8760
@@ -123,7 +123,10 @@ def _parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
             return Q_(f, unit_)
     else:
         # out of bounds
-        msg = f'Value {name} "{f}" is out of bounds. ' f"{Q_(xmin, unit_)} <= value <= {Q_(xmax, unit_)}"
+        msg = (
+            f'Value {name} "{f}" is out of bounds. '
+            f"{Q_(xmin, unit_)} <= value <= {Q_(xmax, unit_)}"
+        )
         raise ValueError(msg)
 
 
@@ -161,24 +164,19 @@ def parse_unit(unit):
             * ureg.Unit: The Unit class
     """
     Q_ = ureg.Quantity
-    if unit == "-" or unit is None:
+    if unit in {"-", None}:
         return Q_, ureg.parse_expression("dimensionless")
-    elif unit == "% (base 100)":
-        # unit definitions are handled at module import time
-        return Q_, ureg.percent
-    elif unit.lower() == "c":
-        Q_ = ureg.Quantity
-        return Q_, ureg.degC
-    elif unit.lower() == "deltac":
-        Q_ = ureg.Quantity
-        return Q_, ureg.delta_degC
-    elif unit.lower() == "fraction":
-        # custom unit defined once at module level
-        return Q_, ureg.fraction
-    elif unit.lower() == "any":
-        return Q_, ureg.parse_expression("dimensionless")
-    else:
-        return Q_, ureg.parse_units(unit)
+    unit_l = unit.lower()
+    unit_map = {
+        "% (base 100)": ureg.percent,
+        "c": ureg.degC,
+        "deltac": ureg.delta_degC,
+        "fraction": ureg.fraction,
+        "any": ureg.parse_expression("dimensionless"),
+    }
+    if unit_l in unit_map:
+        return Q_, unit_map[unit_l]
+    return Q_, ureg.parse_units(unit)
 
 
 def redistribute_vertices(geom, distance):
@@ -223,10 +221,8 @@ for name, definition in _CUSTOM_UNITS.items():
         ureg.define(definition)
 
 # Ensure "hr" is used for hour so quantities display as "kg/hr" instead of "kg/h".
-try:
+with contextlib.suppress(Exception):
     ureg.define("hr = hour")
-except Exception:
-    pass
 
 
 class DeckFilePrinter(StrPrinter):

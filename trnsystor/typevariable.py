@@ -116,7 +116,7 @@ class TypeVariable:
             val = float(val)
         except ValueError:
             # could not convert string to float.
-            if val == "STEP" or val == "START":
+            if val in {"STEP", "START"}:
                 val = 1
             elif val == "STOP":
                 val = 8760
@@ -220,10 +220,8 @@ class TypeVariable:
             )
             if not self.model._meta.variables[attr]._iscyclebase
         )
-        i = 0
-        for key, value in ordered_dict.items():
+        for i, value in enumerate(ordered_dict.values()):
             value[1] = i
-            i += 1
 
         return ordered_dict[standardize_name(self.name)][1]
 

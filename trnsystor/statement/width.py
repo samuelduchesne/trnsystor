@@ -30,7 +30,6 @@ class Width(Statement):
 
     @staticmethod
     def _check_range(n):
-        if n >= 72 and n <= 132:
+        if 72 <= n <= 132:
             return n
-        else:
-            raise ValueError("The Width Statement mus be between 72 and 132.")
+        raise ValueError("The Width Statement mus be between 72 and 132.")

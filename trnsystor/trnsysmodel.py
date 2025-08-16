@@ -3,9 +3,11 @@ import collections
 import copy
 import itertools
 
+import matplotlib.pyplot as plt
 import networkx as nx
 from bs4 import BeautifulSoup, Tag
 from path import Path
+from shapely.affinity import translate
 
 from trnsystor.anchorpoint import AnchorPoint
 from trnsystor.collections.cycle import CycleCollection
@@ -160,7 +162,7 @@ class MetaData:
                     ", ".join(kwargs.keys())
                 )
             )
-            shall = input("%s (y/N) " % msg).lower() == "y"
+            shall = input(f"{msg} (y/N) ").lower() == "y"
             if not shall:
                 raise NotImplementedError()
 
@@ -172,8 +174,8 @@ class MetaData:
     def from_xml(cls, xml, **kwargs):
         """Initialize MetaData from xml file."""
         xml_file = Path(xml)
-        with open(xml_file) as xml:
-            soup = BeautifulSoup(xml, "xml")
+        with xml_file.open() as xml_f:
+            soup = BeautifulSoup(xml_f, "xml")
             my_objects = soup.find_all("TrnsysModel")
             for trnsystype in my_objects:
                 kwargs.pop("name", None)
@@ -222,9 +224,9 @@ class TrnsysModel(Component):
             TrnsysType: The TRNSYS model.
         """
         xml_file = Path(xml)
-        with open(xml_file) as xml:
+        with xml_file.open() as xml_f:
             all_types = []
-            soup = BeautifulSoup(xml, "xml")
+            soup = BeautifulSoup(xml_f, "xml")
             my_objects = soup.find_all("TrnsysModel")
             for trnsystype in my_objects:
                 t = cls._from_tag(trnsystype, **kwargs)
@@ -248,7 +250,6 @@ class TrnsysModel(Component):
         new.UNIT_GRAPH.add_node(new)
         if invalidate_connections:
             new.invalidate_connections()
-        from shapely.affinity import translate
 
         pt = translate(self.centroid, 50, 0)
         new.set_canvas_position(pt)
@@ -473,8 +474,7 @@ class TrnsysModel(Component):
             str(id(attr)): attr for attr in self._meta.cycles if attr.role == type_
         }
         # repeat cycle variables n times
-        cycle: TypeCycle
-        for _, cycle in cycles.items():
+        for cycle in cycles.values():
             idxs = cycle.idxs
             # get list of variables that are not cycles
             items = [
@@ -634,7 +634,6 @@ class TrnsysModel(Component):
 
     def plot(self):
         """Plot the model."""
-        import matplotlib.pyplot as plt
 
         G = nx.DiGraph()
         G.add_edges_from(("type", output.name) for output in self.outputs.values())

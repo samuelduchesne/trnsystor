@@ -1,9 +1,11 @@
-line-length = 88
+line-length = 132
 target-version = "py312"
 fix = true
+exclude = ["docs", "tests"]
 
 [lint]
-select = ["E","F","I","UP","ANN","SIM","PERF","PL","PD","DTZ","B","PTH","NPY"]
+select = ["E","F","I"]
+ignore = []
 
 [lint.isort]
 known-first-party = ["trnsystor"]
