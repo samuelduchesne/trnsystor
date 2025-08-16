@@ -190,6 +190,8 @@ class TypeVariable(object):
         """
         if len(self.model.UNIT_GRAPH) == 0:
             return None
+        if self.model not in self.model.UNIT_GRAPH:
+            return None
         predecessors = []
         for pre in self.model.UNIT_GRAPH.predecessors(self.model):
             for key in self.model.UNIT_GRAPH[pre][self.model]:
