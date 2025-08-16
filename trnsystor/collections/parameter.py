@@ -1,6 +1,6 @@
 """Parameter module."""
 import tabulate
-from pint.quantity import _Quantity
+from pint import Quantity
 
 from trnsystor.collections.variable import VariableCollection
 from trnsystor.statement import Equation
@@ -33,7 +33,7 @@ class ParameterCollection(VariableCollection):
                             "! {} {}".format(param.one_based_idx, param.name),
                         )
                     )
-                elif isinstance(param.value, _Quantity):
+                elif isinstance(param.value, Quantity):
                     v_.append(
                         (
                             param.value.m,

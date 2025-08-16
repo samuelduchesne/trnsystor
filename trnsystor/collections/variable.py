@@ -1,7 +1,7 @@
 """VariableCollection module."""
 import collections
 
-from pint.quantity import _Quantity
+from pint import Quantity
 
 from trnsystor.statement import Constant, Equation
 from trnsystor.typevariable import TypeVariable
@@ -50,7 +50,7 @@ class VariableCollection(collections.UserDict):
                 value, self[key].type, self[key].unit, (self[key].min, self[key].max)
             )
             self[key].__setattr__("value", value)
-        elif isinstance(value, _Quantity):
+        elif isinstance(value, Quantity):
             self[key].__setattr__("value", value.to(self[key].value.units))
         elif isinstance(value, (Equation, Constant)):
             self[key].__setattr__("value", value)
