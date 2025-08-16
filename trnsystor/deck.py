@@ -388,7 +388,7 @@ class Deck(object):
         deck_lines = iter(s.splitlines())
         line = next(deck_lines)
         if proforma_root is None:
-            proforma_root = Path.getcwd()
+            proforma_root = getattr(Path, "getcwd", lambda: Path().cwd())()
         else:
             proforma_root = Path(proforma_root)
         global component, i

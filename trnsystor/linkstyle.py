@@ -164,9 +164,8 @@ class LinkStyle(object):
             )
             + ":"
         )
-        path = ",".join(
-            [":".join(map(str, n.astype(int).tolist())) for n in np.array(self.path)]
-        )
+        coords = np.array(getattr(self.path, "coords", self.path))
+        path = ",".join([":".join(map(str, n.astype(int).tolist())) for n in coords])
         linestyle = str(_linestyle_to_studio(self.get_linestyle())) + ":"
         linewidth = str(self.get_linewidth()) + ":"
         connection_set = anchors + "1:" + color + linestyle + linewidth + "1:" + path

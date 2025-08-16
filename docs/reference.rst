@@ -65,6 +65,7 @@ Helper Classes
     studio.StudioHeader
     linkstyle.LinkStyle
     anchorpoint.AnchorPoint
+    canvas.StudioCanvas
 
 Collections
 -----------

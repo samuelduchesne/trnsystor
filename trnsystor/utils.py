@@ -3,7 +3,11 @@ import math
 import re
 
 from pint import UnitRegistry
-from pint.quantity import _Quantity
+
+try:  # Pint >= 0.24 no longer exposes pint.quantity
+    from pint.quantity import _Quantity  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover - fallback for newer Pint
+    from pint import Quantity as _Quantity
 from shapely.geometry import LineString
 from sympy import Expr, Symbol, cacheit
 from sympy.core.assumptions import StdFactKB
@@ -281,3 +285,10 @@ class TypeVariableSymbol(Symbol):
 
     __xnew__ = staticmethod(__new_stage2__)  # never cached (e.g. dummy)
     __xnew_cached_ = staticmethod(cacheit(__new_stage2__))  # symbols are always cached
+
+    @property
+    def _assumptions0(self):  # pragma: no cover - SymPy >=1.13 compatibility
+        gen = getattr(getattr(self, "_assumptions", None), "_generator", {})
+        if isinstance(gen, dict):
+            return tuple(sorted(gen.items()))
+        return tuple()

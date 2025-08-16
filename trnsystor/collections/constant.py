@@ -2,7 +2,10 @@
 
 import collections
 
-import tabulate
+try:  # pragma: no cover - optional dependency
+    import tabulate
+except Exception:  # pragma: no cover - optional dependency
+    tabulate = None
 
 from trnsystor.component import Component
 from trnsystor.statement import Constant
@@ -133,8 +136,11 @@ class ConstantCollection(Component, collections.UserDict):
         """
         header_comment = '* CONSTANTS "{}"\n\n'.format(self.name)
         head = "CONSTANTS {}\n".format(len(self))
-        v_ = ((equa.name, "=", str(equa)) for equa in self.values())
-        core = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
+        v_ = [(equa.name, "=", str(equa)) for equa in self.values()]
+        if tabulate is not None:
+            core = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
+        else:  # fallback simple formatting
+            core = "\n".join(" ".join(row) for row in v_)
         return str(header_comment) + str(head) + str(core)
 
     def _get_inputs(self):

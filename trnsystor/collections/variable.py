@@ -1,7 +1,10 @@
 """VariableCollection module."""
 import collections
 
-from pint.quantity import _Quantity
+try:  # Pint >= 0.24 no longer exposes pint.quantity
+    from pint.quantity import _Quantity  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover - fallback for newer Pint
+    from pint import Quantity as _Quantity
 
 from trnsystor.statement import Constant, Equation
 from trnsystor.typevariable import TypeVariable
