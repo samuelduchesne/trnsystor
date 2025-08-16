@@ -1,7 +1,7 @@
 """Name module."""
 
 
-class Name(object):
+class Name:
     """Name class.
 
     Handles the attribution of user defined names for :class:`TrnsysModel`,
@@ -30,7 +30,7 @@ class Name(object):
         while key in self.existing:
             i += 1
             key = key.split("_")
-            key = key[0] + "_{}".format(i)
+            key = key[0] + f"_{i}"
         the_name = key
         self.existing.append(the_name)
         return the_name

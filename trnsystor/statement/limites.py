@@ -36,5 +36,5 @@ class Limits(Statement):
         Examples:
             TOLERANCES 0.001 0.001
         """
-        head = "LIMITS {} {} {}".format(self.m, self.n, self.p)
+        head = f"LIMITS {self.m} {self.n} {self.p}"
         return str(head)

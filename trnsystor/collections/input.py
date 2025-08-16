@@ -20,18 +20,18 @@ class InputCollection(VariableCollection):
 
     def __repr__(self):
         """Return Deck representation of self."""
-        num_inputs = "{} Inputs:\n".format(self.size)
+        num_inputs = f"{self.size} Inputs:\n"
         try:
             inputs = "\n".join(
                 [
-                    '"{}": {:~P}'.format(key, value.value)
+                    f'"{key}": {value.value:~P}'
                     for key, value in self.data.items()
                 ]
             )
         except ValueError:  # Invalid format specifier
             inputs = "\n".join(
                 [
-                    '"{}": {}'.format(key, value.value)
+                    f'"{key}": {value.value}'
                     for key, value in self.data.items()
                 ]
             )
@@ -47,7 +47,7 @@ class InputCollection(VariableCollection):
             # Don't need to print empty inputs
             return ""
 
-        head = "INPUTS {}\n".format(self.size)
+        head = f"INPUTS {self.size}\n"
         # "{u_i}, {o_i}": is an integer number referencing the number of the
         # UNIT to which the ith INPUT is connected. is an integer number
         # indicating to which OUTPUT (i.e., the 1st, 2nd, etc.) of UNIT
@@ -68,31 +68,21 @@ class InputCollection(VariableCollection):
                 elif isinstance(input.predecessor, TypeVariable):
                     _ins.append(
                         (
-                            "{},{}".format(
-                                input.predecessor.model.unit_number,
-                                input.predecessor.one_based_idx,
-                            ),
+                            f"{input.predecessor.model.unit_number},{input.predecessor.one_based_idx}",
                             self._help_text(input),
                         )
                     )
                 else:
                     raise NotImplementedError(
-                        "With unit {}, printing input '{}' connected with output of "
-                        "type '{}' from unit '{}' is not supported".format(
-                            input.model.name,
-                            input.name,
-                            type(input.connected_to),
-                            input.connected_to.model.name,
-                        )
+                        f"With unit {input.model.name}, printing input '{input.name}' connected with output of "
+                        f"type '{type(input.connected_to)}' from unit '{input.connected_to.model.name}' is not supported"
                     )
             else:
                 # The input is unconnected.
                 _ins.append(
                     (
                         "0,0",
-                        "! [unconnected] {in_model_name}:{input_name}".format(
-                            in_model_name=input.model.name, input_name=input.name
-                        ),
+                        f"! [unconnected] {input.model.name}:{input.name}",
                     )
                 )
         core = tabulate.tabulate(_ins, tablefmt="plain", numalign="left")

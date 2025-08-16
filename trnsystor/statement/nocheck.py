@@ -28,10 +28,10 @@ class NoCheck(Statement):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        head = "NOCHECK {}\n".format(len(self.inputs))
+        head = f"NOCHECK {len(self.inputs)}\n"
         core = "\t".join(
             [
-                "{}, {}".format(input.model.unit_number, input.one_based_idx)
+                f"{input.model.unit_number}, {input.one_based_idx}"
                 for input in self.inputs
             ]
         )

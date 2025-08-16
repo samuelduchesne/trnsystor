@@ -87,7 +87,7 @@ class ConstantCollection(Component, collections.UserDict):
                 if not isinstance(v, Constant):
                     raise TypeError(
                         "Can only update an ConstantCollection with a"
-                        "Constant, not a {}".format(type(v))
+                        f"Constant, not a {type(v)}"
                     )
             _e = {v.name: v for v in E.values()}
         k: Constant
@@ -99,7 +99,7 @@ class ConstantCollection(Component, collections.UserDict):
             else:
                 raise TypeError(
                     "Can only update an ConstantCollection with a"
-                    "Constant, not a {}".format(type(F[k]))
+                    f"Constant, not a {type(F[k])}"
                 )
             _e.update(_f)
         super(ConstantCollection, self).update(_e)
@@ -131,8 +131,8 @@ class ConstantCollection(Component, collections.UserDict):
             •
             NAMEn = ... constant n ...
         """
-        header_comment = '* CONSTANTS "{}"\n\n'.format(self.name)
-        head = "CONSTANTS {}\n".format(len(self))
+        header_comment = f'* CONSTANTS "{self.name}"\n\n'
+        head = f"CONSTANTS {len(self)}\n"
         v_ = ((equa.name, "=", str(equa)) for equa in self.values())
         core = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
         return str(header_comment) + str(head) + str(core)

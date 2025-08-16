@@ -2,7 +2,7 @@
 from bs4 import Tag
 
 
-class SpecialCard(object):
+class SpecialCard:
     """SpecialCard class.
 
     Once the user has defined the Parameters, Inputs, Outputs, and Derivatives,

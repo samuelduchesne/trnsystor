@@ -1,6 +1,7 @@
 """Test anchorpoint module."""
 
 from types import SimpleNamespace
+
 from shapely.geometry import Point
 
 from trnsystor.anchorpoint import AnchorPoint

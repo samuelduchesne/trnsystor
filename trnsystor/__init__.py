@@ -2,14 +2,14 @@
 
 from outdated import warn_if_outdated
 
+# Version of the package
+from pkg_resources import DistributionNotFound, get_distribution
+
 from .collections import EquationCollection
 from .controlcards import ControlCards
 from .deck import Deck
 from .statement import Equation
 from .trnsysmodel import TrnsysModel
-
-# Version of the package
-from pkg_resources import get_distribution, DistributionNotFound
 
 try:
     __version__ = get_distribution("archetypal").version

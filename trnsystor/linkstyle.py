@@ -7,7 +7,7 @@ from trnsystor.anchorpoint import AnchorPoint
 from trnsystor.utils import get_int_from_rgb, redistribute_vertices
 
 
-class LinkStyle(object):
+class LinkStyle:
     """LinkStyle class."""
 
     def __init__(
@@ -177,8 +177,8 @@ class LinkStyle(object):
         linestyle = str(_linestyle_to_studio(self.get_linestyle())) + ":"
         linewidth = str(self.get_linewidth()) + ":"
         connection_set = anchors + "1:" + color + linestyle + linewidth + "1:" + path
-        head = "*!LINK {}:{}\n".format(self.u.unit_number, self.v.unit_number)
-        tail = "*!CONNECTION_SET {}\n".format(connection_set)
+        head = f"*!LINK {self.u.unit_number}:{self.v.unit_number}\n"
+        tail = f"*!CONNECTION_SET {connection_set}\n"
         return head + tail
 
 

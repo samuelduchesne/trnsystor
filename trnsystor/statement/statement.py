@@ -1,7 +1,7 @@
 """Statement module."""
 
 
-class Statement(object):
+class Statement:
     """Statement class.
 
     This is the base class for many of the TRNSYS Simulation Control and

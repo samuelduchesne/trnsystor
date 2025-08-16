@@ -9,7 +9,7 @@ from trnsystor.linkstyle import LinkStyle
 from trnsystor.utils import _parse_value, parse_type, standardize_name
 
 
-class TypeVariable(object):
+class TypeVariable:
     """TypeVariable class.
 
     :class:`TypeVariable` is the main object class that handles storage of
@@ -116,10 +116,7 @@ class TypeVariable(object):
             val = float(val)
         except ValueError:
             # could not convert string to float.
-            if val == "STEP":
-                val = 1
-                # Todo: figure out better logic when default value is 'STEP'
-            elif val == "START":
+            if val == "STEP" or val == "START":
                 val = 1
             elif val == "STOP":
                 val = 8760
@@ -136,7 +133,7 @@ class TypeVariable(object):
             return Derivative(_type(val), **attr)
         else:
             raise NotImplementedError(
-                'The role "{}" is not yet ' "supported.".format(role)
+                f'The role "{role}" is not yet ' "supported."
             )
 
     def __float__(self):

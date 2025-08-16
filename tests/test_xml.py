@@ -2,9 +2,9 @@
 import os
 import sys
 from tempfile import NamedTemporaryFile, TemporaryFile
+from unittest.mock import patch
 
 import pytest
-from mock import patch
 from path import Path
 from shapely.geometry import LineString, Point
 
@@ -94,8 +94,8 @@ class TestTrnsysModel:
         expected_1 = len([s for s in mylist if sub_1.lower() in s.lower()])
         expected_2 = len([s for s in mylist if sub_2.lower() in s.lower()])
 
-        assert 100 == expected_1
-        assert 100 == expected_2
+        assert expected_1 == 100
+        assert expected_2 == 100
 
         n_nodes = 20
         pipe_type.parameters["Number_of_Fluid_Nodes"] = n_nodes
@@ -895,7 +895,7 @@ class TestDeck:
 
     @pytest.mark.skip("Known fail")
     def test_print(self, deck_file, pvt_deck):
-        with open(deck_file, "r") as f:
+        with open(deck_file) as f:
             pvt_deck_str = f.read().splitlines()
         assert str(pvt_deck).splitlines() == pvt_deck_str
 

@@ -2,7 +2,7 @@
 from shapely.geometry import Point
 
 
-class StudioHeader(object):
+class StudioHeader:
     """StudioHeader class.
 
     Each TrnsysModel has a StudioHeader which handles the studio comments
@@ -41,8 +41,8 @@ class StudioHeader(object):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        unit_name = "*$UNIT_NAME {}".format(self.unit_name)
-        model = "*$MODEL {}".format(self.model.expand())
-        position = "*$POSITION {} {}".format(self.position.x, self.position.y)
+        unit_name = f"*$UNIT_NAME {self.unit_name}"
+        model = f"*$MODEL {self.model.expand()}"
+        position = f"*$POSITION {self.position.x} {self.position.y}"
         layer = "*$LAYER {}".format(" ".join(self.layer))
         return "\n".join([unit_name, model, position, layer]) + "\n"

@@ -2,15 +2,14 @@
 import math
 import re
 
-from pint import UnitRegistry, Quantity
-from shapely.geometry import LineString
 from path import Path as _Path
+from pint import Quantity, UnitRegistry
+from shapely.geometry import LineString
 
 # Backwards-compatibility for older ``path`` APIs used in tests.
 if not hasattr(_Path, "getcwd"):
     _Path.getcwd = _Path.cwd
 from sympy import Expr, Symbol, cacheit
-from sympy.core.assumptions import StdFactKB
 from sympy.printing import StrPrinter
 
 
@@ -110,10 +109,7 @@ def _parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
         f = _type(value)
     except ValueError:
         # invalid literal for int() with base 10: '+Inf'
-        if value == "STEP":
-            value = 1
-            # Todo: figure out better logic when default value is 'STEP'
-        elif value == "START":
+        if value == "STEP" or value == "START":
             value = 1
         elif value == "STOP":
             value = 8760
@@ -127,9 +123,7 @@ def _parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
             return Q_(f, unit_)
     else:
         # out of bounds
-        msg = 'Value {} "{}" is out of bounds. ' "{xmin} <= value <= {xmax}".format(
-            name, f, xmin=Q_(xmin, unit_), xmax=Q_(xmax, unit_)
-        )
+        msg = f'Value {name} "{f}" is out of bounds. ' f"{Q_(xmin, unit_)} <= value <= {Q_(xmax, unit_)}"
         raise ValueError(msg)
 
 
@@ -245,9 +239,7 @@ class DeckFilePrinter(StrPrinter):
     def _print_Symbol(self, expr):
         """Print the TypeVariable's unit_number and output number."""
         try:
-            return "[{}, {}]".format(
-                expr.model.model.unit_number, expr.model.one_based_idx
-            )
+            return f"[{expr.model.model.unit_number}, {expr.model.one_based_idx}]"
         except AttributeError:
             # 'Symbol' object has no attribute 'model'
             return expr.name

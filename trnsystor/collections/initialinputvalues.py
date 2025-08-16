@@ -24,7 +24,7 @@ class InitialInputValuesCollection(VariableCollection):
 
     def __repr__(self):
         """Return repr(self)."""
-        num_inputs = "{} Initial Input Values:\n".format(self.size)
+        num_inputs = f"{self.size} Initial Input Values:\n"
         value: TypeVariable
         try:
             inputs = "\n".join(
@@ -74,8 +74,8 @@ class InitialInputValuesCollection(VariableCollection):
             self[key].__setattr__("value", value)
         else:
             raise TypeError(
-                "Cannot set a default value of type {} in this "
-                "VariableCollection".format(type(value))
+                f"Cannot set a default value of type {type(value)} in this "
+                "VariableCollection"
             )
 
     def _to_deck(self):
@@ -88,7 +88,7 @@ class InitialInputValuesCollection(VariableCollection):
         input_tuples = [
             (
                 v.value.m if isinstance(v.value, Quantity) else v.value,
-                "! {}".format(v.name),
+                f"! {v.name}",
             )
             for v in self.values()
         ]
