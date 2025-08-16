@@ -32,6 +32,7 @@ dependencies = [
     "shapely",
     "sympy",
     "tabulate",
+    "networkx",
 ]
 
 [project.optional-dependencies]
