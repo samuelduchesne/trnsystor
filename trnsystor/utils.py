@@ -167,7 +167,7 @@ def parse_unit(unit):
     if unit == "-" or unit is None:
         return Q_, ureg.parse_expression("dimensionless")
     elif unit == "% (base 100)":
-        ureg.define("percent = 0.01*count = %")
+        # unit definitions are handled at module import time
         return Q_, ureg.percent
     elif unit.lower() == "c":
         Q_ = ureg.Quantity
@@ -176,7 +176,7 @@ def parse_unit(unit):
         Q_ = ureg.Quantity
         return Q_, ureg.delta_degC
     elif unit.lower() == "fraction":
-        ureg.define("fraction = 1*count = -")
+        # custom unit defined once at module level
         return Q_, ureg.fraction
     elif unit.lower() == "any":
         return Q_, ureg.parse_expression("dimensionless")
@@ -211,6 +211,19 @@ def redistribute_vertices(geom, distance):
 
 
 ureg = UnitRegistry()
+
+
+# Define custom units once to avoid repeated ``ureg.define`` calls in
+# ``parse_unit``.  Pint raises an error if a unit is redefined, so we make
+# sure the definitions exist before ``parse_unit`` is ever invoked.
+_CUSTOM_UNITS = {
+    "percent": "percent = 0.01*count = %",
+    "fraction": "fraction = 1*count = -",
+}
+
+for name, definition in _CUSTOM_UNITS.items():
+    if name not in ureg:
+        ureg.define(definition)
 
 
 class DeckFilePrinter(StrPrinter):

@@ -1,7 +1,7 @@
 """Test utils module."""
 import pytest
 
-from trnsystor.utils import redistribute_vertices
+from trnsystor.utils import parse_unit, redistribute_vertices, ureg
 
 
 class TestRedistributeVertices:
@@ -39,3 +39,17 @@ class TestRedistributeVertices:
         new_goem = redistribute_vertices(zero_geom, 10)
         assert new_goem.length == 0
         assert new_goem == zero_geom
+
+
+def test_parse_unit_percent_multiple_calls():
+    """``parse_unit`` can be called repeatedly for percent."""
+    for _ in range(3):
+        Q_, unit = parse_unit("% (base 100)")
+        assert unit == ureg.percent
+
+
+def test_parse_unit_fraction_multiple_calls():
+    """``parse_unit`` can be called repeatedly for fraction."""
+    for _ in range(3):
+        Q_, unit = parse_unit("fraction")
+        assert unit == ureg.fraction
