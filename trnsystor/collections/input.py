@@ -58,7 +58,7 @@ class InputCollection(VariableCollection):
                 # Equations and Constants behave differently than TypeVariables.
                 # Equations and Constants use the name of the variable.
                 # TypeVariables use the 0,0 digit tuple.
-                if isinstance(input.predecessor, (Equation, Constant)):
+                if isinstance(input.predecessor, Equation | Constant):
                     _ins.append(
                         (
                             input.predecessor.name,
@@ -74,8 +74,12 @@ class InputCollection(VariableCollection):
                     )
                 else:
                     raise NotImplementedError(
-                        f"With unit {input.model.name}, printing input '{input.name}' connected with output of "
-                        f"type '{type(input.connected_to)}' from unit '{input.connected_to.model.name}' is not supported"
+                        
+                            f"With unit {input.model.name}, printing input "
+                            f"'{input.name}' connected with output of "
+                            f"type '{type(input.connected_to)}' from unit "
+                            f"'{input.connected_to.model.name}' is not supported"
+                        
                     )
             else:
                 # The input is unconnected.

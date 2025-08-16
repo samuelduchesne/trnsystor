@@ -2,6 +2,7 @@
 
 import itertools
 
+from shapely.affinity import translate
 from shapely.geometry import MultiPoint
 
 
@@ -67,8 +68,6 @@ class AnchorPoint:
     @property
     def studio_anchor_mapping(self):
         """Return dict of anchor mapping str->tuple."""
-        from shapely.affinity import translate
-
         p_ = {}
         minx, miny, maxx, maxy = MultiPoint(
             [p for p in self.anchor_points.values()]
@@ -117,8 +116,6 @@ class AnchorPoint:
 
             .. image:: ../_static/anchor-pts.png
         """
-        from shapely.affinity import translate
-
         center = self.centroid
         xy_offset = {
             "top-left": (-offset, offset),

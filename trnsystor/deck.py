@@ -303,7 +303,6 @@ class Deck:
 
         models = "\n\n".join([model._to_deck() for model in self.models])
 
-        model: Component
         styles = (
             "\n*!LINK_STYLE\n"
             + "".join(

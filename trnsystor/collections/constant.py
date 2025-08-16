@@ -29,11 +29,8 @@ class ConstantCollection(Component, collections.UserDict):
                 This name will be used to identify this block of constants in
                 the .dck file;
         """
-        if isinstance(mutable, list):
-            _dict = {f.name: f for f in mutable}
-        else:
-            _dict = mutable
-        super(ConstantCollection, self).__init__(_dict, meta=None, name=name, **kwargs)
+        _dict = {f.name: f for f in mutable} if isinstance(mutable, list) else mutable
+        super().__init__(_dict, meta=None, name=name, **kwargs)
 
     def __getitem__(self, key):
         """Get item."""
@@ -90,19 +87,18 @@ class ConstantCollection(Component, collections.UserDict):
                         f"Constant, not a {type(v)}"
                     )
             _e = {v.name: v for v in E.values()}
-        k: Constant
-        for k in F:
-            if isinstance(F[k], dict):
-                _f = {v.name: v for k, v in F.items()}
-            elif isinstance(F[k], list):
-                _f = {cts.name: cts for cts in F[k]}
+        for val in F.values():
+            if isinstance(val, dict):
+                _f = {v.name: v for v in val.values()}
+            elif isinstance(val, list):
+                _f = {cts.name: cts for cts in val}
             else:
                 raise TypeError(
-                    "Can only update an ConstantCollection with a"
-                    f"Constant, not a {type(F[k])}"
+                    "Can only update an ConstantCollection with a",
+                    f"Constant, not a {type(val)}",
                 )
             _e.update(_f)
-        super(ConstantCollection, self).update(_e)
+        super().update(_e)
 
     @property
     def size(self) -> int:
