@@ -1,4 +1,5 @@
 """TypeCycle module."""
+
 import collections
 import itertools
 

@@ -47,7 +47,7 @@ class AnchorPoint:
         for u in self.anchor_points.values():
             for v in other.anchor_points.values():
                 dist[((u.x, u.y), (v.x, v.y))] = u.distance(v)
-        (u_coords, v_coords), distance = sorted(dist.items(), key=lambda kv: kv[1])[0]
+        (u_coords, v_coords), _distance = sorted(dist.items(), key=lambda kv: kv[1])[0]
         u_loc, v_loc = (
             self.reverse_anchor_points[u_coords],
             AnchorPoint(other).reverse_anchor_points[v_coords],
@@ -69,12 +69,10 @@ class AnchorPoint:
     def studio_anchor_mapping(self):
         """Return dict of anchor mapping str->tuple."""
         p_ = {}
-        minx, miny, maxx, maxy = MultiPoint(
-            [p for p in self.anchor_points.values()]
-        ).bounds
+        minx, miny, _maxx, maxy = MultiPoint(list(self.anchor_points.values())).bounds
         for k, p in self.anchor_points.items():
             p_[k] = translate(p, -minx, -maxy)
-        minx, miny, maxx, maxy = MultiPoint([p for p in p_.values()]).bounds
+        minx, miny, _maxx, maxy = MultiPoint(list(p_.values())).bounds
         for k, p in p_.items():
             p_[k] = translate(p, 0, -miny)
         return {

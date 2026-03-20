@@ -1,4 +1,5 @@
 """VariableCollection module."""
+
 import collections
 
 from pint import Quantity
@@ -19,7 +20,7 @@ class VariableCollection(collections.UserDict):
         if isinstance(key, int):
             value = list(self.data.values())[key]
         else:
-            value = super(VariableCollection, self).__getitem__(key)
+            value = super().__getitem__(key)
         return value
 
     def __getitem__(self, key):
@@ -29,13 +30,13 @@ class VariableCollection(collections.UserDict):
         elif isinstance(key, slice):
             value = list(self.data.values()).__getitem__(key)
         else:
-            value = super(VariableCollection, self).__getitem__(key)
+            value = super().__getitem__(key)
         return value
 
     def __setattr__(self, key, value):
         """Set attribute."""
         if isinstance(value, dict):
-            super(VariableCollection, self).__setattr__(key, value)
+            super().__setattr__(key, value)
         else:
             self.__setitem__(key, value)
 
@@ -44,7 +45,7 @@ class VariableCollection(collections.UserDict):
         if isinstance(value, TypeVariable):
             """if a TypeVariable is given, simply set it"""
             super().__setitem__(key, value)
-        elif isinstance(value, (int, float, str)):
+        elif isinstance(value, int | float | str):
             """a str, float, int, etc. is passed"""
             value = _parse_value(
                 value, self[key].type, self[key].unit, (self[key].min, self[key].max)
@@ -52,12 +53,11 @@ class VariableCollection(collections.UserDict):
             self[key].__setattr__("value", value)
         elif isinstance(value, Quantity):
             self[key].__setattr__("value", value.to(self[key].value.units))
-        elif isinstance(value, (Equation, Constant)):
+        elif isinstance(value, Equation | Constant):
             self[key].__setattr__("value", value)
         else:
             raise TypeError(
-                f"Cannot set a value of type {type(value)} in this "
-                "VariableCollection"
+                f"Cannot set a value of type {type(value)} in this VariableCollection"
             )
 
     def __str__(self):
@@ -66,7 +66,6 @@ class VariableCollection(collections.UserDict):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        pass
 
     @classmethod
     def from_dict(cls, dictionary):

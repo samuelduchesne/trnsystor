@@ -1,7 +1,7 @@
 import itertools
+from pathlib import Path
 
 import networkx as nx
-from path import Path
 
 from trnsystor.component import Component
 from trnsystor.deck import Deck

@@ -1,4 +1,5 @@
 """EqSolver Statement."""
+
 from trnsystor.statement.statement import Statement
 
 

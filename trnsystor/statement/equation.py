@@ -1,4 +1,5 @@
 """Equation module."""
+
 import itertools
 
 from sympy import Expr, Symbol
@@ -170,7 +171,7 @@ class Equation(Statement, TypeVariable):
             )
         for i, arg in enumerate(sorted(exp.free_symbols, key=lambda sym: sym.name)):
             new_symbol = args[i]
-            if isinstance(new_symbol, (Equation, Constant)):
+            if isinstance(new_symbol, Equation | Constant):
                 exp = exp.subs(arg, Symbol(new_symbol.name))
             elif isinstance(new_symbol, TypeVariable):
                 exp = exp.subs(arg, TypeVariableSymbol(new_symbol))
@@ -197,7 +198,9 @@ class Equation(Statement, TypeVariable):
     def _to_deck(self):
         """Return deck representation of self."""
         if isinstance(self.equals_to, TypeVariable):
-            return f"[{self.equals_to.model.unit_number}, {self.equals_to.one_based_idx}]"
+            unit = self.equals_to.model.unit_number
+            idx = self.equals_to.one_based_idx
+            return f"[{unit}, {idx}]"
         elif isinstance(self.equals_to, Expr):
             return print_my_latex(self.equals_to)
         else:

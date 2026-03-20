@@ -1,4 +1,5 @@
 """Component module."""
+
 import itertools
 from abc import ABCMeta, abstractmethod
 
@@ -54,9 +55,8 @@ class Component(metaclass=ABCMeta):
         else:
             return self.unit_number == other
 
-    def copy(self):
+    def copy(self):  # noqa: B027
         """Return copy of self."""
-        pass
 
     @property
     def link_styles(self):
@@ -155,12 +155,10 @@ class Component(metaclass=ABCMeta):
     @abstractmethod
     def _get_inputs(self):
         """Sorts by order number and resolves cycles each time it is called."""
-        pass
 
     @abstractmethod
     def _get_outputs(self):
         """Sorts by order number and resolves cycles each time it is called."""
-        pass
 
     def set_link_style(
         self, other, loc="best", color="#1f78b4", linestyle="-", linewidth=1, path=None
@@ -182,8 +180,8 @@ class Component(metaclass=ABCMeta):
                 :class:`TrnsysModel` and the destination :class:`TrnsysModel`.
             color (str or tuple): The color of the line. Accepts any matplotlib
                 color. You can specify colors in many ways, including full names
-                (‘green’), hex strings (‘#008000’), RGB or RGBA tuples
-                ((0,1,0,1)) or grayscale intensities as a string (‘0.8’).
+                ('green'), hex strings ('#008000'), RGB or RGBA tuples
+                ((0,1,0,1)) or grayscale intensities as a string ('0.8').
             linestyle (str): Possible values: '-' or 'solid', '--' or 'dashed',
                 '-.' or 'dashdot', ':' or 'dotted', '-.' or 'dashdotdot'.
             linewidth (float): The width of the line in points.
@@ -249,7 +247,7 @@ class Component(metaclass=ABCMeta):
             raise TypeError("Only `Component` objects can be connected together")
         if mapping is None:
             raise NotImplementedError(
-                "Automapping is not yet implemented. " "Please provide a mapping dict"
+                "Automapping is not yet implemented. Please provide a mapping dict"
             )
             # Todo: Implement automapping logic here
         else:
@@ -259,8 +257,10 @@ class Component(metaclass=ABCMeta):
                 v = other.inputs[to_other]
                 if self.UNIT_GRAPH.has_edge(self, other, (u, v)):
                     msg = (
-                        f'The output "{u.idx}: {u.name}" of model "{u.model.name}" is already '
-                        f'connected to the input "{v.idx}: {v.name}" of model "{v.model.name}"'
+                        f'The output "{u.idx}: {u.name}" of model '
+                        f'"{u.model.name}" is already connected to '
+                        f'the input "{v.idx}: {v.name}" of model '
+                        f'"{v.model.name}"'
                     )
                     raise ValueError(msg)
                 else:
@@ -295,17 +295,13 @@ class Component(metaclass=ABCMeta):
 
         Todo: restore paths in self.studio_canvas.grid
         """
-        edges = []
-        for nbr in self.UNIT_GRAPH.successors(self):
-            edges.append((self, nbr))
-        for nbr in self.UNIT_GRAPH.predecessors(self):
-            edges.append((nbr, self))
+        edges = [(self, nbr) for nbr in self.UNIT_GRAPH.successors(self)]
+        edges += [(nbr, self) for nbr in self.UNIT_GRAPH.predecessors(self)]
         while edges:
             edge = edges.pop()
             self.UNIT_GRAPH.remove_edge(*edge)
             if self.UNIT_GRAPH.has_edge(*edge):
                 edges.append(edge)
 
-    def _to_deck(self):
+    def _to_deck(self):  # noqa: B027
         """Return deck representation of self."""
-        pass

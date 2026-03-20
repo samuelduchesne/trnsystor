@@ -1,8 +1,9 @@
 """ExternalFile module."""
+
 import itertools
+from pathlib import Path
 
 from bs4 import Tag
-from path import Path
 
 
 class ExternalFile:

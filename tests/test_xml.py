@@ -1,11 +1,12 @@
 """Test module."""
+
 import os
 import sys
+from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryFile
 from unittest.mock import patch
 
 import pytest
-from path import Path
 from shapely.geometry import LineString, Point
 
 from trnsystor.component import Component
@@ -13,25 +14,25 @@ from trnsystor.statement import Constant
 from trnsystor.trnsysmodel import TrnsysModel
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def fan_type():
     """Fixture to create a TrnsysModel from xml."""
     from trnsystor.trnsysmodel import TrnsysModel
 
     fan1 = TrnsysModel.from_xml(Path("tests/input_files/Type146.xml"))
-    yield fan1
+    return fan1
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def pipe_type():
     """Fixture to create a TrnsysModel from xml. Also tests using a Path."""
     from trnsystor.trnsysmodel import TrnsysModel
 
     pipe = TrnsysModel.from_xml("tests/input_files/Type951.xml")
-    yield pipe
+    return pipe
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def tank_type():
     from trnsystor.trnsysmodel import TrnsysModel
 
@@ -40,10 +41,10 @@ def tank_type():
         yield tank
 
 
-@pytest.fixture()
+@pytest.fixture
 def plotter():
     plot = TrnsysModel.from_xml("tests/input_files/Type65d.xml")
-    yield plot
+    return plot
 
 
 @pytest.fixture(scope="class")
@@ -138,18 +139,20 @@ class TestTrnsysModel:
 
         from trnsystor.trnsysmodel import TrnsysModel
 
-        with pytest.raises(NotImplementedError):
-            with patch("builtins.input", return_value="N"):
-                with open("tests/input_files/Type4a.xml") as xml:
-                    soup = BeautifulSoup(xml, "xml")
-                    new_tag = soup.new_tag("obscureTag")
-                    new_tag.string = "this is a test"
-                    soup.find("TrnsysModel").append(new_tag)
-                with NamedTemporaryFile("w", delete=False) as tmp:
-                    tmp.write(str(soup))
-                    tmp.close()
-                    TrnsysModel.from_xml(tmp.name)
-                    os.unlink(tmp.name)
+        with (
+            pytest.raises(NotImplementedError),
+            patch("builtins.input", return_value="N"),
+        ):
+            with open("tests/input_files/Type4a.xml") as xml:
+                soup = BeautifulSoup(xml, "xml")
+                new_tag = soup.new_tag("obscureTag")
+                new_tag.string = "this is a test"
+                soup.find("TrnsysModel").append(new_tag)
+            with NamedTemporaryFile("w", delete=False) as tmp:
+                tmp.write(str(soup))
+                tmp.close()
+                TrnsysModel.from_xml(tmp.name)
+                os.unlink(tmp.name)
 
     def test_out_of_bounds(self, pipe_type):
         """Trigger ValueError because out of bounds."""
@@ -290,7 +293,7 @@ class TestTrnsysModel:
         assert repr(tank_type.parameters)
 
     def test_TypeVariable_repr(self, tank_type):
-        for _, a in tank_type.inputs.items():
+        for a in tank_type.inputs.values():
             assert float(a) == 45.0
             assert (
                 repr(a) == "Hot-side temperature; units=C; value=45.0 °C\nThe"
@@ -300,7 +303,7 @@ class TestTrnsysModel:
                 " element."
             )
             break
-        for _, a in tank_type.outputs.items():
+        for a in tank_type.outputs.values():
             assert float(a) == 0.0
             assert (
                 repr(a) == "Temperature to heat source; units=C; value=0.0 "
@@ -309,7 +312,7 @@ class TestTrnsysModel:
                 "source (the temperature of the bottom node)."
             )
             break
-        for _, a in tank_type.parameters.items():
+        for a in tank_type.parameters.values():
             assert int(a) == 1
             assert (
                 repr(a) == "Fixed inlet positions; units=-; value=1\nThe auxiliary"
@@ -421,15 +424,15 @@ class TestTrnsysModel:
 
     def test_set_external_file(self, weather_type):
         """Test setting a different path for external files."""
-        from path import Path
+        from pathlib import Path
 
         # test set Path behavior
-        weather_type.external_files[0] = Path.getcwd()
-        assert weather_type.external_files[0].value == Path.getcwd()
+        weather_type.external_files[0] = Path.cwd()
+        assert weather_type.external_files[0].value == Path.cwd()
 
         # test set str behavior
-        weather_type.external_files[0] = str(Path.getcwd())
-        assert weather_type.external_files[0].value == Path.getcwd()
+        weather_type.external_files[0] = str(Path.cwd())
+        assert weather_type.external_files[0].value == Path.cwd()
 
         # test unsupported type set
         with pytest.raises(TypeError):
@@ -485,7 +488,7 @@ class TestTrnsysModel:
         fan_type.set_link_style(fan2, loc="best")
         [print(stl) for stl in fan_type.link_styles]
 
-    @pytest.mark.xfail()
+    @pytest.mark.xfail
     def test_set_anchor_point(self, pipe_type):
         pipe2 = pipe_type.copy()
         pipe_type.connect_to(pipe2, mapping={0: 0})
@@ -559,7 +562,7 @@ class TestStatements:
         fan_type._unit = 1  # we need to force the id to one here
         no_check = NoCheck(inputs=list(fan_type.inputs.values()))
         assert (
-            no_check._to_deck() == "NOCHECK 7\n1, 1	1, 2	1, 3	1, " "4	1, " "5	1, 6	1, 7"
+            no_check._to_deck() == "NOCHECK 7\n1, 1\t1, 2\t1, 3\t1, 4\t1, 5\t1, 6\t1, 7"
         )
 
         with pytest.raises(ValueError):
@@ -608,15 +611,15 @@ class TestStatements:
 
 
 class TestConstantsAndEquations:
-    @pytest.fixture()
+    @pytest.fixture
     def equation(self):
         from trnsystor.statement.equation import Equation
 
         equa1 = Equation()
 
-        yield equa1
+        return equa1
 
-    @pytest.fixture()
+    @pytest.fixture
     def equation_block(self):
         from trnsystor.collections.equation import EquationCollection
         from trnsystor.statement.equation import Equation
@@ -627,18 +630,18 @@ class TestConstantsAndEquations:
         equa4 = Equation.from_expression("vWind = [011,008]")
 
         equa_col_1 = EquationCollection([equa1, equa2, equa3, equa4], name="test")
-        yield equa_col_1
+        return equa_col_1
 
-    @pytest.fixture()
+    @pytest.fixture
     def constant(self):
         from trnsystor.statement.constant import Constant
 
         c_1 = Constant()
 
         assert c_1.constant_number > 1
-        yield c_1
+        return c_1
 
-    @pytest.fixture()
+    @pytest.fixture
     def constant_block(self):
         from trnsystor.collections.constant import ConstantCollection
         from trnsystor.statement.constant import Constant
@@ -649,7 +652,7 @@ class TestConstantsAndEquations:
 
         c_block = ConstantCollection([c_1, c_2, c_3], name="test constants")
 
-        yield c_block
+        return c_block
 
     def test_symbolic_expression(self, tank_type, fan_type):
         from trnsystor.statement.constant import Constant
@@ -696,9 +699,7 @@ class TestConstantsAndEquations:
         from trnsystor.collections.equation import EquationCollection
         from trnsystor.statement.equation import Equation
 
-        equa_col_2 = EquationCollection(
-            [equa for equa in equation_block.values()], name="test2"
-        )
+        equa_col_2 = EquationCollection(list(equation_block.values()), name="test2")
 
         assert equation_block.name != equa_col_2.name
         assert equation_block.size == 4
@@ -713,7 +714,7 @@ class TestConstantsAndEquations:
         from trnsystor.collections.equation import EquationCollection
         from trnsystor.statement.equation import Equation
 
-        list_equations = [equa for equa in equation_block.values()]
+        list_equations = list(equation_block.values())
 
         ec = EquationCollection(name="my equation block")
 
@@ -743,7 +744,7 @@ class TestConstantsAndEquations:
 
         fan_type._unit = 1
         equa1 = Equation("T_out", fan_type.outputs[0])
-        equa_block = EquationCollection([equa1])
+        EquationCollection([equa1])
         assert str(equa1) == "T_out = [1, 1]"
 
     def test_two_unnamed_equationcollection(self, fan_type):
@@ -759,7 +760,7 @@ class TestConstantsAndEquations:
         from trnsystor.collections.constant import ConstantCollection
 
         c_block_2 = ConstantCollection(
-            [c for c in constant_block.values()], name="test c block"
+            list(constant_block.values()), name="test c block"
         )
         assert constant_block.name != c_block_2.name
         assert constant_block.size == 3
@@ -772,7 +773,7 @@ class TestConstantsAndEquations:
         from trnsystor.collections.constant import ConstantCollection
         from trnsystor.statement.constant import Constant
 
-        list_constants = [cts for cts in constant_block.values()]
+        list_constants = list(constant_block.values())
 
         cc = ConstantCollection(name="my constant block")
 
@@ -821,7 +822,7 @@ class TestConstantsAndEquations:
 class TestDeck:
     @pytest.fixture(scope="class")
     def deck_file(self):
-        yield "tests/input_files/test_deck.dck"
+        return "tests/input_files/test_deck.dck"
 
     @pytest.fixture(scope="class")
     def pvt_deck(self, deck_file):
@@ -842,7 +843,7 @@ class TestDeck:
 
     @pytest.fixture(scope="class")
     def G(self, pvt_deck):
-        yield pvt_deck.graph
+        return pvt_deck.graph
 
     @pytest.mark.xfail(raises=ValueError)
     def test_irregular_deck(self, irregular_deck):
@@ -869,7 +870,7 @@ class TestDeck:
 
         assert not nx.is_empty(G)
         pos = {
-            unit: tuple((pos.x, pos.y)) if pos else tuple((50, 50))
+            unit: (pos.x, pos.y) if pos else (50, 50)
             for unit, pos in G.nodes(data="pos")
         }
         nx.draw_networkx(G, pos=pos)
@@ -902,9 +903,9 @@ class TestDeck:
     def test_save(self, pvt_deck):
         pvt_deck.to_file("test.dck", None, "w")
 
-    @pytest.fixture()
+    @pytest.fixture
     def components_string(self):
-        yield r"""
+        return r"""
         UNIT 3 TYPE  11 Tee Piece
         *$UNIT_NAME Tee Piece
         *$MODEL tests\input_files\Type11h.xml
@@ -962,13 +963,13 @@ class TestComponentCollection:
 
 
 class TestDeckFormatter:
-    @pytest.fixture()
+    @pytest.fixture
     def deck(self):
         from trnsystor.controlcards import ControlCards
         from trnsystor.deck import Deck
 
         cc = ControlCards.basic_template()
-        yield Deck("Simple Deck", control_cards=cc)
+        return Deck("Simple Deck", control_cards=cc)
 
     def test_type951(self, deck):
         from trnsystor.trnsysmodel import TrnsysModel
@@ -986,14 +987,14 @@ class TestDeckFormatter:
 
 
 class TestCommonTypes:
-    @pytest.fixture()
+    @pytest.fixture
     def deck(self, tmp_path):
         from trnsystor.controlcards import ControlCards
         from trnsystor.deck import Deck
 
         cc = ControlCards.basic_template()
         deck = Deck("Simple Deck", control_cards=cc)
-        yield deck
+        return deck
 
     def test_type951(self, deck, tmp_path):
         from trnsystor.deck import Deck

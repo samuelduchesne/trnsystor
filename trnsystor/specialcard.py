@@ -1,4 +1,5 @@
 """SpecialCard module."""
+
 from bs4 import Tag
 
 
@@ -18,7 +19,7 @@ class SpecialCard:
         if answers is None:
             answers = []
         self.name = name
-        self.answers = [answer for answer in answers]
+        self.answers = list(answers)
         self.default = default
         self.question = question
 

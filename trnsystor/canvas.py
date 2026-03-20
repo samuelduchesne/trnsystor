@@ -1,4 +1,6 @@
 """StudioCanvas module."""
+
+import itertools
 from collections import deque
 
 from shapely.errors import GEOSException
@@ -109,7 +111,7 @@ class StudioCanvas:
         path.reverse()
 
         if donotcross:
-            for edge in zip(path, path[1:], strict=False):
+            for edge in itertools.pairwise(path):
                 self._blocked_edges.add(tuple(sorted(edge)))
 
         try:

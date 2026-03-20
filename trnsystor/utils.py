@@ -1,17 +1,13 @@
 """Utils module."""
+
 import contextlib
 import math
 import re
 
 import numpy as np
-from path import Path as _Path
 from pint import Quantity, UnitRegistry
 from shapely.affinity import affine_transform as _affine_transform
 from shapely.geometry import LineString
-
-# Backwards-compatibility for older ``path`` APIs used in tests.
-if not hasattr(_Path, "getcwd"):
-    _Path.getcwd = _Path.cwd
 from sympy import Expr, Symbol, cacheit
 from sympy.printing import StrPrinter
 
@@ -192,7 +188,7 @@ def redistribute_vertices(geom, distance):
     if geom.length == 0:
         return geom
     if geom.geom_type == "LineString":
-        num_vert = int(round(geom.length / distance))
+        num_vert = round(geom.length / distance)
         if num_vert == 0:
             num_vert = 1
         return LineString(

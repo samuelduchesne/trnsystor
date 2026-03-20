@@ -1,4 +1,5 @@
 """ControlCards module."""
+
 import tabulate
 
 from trnsystor.component import Component

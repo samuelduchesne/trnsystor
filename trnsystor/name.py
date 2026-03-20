@@ -1,5 +1,7 @@
 """Name module."""
 
+from typing import ClassVar
+
 
 class Name:
     """Name class.
@@ -8,7 +10,7 @@ class Name:
     :class:`EquationCollection` and more.
     """
 
-    existing = []  # a list to store the created names
+    existing: ClassVar[list[str]] = []  # a list to store the created names
 
     def __init__(self, name=None):
         """Pick a name. Will increment the name if already used."""

@@ -6,12 +6,12 @@ __all__ = [
     "CycleCollection",
     "DerivativesCollection",
     "EquationCollection",
+    "ExternalFileCollection",
     "InitialInputValuesCollection",
     "InputCollection",
     "OutputCollection",
     "ParameterCollection",
     "VariableCollection",
-    "ExternalFileCollection",
 ]
 
 from trnsystor.collections.components import ComponentCollection

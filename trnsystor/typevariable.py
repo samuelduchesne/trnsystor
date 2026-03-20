@@ -1,4 +1,5 @@
 """TypeVariable module."""
+
 import collections
 import copy
 import re
@@ -52,7 +53,7 @@ class TypeVariable:
             dimension (str): The dimension of the variable (power, temperature,
                 etc.): This dimension must be already defined in the unit
                 dictionary (refer to section 2.9) to be used. The pre-defined
-                dimension ‘any’ allows to make a variable compatible with any
+                dimension 'any' allows to make a variable compatible with any
                 other variable: no checks are performed on such variables if the
                 user attempts to connect them to other variables.
             unit (str): The unit of the variable that the TRNSYS program
@@ -132,9 +133,7 @@ class TypeVariable:
         elif role == "derivative":
             return Derivative(_type(val), **attr)
         else:
-            raise NotImplementedError(
-                f'The role "{role}" is not yet ' "supported."
-            )
+            raise NotImplementedError(f'The role "{role}" is not yet supported.')
 
     def __float__(self):
         """Return magnitude of self."""
@@ -191,7 +190,7 @@ class TypeVariable:
         for pre in self.model.UNIT_GRAPH.predecessors(self.model):
             for key in self.model.UNIT_GRAPH[pre][self.model]:
                 if self in key:
-                    u, v = key
+                    u, _v = key
                     predecessors.append(u)
         if len(predecessors) > 1:
             raise Exception(f"An Input cannot have {predecessors} predecessors")
@@ -278,8 +277,7 @@ class TypeVariable:
             )
         except Exception:
             return (
-                f"{self.name}; units={self.unit}; value={self.value}\n"
-                f"{self.definition}"
+                f"{self.name}; units={self.unit}; value={self.value}\n{self.definition}"
             )
 
 
@@ -334,7 +332,7 @@ class Output(TypeVariable):
         for suc in self.model.UNIT_GRAPH.successors(self.model):
             for key in self.model.UNIT_GRAPH[self.model][suc]:
                 if self in key:
-                    u, v = key
+                    _u, v = key
                     successors.append(v)
         return successors
 

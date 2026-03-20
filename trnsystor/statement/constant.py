@@ -1,5 +1,7 @@
 """Constant module."""
+
 import itertools
+from typing import ClassVar
 
 from trnsystor.statement.statement import Statement
 
@@ -13,7 +15,7 @@ class Constant(Statement):
     """
 
     _new_id = itertools.count(start=1)
-    instances = {}
+    instances: ClassVar[dict] = {}
 
     def __init__(self, name=None, equals_to=None, doc=None):
         """Initialize object.

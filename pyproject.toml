@@ -1,15 +1,15 @@
 [build-system]
-requires = ["uv", "setuptools>=61", "setuptools-scm"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "trnsystor"
-dynamic = ["version"]
+version = "0.0.0"
 description = "A python TRNSYS type parser"
 readme = "README.md"
 authors = [{ name = "Samuel Letellier-Duchesne", email = "samuel.letellier-duchesne@polymtl.ca" }]
 license = { file = "LICENSE.md" }
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
@@ -19,15 +19,14 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
     "beautifulsoup4",
     "lxml",
     "matplotlib",
     "numpy",
-    "outdated",
     "pandas",
-    "path",
     "pint",
     "shapely",
     "sympy",
@@ -39,53 +38,77 @@ dependencies = [
 test = [
     "pytest>=8",
     "pytest-cov",
-    "mock",
 ]
 docs = [
     "sphinx>=7",
-    "recommonmark",
+    "myst-parser",
     "sphinx_rtd_theme",
 ]
-dev = [
-    "pre-commit",
-    "ruff",
-    "mypy",
-    "pytest>=8",
-    "pytest-cov",
-    "sphinx>=7",
-    "recommonmark",
-    "sphinx_rtd_theme",
-]
-
-[tool.setuptools_scm]
-
-[tool.setuptools.package-data]
-trnsystor = ["py.typed"]
 
 [tool.uv]
 dev-dependencies = [
     "pre-commit",
     "ruff",
-    "mypy",
+    "pyright",
     "pytest>=8",
     "pytest-cov",
-    "mock",
     "sphinx>=7",
-    "recommonmark",
+    "myst-parser",
     "sphinx_rtd_theme",
 ]
 
-[tool.mypy]
-strict = true
-warn_return_any = true
-no_implicit_optional = true
-disallow_any_generics = true
-disallow_subclassing_any = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-extra_checks = true
-exclude = ["tests"]
+[tool.hatch.build.targets.wheel]
+packages = ["trnsystor"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+fix = true
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "PT",   # flake8-pytest-style
+    "RUF",  # ruff-specific rules
+    "TCH",  # flake8-type-checking
+    "PIE",  # flake8-pie
+    "C4",   # flake8-comprehensions
+    "PERF", # perflint
+]
+ignore = []
+
+[tool.ruff.lint.isort]
+known-first-party = ["trnsystor"]
+combine-as-imports = true
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ANN", "PT011", "PT012"]
+
+[tool.pyright]
+pythonVersion = "3.10"
+typeCheckingMode = "basic"
+exclude = ["tests", "docs"]
+reportOptionalMemberAccess = false
+reportAttributeAccessIssue = false
+reportArgumentType = false
+reportCallIssue = false
+reportOptionalOperand = false
+reportOptionalSubscript = false
+reportAssignmentType = false
+reportReturnType = false
+reportOperatorIssue = false
+
+[tool.coverage.run]
+omit = ["tests/*", "docs/*"]
+
+[tool.coverage.report]
+fail_under = 90
 
 [tool.pytest.ini_options]
-addopts = "--cov=trnsystor --cov-report=term-missing --cov-fail-under=90"
+addopts = "--cov=trnsystor --cov-report=term-missing --import-mode=importlib"
 testpaths = ["tests"]

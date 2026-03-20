@@ -1,10 +1,15 @@
 """Parameter module."""
+
+from typing import TYPE_CHECKING
+
 import tabulate
 from pint import Quantity
 
 from trnsystor.collections.variable import VariableCollection
 from trnsystor.statement import Equation
-from trnsystor.typevariable import TypeVariable
+
+if TYPE_CHECKING:
+    from trnsystor.typevariable import TypeVariable
 
 
 class ParameterCollection(VariableCollection):
@@ -42,8 +47,9 @@ class ParameterCollection(VariableCollection):
                     )
                 else:
                     raise NotImplementedError(
-                        f"Printing parameter '{param.name}' of type '{type(param.value)}' from unit '{param.model.name}' is not "
-                        "supported"
+                        f"Printing parameter '{param.name}' of type "
+                        f"'{type(param.value)}' from unit "
+                        f"'{param.model.name}' is not supported"
                     )
         params_str = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
         return head + params_str + "\n"
