@@ -7,10 +7,10 @@ import logging as lg
 import os
 import re
 from io import StringIO
+from pathlib import Path
 
 from pandas import to_datetime
 from pandas.io.common import _get_filepath_or_buffer, get_handle
-from path import Path
 from shapely.geometry import LineString, Point
 
 from trnsystor.anchorpoint import AnchorPoint
@@ -40,6 +40,14 @@ from trnsystor.statement import (
 )
 from trnsystor.trnsysmodel import MetaData, TrnsysModel
 from trnsystor.utils import get_rgb_from_int
+
+
+def _find_closest(mappinglist, coordinate):
+    """Find the closest point in mappinglist to coordinate."""
+    return min(
+        mappinglist,
+        key=lambda x: Point(x).distance(Point(coordinate)),
+    )
 
 
 class DeckFormatter:
@@ -130,8 +138,7 @@ class Deck:
                 self.models = ComponentCollection(models)
             else:
                 raise TypeError(
-                    "Cant't create a Deck object with models of "
-                    f"type '{type(models)}'"
+                    f"Cant't create a Deck object with models of type '{type(models)}'"
                 )
             self.models = ComponentCollection(models)
         if control_cards:
@@ -167,7 +174,7 @@ class Deck:
             dck = cls.load(
                 dcklines,
                 proforma_root,
-                name=file.basename(),
+                name=file.name,
                 author=author,
                 date_created=date_created,
                 **kwargs,
@@ -217,13 +224,13 @@ class Deck:
         """Checks if Deck definition passes a few obvious rules."""
         from collections import Counter
 
-        ext_files = []
-        for model in self.models:
-            if isinstance(model, TrnsysModel):
-                if model.external_files:
-                    for _, file in model.external_files.items():
-                        if file:
-                            ext_files.append(file.value)
+        ext_files = [
+            file.value
+            for model in self.models
+            if isinstance(model, TrnsysModel) and model.external_files
+            for file in model.external_files.values()
+            if file
+        ]
         if sum(1 for i in Counter(ext_files).values() if i > 1):
             lg.warning(
                 "Some ExternalFile paths have duplicated names. Please make sure all "
@@ -239,27 +246,25 @@ class Deck:
         Returns:
             None.
         """
-        if isinstance(amodel, Component):
-            amodel = [amodel]
-        for amodel in amodel:
+        models = [amodel] if isinstance(amodel, Component) else amodel
+        for model in models:
             # iterate over models and try to pop the existing one
-            if amodel.unit_number in [mod.unit_number for mod in self.models]:
+            if model.unit_number in [mod.unit_number for mod in self.models]:
                 for i, item in enumerate(self.models):
-                    if item.unit_number == amodel.unit_number:
+                    if item.unit_number == model.unit_number:
                         self.models.pop(i)
                         break
             # in any case, add new one
-            self.models.append(amodel)
+            self.models.append(model)
 
     def remove_models(self, amodel):
         """Remove `amodel` from self.models."""
-        if isinstance(amodel, Component):
-            amodel = [amodel]
-        for amodel in amodel:
+        models = [amodel] if isinstance(amodel, Component) else amodel
+        for model in models:
             # iterate over models and try to pop the existing one
-            if amodel.unit_number in [mod.unit_number for mod in self.models]:
+            if model.unit_number in [mod.unit_number for mod in self.models]:
                 for i, item in enumerate(self.models):
-                    if item.unit_number == amodel.unit_number:
+                    if item.unit_number == model.unit_number:
                         self.models.pop(i)
                         break
 
@@ -332,7 +337,8 @@ class Deck:
                 object containing a Component.
             proforma_root (Union[str, os.PathLike]): The path to a directory of xml
                 proformas.
-            dck (Deck): Optionally pass a Deck object to act upon it. This is used in Deck.read_file where
+            dck (Deck): Optionally pass a Deck object to act
+                upon it. This is used in Deck.read_file.
             **kwargs: Keywords passed to the Deck constructor.
 
         Returns:
@@ -363,7 +369,7 @@ class Deck:
         if isinstance(s, str):
             pass
         else:
-            if not isinstance(s, (bytes, bytearray)):
+            if not isinstance(s, bytes | bytearray):
                 raise TypeError(
                     f"the DCK object must be str, bytes or bytearray, "
                     f"not {s.__class__.__name__}"
@@ -384,10 +390,7 @@ class Deck:
         # iterate
         deck_lines = iter(s.splitlines())
         line = next(deck_lines)
-        if proforma_root is None:
-            proforma_root = Path.getcwd()
-        else:
-            proforma_root = Path(proforma_root)
+        proforma_root = Path.cwd() if proforma_root is None else Path(proforma_root)
 
         component = None
         while line:
@@ -403,17 +406,14 @@ class Deck:
             if key == "constants":
                 n_cnts = match.group(key)
                 cb = ConstantCollection()
-                for n in range(int(n_cnts)):
+                for _n in range(int(n_cnts)):
                     line = next(deck_lines)
                     cb.update(Constant.from_expression(line))
                 cc.set_statement(cb)
             if key == "simulation":
                 start, stop, step, *_ = re.split(r"\s+", match.group(key))
                 start, stop, step = tuple(
-                    map(
-                        lambda x: dck.return_equation_or_constant(x),
-                        (start, stop, step),
-                    )
+                    dck.return_equation_or_constant(x) for x in (start, stop, step)
                 )
                 s_ = Simulation(*(start, stop, step))
                 cc.set_statement(s_)
@@ -462,7 +462,7 @@ class Deck:
                     # extract number and value
                     if line == "\n":
                         continue
-                    head, sep, tail = line.strip().partition("!")
+                    head, _sep, _tail = line.strip().partition("!")
                     value = head.strip()
                     # create equation
                     list_eq.append(Equation.from_expression(value))
@@ -515,41 +515,39 @@ class Deck:
                         dck.update_models(component)
                 else:
                     pass
-            if key in ("parameters", "inputs") and component._meta is not None:
-                if component._meta.variables:
-                    n_vars = int(match.group(key).strip())
+            if (
+                key in ("parameters", "inputs")
+                and component._meta is not None
+                and component._meta.variables
+            ):
+                n_vars = int(match.group(key).strip())
+                init_at = n_vars
+                if key == "inputs":
                     init_at = n_vars
-                    if key == "inputs":
-                        init_at = n_vars
-                        n_vars = n_vars * 2
-                    i = 0
-                    while line:
-                        line = next(deck_lines)
-                        if not line.strip():
-                            line = "\n"
-                        else:
-                            varkey, match = dck._parse_line(line)
-                            if varkey == "typevariable":
-                                tvar_group = match.group("typevariable").strip()
-                                for j, tvar in enumerate(tvar_group.split(" ")):
-                                    try:
-                                        tv_key = key
-                                        if i >= init_at:
-                                            tv_key = "initial_input_values"
-                                            j = j + i - init_at
-                                        else:
-                                            j = i
-                                        cls.set_typevariable(
-                                            dck, j, component, tvar, tv_key
-                                        )
-                                    except (KeyError, IndexError, ValueError):
-                                        continue
-                                    finally:
-                                        i += 1
-                            elif varkey is None:
-                                continue
-                            if i == n_vars:
-                                line = None
+                    n_vars = n_vars * 2
+                i = 0
+                while line:
+                    line = next(deck_lines)
+                    if not line.strip():
+                        line = "\n"
+                    else:
+                        varkey, match = dck._parse_line(line)
+                        if varkey == "typevariable":
+                            tvar_group = match.group("typevariable").strip()
+                            for j, tvar in enumerate(tvar_group.split(" ")):
+                                i = cls._try_set_typevariable(
+                                    dck,
+                                    i,
+                                    j,
+                                    init_at,
+                                    key,
+                                    component,
+                                    tvar,
+                                )
+                        elif varkey is None:
+                            continue
+                        if i == n_vars:
+                            line = None
             if key == "typevariable":
                 # We need to pass because we need to get out of this recursion
                 pass
@@ -571,21 +569,11 @@ class Deck:
                             dck.models.iloc[int(u)]
                         ).studio_anchor_reverse_mapping
 
-                        def find_closest(mappinglist, coordinate):
-                            def distance(a, b):
-                                a_ = Point(a)
-                                b_ = Point(b)
-                                return a_.distance(b_)
-
-                            return min(
-                                mappinglist, key=lambda x: distance(x, coordinate)
-                            )
-
                         u_coords = (int(_lns["u1"]), int(_lns["u2"]))
                         v_coords = (int(_lns["v1"]), int(_lns["v2"]))
                         loc = (
-                            mapping[find_closest(mapping.keys(), u_coords)],
-                            mapping[find_closest(mapping.keys(), v_coords)],
+                            mapping[_find_closest(mapping.keys(), u_coords)],
+                            mapping[_find_closest(mapping.keys(), v_coords)],
                         )
                         color = get_rgb_from_int(int(_lns["color"]))
                         linestyle = _studio_to_linestyle(int(_lns["linestyle"]))
@@ -608,20 +596,20 @@ class Deck:
             if key == "model":
                 _mod = match.group("model").strip()
                 tmf = Path(_mod.replace("\\", "/"))
-                tmf_basename = tmf.basename()
                 try:
                     meta = MetaData.from_xml(tmf)
-                except FileNotFoundError:
+                except FileNotFoundError as err:
                     # replace extension with ".xml" and retry
-                    xml_basename = tmf_basename.stripext() + ".xml"
+                    xml_basename = tmf.stem + ".xml"
                     xmls = proforma_root.glob("*.xml")
-                    xml = next((x for x in xmls if x.basename() == xml_basename), None)
+                    xml = next((x for x in xmls if x.name == xml_basename), None)
                     if not xml:
                         raise ValueError(
-                            f"The proforma {xml_basename} could not be found "
-                            f"at '{proforma_root}'\nnor at '{tmf.dirname()}' as "
-                            f"specified in the input string."
-                        )
+                            f"The proforma {xml_basename} could not be "
+                            f"found at '{proforma_root}'\nnor at "
+                            f"'{tmf.parent}' as specified in the "
+                            f"input string."
+                        ) from err
                     meta = MetaData.from_xml(xml)
                 if isinstance(component, TrnsysModel):
                     if component._meta is None:
@@ -647,6 +635,21 @@ class Deck:
             return Constant(name)
         else:
             return value
+
+    @classmethod
+    def _try_set_typevariable(cls, dck, i, j, init_at, key, component, tvar):
+        """Try to set a typevariable, ignoring parse errors."""
+        try:
+            tv_key = key
+            if i >= init_at:
+                tv_key = "initial_input_values"
+                j = j + i - init_at
+            else:
+                j = i
+            cls.set_typevariable(dck, j, component, tvar, tv_key)
+        except (KeyError, IndexError, ValueError):
+            pass
+        return i + 1
 
     @staticmethod
     def set_typevariable(dck, i, model, tvar, key):

@@ -1,4 +1,5 @@
 """StudioHeader module."""
+
 from shapely.geometry import Point
 
 
@@ -42,7 +43,7 @@ class StudioHeader:
     def _to_deck(self):
         """Return deck representation of self."""
         unit_name = f"*$UNIT_NAME {self.unit_name}"
-        model = f"*$MODEL {self.model.expand()}"
+        model = f"*$MODEL {self.model.expanduser().resolve()}"
         position = f"*$POSITION {self.position.x} {self.position.y}"
         layer = "*$LAYER {}".format(" ".join(self.layer))
         return "\n".join([unit_name, model, position, layer]) + "\n"

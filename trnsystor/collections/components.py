@@ -28,7 +28,7 @@ class ComponentCollection(collections.UserList):
     @property
     def iloc(self):
         """Access a component by its :attr:`unit_number`."""
-        return dict({item.unit_number: item for item in self.data})
+        return {item.unit_number: item for item in self.data}
 
     @property
     def loc(self):
@@ -38,4 +38,4 @@ class ComponentCollection(collections.UserList):
             >>> cc = ComponentCollection([tank_type])
             >>> assert cc.loc[tank_type] == cc.iloc[tank_type.unit_number]
         """
-        return dict({item: item for item in self.data})
+        return {item: item for item in self.data}

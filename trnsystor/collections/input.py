@@ -1,4 +1,5 @@
 """InputCollection module."""
+
 import tabulate
 
 from trnsystor.collections.variable import VariableCollection
@@ -23,17 +24,11 @@ class InputCollection(VariableCollection):
         num_inputs = f"{self.size} Inputs:\n"
         try:
             inputs = "\n".join(
-                [
-                    f'"{key}": {value.value:~P}'
-                    for key, value in self.data.items()
-                ]
+                [f'"{key}": {value.value:~P}' for key, value in self.data.items()]
             )
         except ValueError:  # Invalid format specifier
             inputs = "\n".join(
-                [
-                    f'"{key}": {value.value}'
-                    for key, value in self.data.items()
-                ]
+                [f'"{key}": {value.value}' for key, value in self.data.items()]
             )
         return num_inputs + inputs
 
@@ -74,12 +69,10 @@ class InputCollection(VariableCollection):
                     )
                 else:
                     raise NotImplementedError(
-                        
-                            f"With unit {input.model.name}, printing input "
-                            f"'{input.name}' connected with output of "
-                            f"type '{type(input.connected_to)}' from unit "
-                            f"'{input.connected_to.model.name}' is not supported"
-                        
+                        f"With unit {input.model.name}, printing input "
+                        f"'{input.name}' connected with output of "
+                        f"type '{type(input.connected_to)}' from unit "
+                        f"'{input.connected_to.model.name}' is not supported"
                     )
             else:
                 # The input is unconnected.
@@ -99,9 +92,13 @@ class InputCollection(VariableCollection):
         Examples:
             None:flowRateDoubled -> Ecoflex 2-Pipe:Inlet Fluid Flowrate - Pipe 1
         """
-        return f"! {input_type.predecessor.model.name}:{input_type.predecessor.name} -> {input_type.model.name}:{input_type.name}"
+        return (
+            f"! {input_type.predecessor.model.name}:"
+            f"{input_type.predecessor.name} -> "
+            f"{input_type.model.name}:{input_type.name}"
+        )
 
     @property
     def size(self):
         """Return the number of inputs excluding questions."""
-        return len([i for i in self])
+        return len(list(self))

@@ -1,8 +1,8 @@
 """Statement module."""
 
 __all__ = [
-    "Constant",
     "DFQ",
+    "Constant",
     "End",
     "EqSolver",
     "Equation",

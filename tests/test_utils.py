@@ -1,4 +1,5 @@
 """Test utils module."""
+
 import pytest
 
 from trnsystor.utils import parse_unit, redistribute_vertices, ureg
@@ -10,21 +11,21 @@ class TestRedistributeVertices:
         from shapely.geometry.polygon import LineString
 
         line = LineString([(0, 0), (1, 1), (2, 2)])
-        yield line
+        return line
 
     @pytest.fixture
     def ring(self):
         from shapely.geometry.polygon import LinearRing
 
         ring = LinearRing([(0, 0), (1, 1), (1, 0)])
-        yield ring
+        return ring
 
     @pytest.fixture
     def zero_geom(self):
         from shapely.geometry.polygon import LineString
 
         line = LineString([(1, 1), (1, 1)])
-        yield line
+        return line
 
     def test_redistribute_vertices(self, line):
         newline = redistribute_vertices(line, 10)
@@ -44,12 +45,12 @@ class TestRedistributeVertices:
 def test_parse_unit_percent_multiple_calls():
     """``parse_unit`` can be called repeatedly for percent."""
     for _ in range(3):
-        Q_, unit = parse_unit("% (base 100)")
+        _Q, unit = parse_unit("% (base 100)")
         assert unit == ureg.percent
 
 
 def test_parse_unit_fraction_multiple_calls():
     """``parse_unit`` can be called repeatedly for fraction."""
     for _ in range(3):
-        Q_, unit = parse_unit("fraction")
+        _Q, unit = parse_unit("fraction")
         assert unit == ureg.fraction

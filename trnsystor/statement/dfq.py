@@ -1,4 +1,5 @@
 """DFQ Statement."""
+
 from trnsystor.statement.statement import Statement
 
 
@@ -7,7 +8,7 @@ class DFQ(Statement):
 
     The optional DFQ card allows the user to select one of three algorithms
     built into TRNSYS to numerically solve differential equations (see Manual
-    08-Programmer’s Guide for additional information about solution of
+    08-Programmer's Guide for additional information about solution of
     differential equations).
     """
 

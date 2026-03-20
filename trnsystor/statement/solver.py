@@ -27,14 +27,14 @@ class Solver(Statement):
 
             The two solution algorithms (k) are:
                 * 0: Successive Substitution
-                * 1: Powell’s Method
+                * 1: Powell's Method
         """
         super().__init__()
         self.rf_max = rf_max
         self.rf_min = rf_min
         self.k = k
         self.doc = (
-            "Solver statement\tMinimum relaxation factor\tMaximum " "relaxation factor"
+            "Solver statement\tMinimum relaxation factor\tMaximum relaxation factor"
         )
 
     def _to_deck(self):

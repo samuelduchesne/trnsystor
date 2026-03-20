@@ -1,9 +1,8 @@
 """SpecialCardsCollection module."""
+
 import collections
 
 import tabulate
-
-from trnsystor.specialcard import SpecialCard
 
 
 class SpecialCardsCollection(collections.UserList):
@@ -23,12 +22,7 @@ class SpecialCardsCollection(collections.UserList):
             # Don't need to print empty inputs
             return ""
 
-        _ins = []
-        special_card: SpecialCard
-        for special_card in self:
-            _ins.append(
-                [" ".join(a for a in [special_card.name, special_card.default] if a)]
-            )
+        _ins = [[" ".join(a for a in [sc.name, sc.default] if a)] for sc in self]
         core = tabulate.tabulate(_ins, tablefmt="plain")
 
         return core

@@ -1,9 +1,9 @@
 """ExternalFileCollection module."""
 
 import collections
+from pathlib import Path
 
 import tabulate
-from path import Path
 
 from trnsystor.externalfile import ExternalFile
 from trnsystor.utils import standardize_name

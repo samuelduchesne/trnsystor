@@ -27,18 +27,12 @@ class InitialInputValuesCollection(VariableCollection):
         num_inputs = f"{self.size} Initial Input Values:\n"
         try:
             inputs = "\n".join(
-                [
-                    f'"{key}": {value.value:~P}'
-                    for key, value in self.data.items()
-                ]
+                [f'"{key}": {value.value:~P}' for key, value in self.data.items()]
             )
         except ValueError:
             # ~P formatting (above) can fail on strings
             inputs = "\n".join(
-                [
-                    f'"{key}": {value.value}'
-                    for key, value in self.data.items()
-                ]
+                [f'"{key}": {value.value}' for key, value in self.data.items()]
             )
         return num_inputs + inputs
 

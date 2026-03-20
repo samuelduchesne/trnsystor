@@ -21,7 +21,7 @@ class NoCheck(Statement):
             inputs = []
         if len(inputs) > 20:
             raise ValueError(
-                "TRNSYS allows only up to 20 different INPUTS to " "be removed"
+                "TRNSYS allows only up to 20 different INPUTS to be removed"
             )
         self.inputs = inputs
         self.doc = "CHECK Statement"

@@ -24,8 +24,7 @@ class DerivativesCollection(VariableCollection):
 
         head = f"DERIVATIVES {self.size}\n"
         _ins = [
-            (derivative.value.m, f"! {derivative.name}")
-            for derivative in self.values()
+            (derivative.value.m, f"! {derivative.name}") for derivative in self.values()
         ]
         core = tabulate.tabulate(_ins, tablefmt="plain", numalign="left")
 

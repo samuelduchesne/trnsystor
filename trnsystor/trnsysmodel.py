@@ -1,12 +1,13 @@
 """TrnsysModel module."""
+
 import collections
 import copy
 import itertools
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import networkx as nx
 from bs4 import BeautifulSoup, Tag
-from path import Path
 from shapely.affinity import translate
 
 from trnsystor.anchorpoint import AnchorPoint
@@ -75,7 +76,7 @@ class MetaData:
             mode (int): 1-Detailed, 2-Simplified, 3-Empirical, 4- Conventional
             validation (int): Determine the type of validation that was
                 performed on this model. This can be 1-qualitative, 2-numerical,
-                3-analytical, 4-experimental and 5-‘in assembly’ meaning that it
+                3-analytical, 4-experimental and 5-'in assembly' meaning that it
                 was verified as part of a larger system which was verified.
             icon (Path): Path to the icon.
             type (int): The type number.
@@ -412,20 +413,20 @@ class TrnsysModel(Component):
 
     def _get_special_cards(self):
         if self._meta.special_cards:
-            special_cards_list = list(
+            special_cards_list = [
                 self._meta["special_cards"][attr]
                 for attr in self._get_filtered_types(SpecialCard, "special_cards")
-            )
+            ]
             return SpecialCardsCollection(special_cards_list)
         else:
             return SpecialCardsCollection()  # return empty collection
 
     def _get_external_files(self):
         if self._meta.external_files:
-            ext_files_dict = dict(
-                (attr, self._meta["external_files"][attr])
+            ext_files_dict = {
+                attr: self._meta["external_files"][attr]
                 for attr in self._get_filtered_types(ExternalFile, "external_files")
-            )
+            }
             return ExternalFileCollection.from_dict(ext_files_dict)
         else:
             return ExternalFileCollection()  # return empty collection
@@ -485,28 +486,28 @@ class TrnsysModel(Component):
             ]
             if cycle.is_question:
                 n_times = []
-                for cycle in cycle.cycles:
+                for sub_cycle in cycle.cycles:
                     existing = next(
                         (
                             key
                             for key, value in output_dict.items()
-                            if value.name == cycle.question
+                            if value.name == sub_cycle.question
                         ),
                         None,
                     )
                     if not existing:
-                        name = cycle.question
+                        name = sub_cycle.question
                         question_var: TypeVariable = class_(
-                            val=cycle.default,
+                            val=sub_cycle.default,
                             name=name,
-                            role=cycle.role,
+                            role=sub_cycle.role,
                             unit="-",
                             type=int,
                             dimension="any",
-                            min=int(cycle.minSize),
-                            max=int(cycle.maxSize),
+                            min=int(sub_cycle.minSize),
+                            max=int(sub_cycle.maxSize),
                             order=9999999,
-                            default=cycle.default,
+                            default=sub_cycle.default,
                             model=self,
                         )
                         question_var._is_question = True
@@ -517,12 +518,12 @@ class TrnsysModel(Component):
                         n_times.append(output_dict[existing].value.m)
             else:
                 n_times = [
-                    list(
+                    next(
                         filter(
                             lambda elem: elem[1].name == cycle.paramName,
                             self._meta.variables.items(),
                         )
-                    )[0][1].value.m
+                    )[1].value.m
                     for cycle in cycle.cycles
                 ]
             item: TypeVariable
