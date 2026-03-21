@@ -41,9 +41,8 @@ test = [
     "pytest-cov",
 ]
 docs = [
-    "sphinx>=7",
-    "myst-parser",
-    "sphinx_rtd_theme",
+    "zensical>=0.0.17",
+    "mkdocstrings[python]",
 ]
 
 [tool.uv]
@@ -54,9 +53,8 @@ dev-dependencies = [
     "matplotlib",
     "pytest>=8",
     "pytest-cov",
-    "sphinx>=7",
-    "myst-parser",
-    "sphinx_rtd_theme",
+    "zensical>=0.0.17",
+    "mkdocstrings[python]",
 ]
 
 [tool.hatch.build.targets.wheel]
