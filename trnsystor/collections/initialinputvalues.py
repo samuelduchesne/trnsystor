@@ -57,13 +57,19 @@ class InitialInputValuesCollection(VariableCollection):
             super().__setitem__(key, value)
         elif isinstance(value, int | float | str):
             """a str, float, int, etc. is passed"""
-            existing: TypeVariable = self[key]  # type: ignore[assignment]
+            existing = (
+                self.data[key] if isinstance(key, str)
+                else list(self.data.values())[key]
+            )
             value = _parse_value(
                 value, existing.type, existing.unit, (existing.min, existing.max)
             )
             existing.__setattr__("value", value)
         elif isinstance(value, Quantity):
-            existing_q: TypeVariable = self[key]  # type: ignore[assignment]
+            existing_q = (
+                self.data[key] if isinstance(key, str)
+                else list(self.data.values())[key]
+            )
             ex_val = existing_q.value
             target_units = ex_val.units if isinstance(ex_val, Quantity) else None
             new_val = value.to(target_units) if target_units is not None else value

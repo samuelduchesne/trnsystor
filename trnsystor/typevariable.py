@@ -141,7 +141,9 @@ class TypeVariable:
 
         if isinstance(self.value, Quantity):
             return float(self.value.m)
-        return float(self.value)  # type: ignore[arg-type]
+        if self.value is None:
+            return 0.0
+        return float(str(self.value))
 
     def __int__(self):
         """Return int(self)."""
@@ -149,7 +151,9 @@ class TypeVariable:
 
         if isinstance(self.value, Quantity):
             return int(self.value.m)
-        return int(self.value)  # type: ignore[arg-type]
+        if self.value is None:
+            return 0
+        return int(float(str(self.value)))
 
     def __mul__(self, other):
         """Return self * other."""

@@ -202,10 +202,18 @@ class LinkStyle:
         raw_path = self.path
         if raw_path is None:
             coords = []
-        elif hasattr(raw_path, "coords"):
-            coords = [tuple(int(v) for v in pt) for pt in raw_path.coords]
+        elif isinstance(raw_path, LineString):
+            coords = [
+                tuple(int(v) for v in pt)
+                for pt in raw_path.coords
+            ]
+        elif isinstance(raw_path, list):
+            coords = [
+                tuple(int(v) for v in pt)
+                for pt in raw_path
+            ]
         else:
-            coords = [tuple(int(v) for v in pt) for pt in raw_path]  # type: ignore[misc]
+            coords = []
         # Handle single-point case (flatten 1-d)
         if coords and not isinstance(coords[0], tuple | list):
             coords = [tuple(coords)]

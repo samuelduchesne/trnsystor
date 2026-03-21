@@ -519,19 +519,19 @@ class TrnsysModel(Component):
                         from pint import Quantity as _Qty
                         qv = question_var.value
                         n_times.append(
-                            qv.m if isinstance(qv, _Qty) else int(qv)  # type: ignore[arg-type]
+                            qv.m if isinstance(qv, _Qty) else int(str(qv))
                         )
                     else:
                         ev = output_dict[existing].value
                         from pint import Quantity as _Qty
                         n_times.append(
-                            ev.m if isinstance(ev, _Qty) else int(ev)  # type: ignore[arg-type]
+                            ev.m if isinstance(ev, _Qty) else int(str(ev))
                         )
             else:
                 from pint import Quantity as _Qty
 
                 def _get_m(v):
-                    return v.m if isinstance(v, _Qty) else int(v)  # type: ignore[union-attr]
+                    return v.m if isinstance(v, _Qty) else int(str(v))
 
                 n_times = [
                     _get_m(
@@ -570,11 +570,11 @@ class TrnsysModel(Component):
                 if len(items) > len(n_times)
                 else zip(itertools.cycle(items), n_times)
             )
-            for _item_maybe, n_time in items_list:
-                item: TypeVariable = _item_maybe  # type: ignore[assignment]
-                assert item is not None
+            for item_or_none, n_time in items_list:
+                assert item_or_none is not None
+                item = item_or_none
                 item._iscyclebase = True
-                basename = item.name
+                basename = str(item.name)
                 item_base = self._meta.variables.get(id(item))
                 for n, _ in enumerate(range(int(n_time)), start=1):
                     existing = next(
@@ -585,9 +585,11 @@ class TrnsysModel(Component):
                         ),
                         None,
                     )
-                    _next_item = mydict.get(existing, item_base.copy())  # type: ignore[arg-type]
-                    assert _next_item is not None
-                    item = _next_item
+                    if existing is not None:
+                        item = mydict.get(existing, item_base.copy())
+                    else:
+                        item = item_base.copy() if item_base else item
+                    assert item is not None
                     item._iscyclebase = False  # return it back to False
                     if item._iscycle:
                         self._meta.variables.update({id(item): item})

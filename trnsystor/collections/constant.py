@@ -1,12 +1,6 @@
 """ConstantCollection module."""
 
 import collections
-import sys
-
-if sys.version_info >= (3, 11):
-    from typing import Self
-else:
-    from typing_extensions import Self
 
 import tabulate
 
@@ -49,9 +43,10 @@ class ConstantCollection(Component, collections.UserDict):
             value = super().__getitem__(key)
         return value
 
-    def copy(self) -> Self:
+    def copy(self):
         """Return a shallow copy of self."""
-        return collections.UserDict.copy(self)  # type: ignore[return-value]
+        new = ConstantCollection(dict(self.data), name=self.name)
+        return new
 
     def __setitem__(self, key, value):
         """Set item."""

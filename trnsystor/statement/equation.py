@@ -189,7 +189,9 @@ class Equation(Statement, TypeVariable):
         """Return the 0-based index of the Equation."""
         if self.model is None:
             raise ValueError(f"Equation '{self.name}' has no associated model")
-        ns = {e: i for i, e in enumerate(self.model)}  # type: ignore[call-overload]
+        # model is an EquationCollection (UserDict), so it's iterable
+        model = self.model
+        ns: dict[str | None, int] = {e: i for i, e in enumerate(model)}
         return ns[self.name]
 
     @property
@@ -197,7 +199,7 @@ class Equation(Statement, TypeVariable):
         """Return the unit number of the EquationCollection self belongs to."""
         if self.model is None:
             raise ValueError(f"Equation '{self.name}' has no associated model")
-        return self.model.unit_number  # type: ignore[union-attr]
+        return self.model.unit_number
 
     def _to_deck(self) -> str:
         """Return deck representation of self."""

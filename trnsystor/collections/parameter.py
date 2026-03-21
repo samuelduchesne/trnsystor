@@ -60,4 +60,4 @@ class ParameterCollection(VariableCollection):
     @property
     def size(self):
         """Return the number of inputs."""
-        return len([p for p in self if not self[p]._is_question])  # type: ignore[union-attr]
+        return len([p for p in self.data if not self.data[p]._is_question])

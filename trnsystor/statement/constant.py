@@ -34,20 +34,19 @@ class Constant(Statement):
             from trnsystor.context import _default_context
 
             ctx = _default_context
-        try:
-            c_ = ctx.constants[name]  # type: ignore[index]
-        except KeyError:
-            self._n = next(self._new_id)
-            self.name = name
-            self.equals_to = equals_to
-            self.doc = doc
-        else:
+        if name is not None and name in ctx.constants:
+            c_ = ctx.constants[name]
             self._n = c_._n
             self.name = c_.name
             self.equals_to = c_.equals_to
             self.doc = c_.doc
-        finally:
-            ctx.constants[self.name] = self  # type: ignore[index]
+        else:
+            self._n = next(self._new_id)
+            self.name = name
+            self.equals_to = equals_to
+            self.doc = doc
+        if self.name is not None:
+            ctx.constants[self.name] = self
 
     @classmethod
     def from_expression(cls, expression, doc=None, ctx=None):

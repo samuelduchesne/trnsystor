@@ -200,7 +200,7 @@ class ControlCards:
             if isinstance(param, Component):
                 v_.append((str(param), None))
             if hasattr(param, "doc"):
-                v_.append((str(param), f"! {param.doc}"))  # type: ignore[union-attr]
+                v_.append((str(param), f"! {getattr(param, 'doc', '')}"))
             else:
                 pass
         statements = tabulate.tabulate(tuple(v_), tablefmt="plain", numalign="left")

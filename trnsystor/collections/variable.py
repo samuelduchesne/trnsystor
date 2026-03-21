@@ -47,14 +47,20 @@ class VariableCollection(collections.UserDict):
             super().__setitem__(key, value)
         elif isinstance(value, int | float | str):
             """a str, float, int, etc. is passed"""
-            existing: TypeVariable = self[key]  # type: ignore[assignment]
+            existing = (
+                self.data[key] if isinstance(key, str)
+                else list(self.data.values())[key]
+            )
             value = _parse_value(
                 value, existing.type, existing.unit, (existing.min, existing.max)
             )
             existing.__setattr__("value", value)
         elif isinstance(value, Quantity):
-            existing_q: TypeVariable = self[key]  # type: ignore[assignment]
-            target_units = (  # type: ignore[union-attr]
+            existing_q = (
+                self.data[key] if isinstance(key, str)
+                else list(self.data.values())[key]
+            )
+            target_units = (
                 existing_q.value.units
                 if isinstance(existing_q.value, Quantity)
                 else None

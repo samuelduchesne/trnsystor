@@ -56,7 +56,7 @@ class TypeCycle:
     @property
     def default(self):
         """Return the default value of self."""
-        return int(self.minSize)  # type: ignore[arg-type]
+        return int(str(self.minSize))
 
     @property
     def idxs(self):
@@ -65,7 +65,10 @@ class TypeCycle:
             list(
                 itertools.chain(
                     *(
-                        range(int(cycle.firstRow) - 1, int(cycle.lastRow))  # type: ignore[arg-type]
+                        range(
+                            int(str(cycle.firstRow)) - 1,
+                            int(str(cycle.lastRow)),
+                        )
                         for cycle in self.cycles
                     )
                 )

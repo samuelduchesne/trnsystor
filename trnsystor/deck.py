@@ -65,14 +65,11 @@ class DeckFormatter:
 
     def save(self):
         """Create the writer & save."""
-        from os import PathLike
-
         deck_str = str(self.obj)
         if hasattr(self.path_or_buf, "write"):
             self.path_or_buf.write(deck_str)
-        else:
-            path: str | bytes | PathLike[str] = self.path_or_buf  # type: ignore[assignment]
-            with open(path, self.mode, encoding=self.encoding) as f:
+        elif isinstance(self.path_or_buf, str | Path):
+            with open(self.path_or_buf, self.mode, encoding=self.encoding) as f:
                 f.write(deck_str)
 
 
