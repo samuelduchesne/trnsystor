@@ -1,10 +1,7 @@
 """InputCollection module."""
 
-import tabulate
 
 from trnsystor.collections.variable import VariableCollection
-from trnsystor.statement import Constant, Equation
-from trnsystor.typevariable import TypeVariable
 
 
 class InputCollection(VariableCollection):
@@ -38,53 +35,9 @@ class InputCollection(VariableCollection):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        if self.size == 0:
-            # Don't need to print empty inputs
-            return ""
+        from trnsystor.serialization.variables import serialize_inputs
 
-        head = f"INPUTS {self.size}\n"
-        # "{u_i}, {o_i}": is an integer number referencing the number of the
-        # UNIT to which the ith INPUT is connected. is an integer number
-        # indicating to which OUTPUT (i.e., the 1st, 2nd, etc.) of UNIT
-        # number ui the ith INPUT is connected.
-        _ins = []
-        for input in self.values():
-            if input.is_connected:
-                # Equations and Constants behave differently than TypeVariables.
-                # Equations and Constants use the name of the variable.
-                # TypeVariables use the 0,0 digit tuple.
-                if isinstance(input.predecessor, Equation | Constant):
-                    _ins.append(
-                        (
-                            input.predecessor.name,
-                            self._help_text(input),
-                        )
-                    )
-                elif isinstance(input.predecessor, TypeVariable):
-                    pred_model = input.predecessor._require_model()
-                    _ins.append(
-                        (
-                            f"{pred_model.unit_number},{input.predecessor.one_based_idx}",
-                            self._help_text(input),
-                        )
-                    )
-                else:
-                    raise NotImplementedError(
-                        f"With unit {input.model.name}, printing input "
-                        f"'{input.name}' connected with output of "
-                        f"type '{type(input.connected_to)}' from unit "
-                        f"'{input.connected_to.model.name}' is not supported"
-                    )
-            else:
-                # The input is unconnected.
-                _ins.append(
-                    (
-                        "0,0",
-                        f"! [unconnected] {input.model.name}:{input.name}",
-                    )
-                )
-        core = tabulate.tabulate(_ins, tablefmt="plain", numalign="left")
-        return str(head) + core + "\n"
+        return serialize_inputs(self)
 
     @staticmethod
     def _help_text(input_type):

@@ -1,7 +1,6 @@
 """Deck module."""
 
 import datetime
-import itertools
 import json
 import logging as lg
 from io import StringIO
@@ -197,33 +196,9 @@ class Deck:
         return self.to_file(path_or_buf, encoding=encoding, mode=mode)
 
     def _to_string(self):
-        from trnsystor.statement import End
+        from trnsystor.serialization.writer import serialize_deck
 
-        end = self.control_cards.__dict__.pop("end", End())
-        cc = str(self.control_cards)
-
-        models = "\n\n".join([model._to_deck() for model in self.models])
-
-        styles = (
-            "\n*!LINK_STYLE\n"
-            + "".join(
-                map(
-                    str,
-                    list(
-                        itertools.chain.from_iterable(
-                            [
-                                model.studio.link_styles.values()
-                                for model in self.models
-                            ]
-                        )
-                    ),
-                )
-            )
-            + "*!LINK_STYLE_END"
-        )
-
-        end_str = end._to_deck()
-        return "\n".join([cc, models, end_str]) + styles
+        return serialize_deck(self)
 
     @classmethod
     def load(cls, fp, proforma_root=None, **kwargs):

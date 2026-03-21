@@ -1,6 +1,5 @@
 """DerivativesCollection module."""
 
-import tabulate
 
 from trnsystor.collections.variable import VariableCollection
 
@@ -18,14 +17,6 @@ class DerivativesCollection(VariableCollection):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        if self.size == 0:
-            # Don't need to print empty inputs
-            return ""
+        from trnsystor.serialization.variables import serialize_derivatives
 
-        head = f"DERIVATIVES {self.size}\n"
-        _ins = [
-            (derivative.value.m, f"! {derivative.name}") for derivative in self.values()
-        ]
-        core = tabulate.tabulate(_ins, tablefmt="plain", numalign="left")
-
-        return head + core + "\n"
+        return serialize_derivatives(self)

@@ -28,11 +28,6 @@ class NoCheck(Statement):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        head = f"NOCHECK {len(self.inputs)}\n"
-        core = "\t".join(
-            [
-                f"{input.model.unit_number}, {input.one_based_idx}"
-                for input in self.inputs
-            ]
-        )
-        return str(head) + str(core)
+        from trnsystor.serialization.statements import serialize_nocheck
+
+        return serialize_nocheck(self)

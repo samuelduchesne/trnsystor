@@ -83,4 +83,6 @@ class Constant(Statement):
 
     def _to_deck(self) -> str:
         """Return deck representation of self."""
-        return str(self.equals_to) if self.equals_to is not None else ""
+        from trnsystor.serialization.statements import serialize_constant_statement
+
+        return serialize_constant_statement(self)

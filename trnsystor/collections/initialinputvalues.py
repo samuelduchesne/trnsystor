@@ -1,6 +1,5 @@
 """InitialInputValuesCollection module."""
 
-import tabulate
 from pint import Quantity
 
 from trnsystor.collections.variable import VariableCollection
@@ -84,17 +83,6 @@ class InitialInputValuesCollection(VariableCollection):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        if self.size == 0:
-            # Don't need to print empty inputs
-            return ""
+        from trnsystor.serialization.variables import serialize_initial_input_values
 
-        head = "*** INITIAL INPUT VALUES\n"
-        input_tuples = [
-            (
-                v.value.m if isinstance(v.value, Quantity) else v.value,
-                f"! {v.name}",
-            )
-            for v in self.values()
-        ]
-        core = tabulate.tabulate(input_tuples, tablefmt="plain", numalign="left")
-        return head + core + "\n"
+        return serialize_initial_input_values(self)

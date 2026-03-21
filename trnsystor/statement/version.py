@@ -29,4 +29,6 @@ class Version(Statement):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        return "VERSION {}".format(".".join(map(str, self.v)))
+        from trnsystor.serialization.statements import serialize_version
+
+        return serialize_version(self)

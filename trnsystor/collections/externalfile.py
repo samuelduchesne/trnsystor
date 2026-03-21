@@ -3,8 +3,6 @@
 import collections
 from pathlib import Path
 
-import tabulate
-
 from trnsystor.externalfile import ExternalFile
 from trnsystor.utils import standardize_name
 
@@ -58,14 +56,6 @@ class ExternalFileCollection(collections.UserDict):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        if self:
-            head = "*** External files\n"
-            v_ = (
-                ("ASSIGN", f'"{ext_file.value}"', ext_file.logical_unit)
-                for ext_file in self.values()
-            )
-            core = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
+        from trnsystor.serialization.variables import serialize_external_files
 
-            return str(head) + str(core)
-        else:
-            return ""
+        return serialize_external_files(self)

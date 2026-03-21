@@ -2,8 +2,6 @@
 
 import collections
 
-import tabulate
-
 from trnsystor.component import Component
 from trnsystor.statement import Constant
 
@@ -135,11 +133,9 @@ class ConstantCollection(Component, collections.UserDict):
             •
             NAMEn = ... constant n ...
         """
-        header_comment = f'* CONSTANTS "{self.name}"\n\n'
-        head = f"CONSTANTS {len(self)}\n"
-        v_ = ((equa.name, "=", str(equa)) for equa in self.values())
-        core = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
-        return str(header_comment) + str(head) + str(core)
+        from trnsystor.serialization.components import serialize_constant_collection
+
+        return serialize_constant_collection(self)
 
     def _get_inputs(self):
         """Sort by order number each time it is called."""

@@ -24,4 +24,6 @@ class TimeReport(Statement):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        return f"TIME_REPORT {self.n}"
+        from trnsystor.serialization.statements import serialize_timereport
+
+        return serialize_timereport(self)

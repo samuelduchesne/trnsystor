@@ -38,4 +38,6 @@ class NaNCheck(Statement):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        return f"NAN_CHECK {self.n}"
+        from trnsystor.serialization.statements import serialize_nancheck
+
+        return serialize_nancheck(self)

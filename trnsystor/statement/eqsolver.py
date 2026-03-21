@@ -42,4 +42,6 @@ class EqSolver(Statement):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        return f"EQSOLVER {self.n}"
+        from trnsystor.serialization.statements import serialize_eqsolver
+
+        return serialize_eqsolver(self)

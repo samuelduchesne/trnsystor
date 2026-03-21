@@ -23,4 +23,6 @@ class Map(Statement):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        return "MAP" if self.active else ""
+        from trnsystor.serialization.statements import serialize_map
+
+        return serialize_map(self)

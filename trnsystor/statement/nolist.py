@@ -22,4 +22,6 @@ class NoList(Statement):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        return "NOLIST" if self.active else ""
+        from trnsystor.serialization.statements import serialize_nolist
+
+        return serialize_nolist(self)

@@ -39,8 +39,6 @@ class Solver(Statement):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        return (
-            f"SOLVER {self.k} {self.rf_min} {self.rf_max}"
-            if self.k == 0
-            else f"SOLVER {self.k}"
-        )
+        from trnsystor.serialization.statements import serialize_solver
+
+        return serialize_solver(self)

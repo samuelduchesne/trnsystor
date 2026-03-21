@@ -31,5 +31,6 @@ class Tolerances(Statement):
         Examples:
             TOLERANCES 0.001 0.001
         """
-        head = f"TOLERANCES {self.epsilon_d} {self.epsilon_a}"
-        return str(head)
+        from trnsystor.serialization.statements import serialize_tolerances
+
+        return serialize_tolerances(self)
