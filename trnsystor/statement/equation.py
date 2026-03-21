@@ -50,7 +50,7 @@ class Equation(Statement, TypeVariable):
 
     def __repr__(self):
         """Return repr(self)."""
-        return " = ".join([self.name, self._to_deck()])
+        return " = ".join([str(self.name), self._to_deck()])
 
     def __str__(self):
         """Return repr(self)."""
@@ -187,21 +187,28 @@ class Equation(Statement, TypeVariable):
     @property
     def idx(self):
         """Return the 0-based index of the Equation."""
-        ns = {e: i for i, e in enumerate(self.model)}
+        if self.model is None:
+            raise ValueError(f"Equation '{self.name}' has no associated model")
+        # model is an EquationCollection (UserDict), so it's iterable
+        model = self.model
+        ns: dict[str | None, int] = {e: i for i, e in enumerate(model)}
         return ns[self.name]
 
     @property
     def unit_number(self):
         """Return the unit number of the EquationCollection self belongs to."""
+        if self.model is None:
+            raise ValueError(f"Equation '{self.name}' has no associated model")
         return self.model.unit_number
 
-    def _to_deck(self):
+    def _to_deck(self) -> str:
         """Return deck representation of self."""
         if isinstance(self.equals_to, TypeVariable):
-            unit = self.equals_to.model.unit_number
+            tv_model = self.equals_to._require_model()
+            unit = tv_model.unit_number
             idx = self.equals_to.one_based_idx
             return f"[{unit}, {idx}]"
         elif isinstance(self.equals_to, Expr):
             return print_my_latex(self.equals_to)
         else:
-            return self.equals_to
+            return str(self.equals_to) if self.equals_to is not None else ""

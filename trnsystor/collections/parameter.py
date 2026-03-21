@@ -46,10 +46,13 @@ class ParameterCollection(VariableCollection):
                         )
                     )
                 else:
+                    model_name = (
+                        param.model.name if param.model is not None else "<unknown>"
+                    )
                     raise NotImplementedError(
                         f"Printing parameter '{param.name}' of type "
                         f"'{type(param.value)}' from unit "
-                        f"'{param.model.name}' is not supported"
+                        f"'{model_name}' is not supported"
                     )
         params_str = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
         return head + params_str + "\n"
@@ -57,4 +60,4 @@ class ParameterCollection(VariableCollection):
     @property
     def size(self):
         """Return the number of inputs."""
-        return len([p for p in self if not self[p]._is_question])
+        return len([p for p in self.data if not self.data[p]._is_question])

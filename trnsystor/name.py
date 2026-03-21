@@ -1,5 +1,7 @@
 """Name module."""
 
+from __future__ import annotations
+
 from typing import ClassVar
 
 
@@ -10,10 +12,17 @@ class Name:
     :class:`EquationCollection` and more.
     """
 
-    existing: ClassVar[list[str]] = []  # a list to store the created names
+    existing: ClassVar[set[str]] = set()  # default registry for standalone usage
 
-    def __init__(self, name=None):
-        """Pick a name. Will increment the name if already used."""
+    def __init__(self, name=None, registry=None):
+        """Pick a name. Will increment the name if already used.
+
+        Args:
+            name (str): The desired name.
+            registry (set, optional): A set of existing names to check
+                against. Defaults to the class-level ``existing`` set.
+        """
+        self._registry = registry if registry is not None else self.existing
         self.name = self.create_unique(name)
 
     def create_unique(self, name):
@@ -27,15 +36,14 @@ class Name:
         """
         if not name:
             return None
-        i = 0
+        base = name.split("_")[0]
         key = name
-        while key in self.existing:
+        i = 0
+        while key in self._registry:
             i += 1
-            key = key.split("_")
-            key = key[0] + f"_{i}"
-        the_name = key
-        self.existing.append(the_name)
-        return the_name
+            key = f"{base}_{i}"
+        self._registry.add(key)
+        return key
 
     def __repr__(self):
         """Return str(self)."""

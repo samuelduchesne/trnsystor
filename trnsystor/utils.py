@@ -4,7 +4,6 @@ import contextlib
 import math
 import re
 
-import numpy as np
 from pint import Quantity, UnitRegistry
 from shapely.affinity import affine_transform as _affine_transform
 from shapely.geometry import LineString
@@ -24,12 +23,18 @@ def affine_transform(geom, matrix=None):
 
     Args:
         geom (BaseGeometry): The geometry.
-        matrix (np.array): The coefficient matrix is provided as a list or
-            tuple.
+        matrix (list): The 3x3 coefficient matrix as a list of lists.
     """
     if not matrix:
-        matrix = np.array([[1, 0, 0], [0, -1, 0], [0, 0, 0]])
-    matrix_l = matrix[0:2, 0:2].flatten().tolist() + matrix[0:2, 2].flatten().tolist()
+        # Default: flip geometry along the x axis
+        # [a, b, d, e, xoff, yoff] for shapely affine_transform
+        matrix_l = [1, 0, 0, -1, 0, 0]
+    else:
+        matrix_l = [
+            matrix[0][0], matrix[0][1],
+            matrix[1][0], matrix[1][1],
+            matrix[0][2], matrix[1][2],
+        ]
     return _affine_transform(geom, matrix_l)
 
 
@@ -116,12 +121,12 @@ def _parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
     is_bound = xmin <= f <= xmax
     if is_bound:
         if unit_:
-            return Q_(f, unit_)
+            return Q_(f, unit_)  # type: ignore[arg-type]
     else:
         # out of bounds
         msg = (
             f'Value {name} "{f}" is out of bounds. '
-            f"{Q_(xmin, unit_)} <= value <= {Q_(xmax, unit_)}"
+            f"{Q_(xmin, unit_)} <= value <= {Q_(xmax, unit_)}"  # type: ignore[arg-type]
         )
         raise ValueError(msg)
 
@@ -270,9 +275,9 @@ class TypeVariableSymbol(Symbol):
         cls._sanitize(assumptions, cls)
         return TypeVariableSymbol.__xnew_cached_(cls, type_variable, **assumptions)
 
-    def __new_stage2__(cls, model, **assumptions):
+    def __new_stage2__(cls, model, **assumptions):  # type: ignore[override]
         """Return new stage."""
-        obj = Expr.__new__(cls)
+        obj = Expr.__new__(cls)  # type: ignore[arg-type]
         obj.name = model.name
         obj.model = model
 
@@ -287,5 +292,5 @@ class TypeVariableSymbol(Symbol):
         obj._assumptions0 = tuple(sorted(assumptions0.items()))
         return obj
 
-    __xnew__ = staticmethod(__new_stage2__)  # never cached (e.g. dummy)
-    __xnew_cached_ = staticmethod(cacheit(__new_stage2__))  # symbols are always cached
+    __xnew__ = staticmethod(__new_stage2__)  # type: ignore[assignment]  # never cached (e.g. dummy)
+    __xnew_cached_ = staticmethod(cacheit(__new_stage2__))  # type: ignore[assignment]  # symbols are always cached

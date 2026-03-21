@@ -1,13 +1,12 @@
 """Component module."""
 
-import itertools
 from abc import ABCMeta, abstractmethod
+from typing import Any
 
-import networkx as nx
 from bs4 import Tag
 from shapely.geometry import Point
 
-from trnsystor.canvas import StudioCanvas
+from trnsystor.context import _default_context
 from trnsystor.linkstyle import LinkStyle
 from trnsystor.studio import StudioHeader
 from trnsystor.utils import affine_transform
@@ -21,28 +20,31 @@ class Component(metaclass=ABCMeta):
     :class:`EquationCollection` implement this class.
     """
 
-    INIT_UNIT_NUMBER = itertools.count(start=1)
-    STUDIO_CANVAS = StudioCanvas()
-    UNIT_GRAPH = nx.MultiDiGraph()
-
     def __init__(self, *args, **kwargs):
         """Initialize class.
 
         Args:
             name (str): Name of the component.
             meta (MetaData): MetaData associated with this component.
+            ctx (DeckContext, optional): The scoped context for this
+                component. Defaults to the module-level default context.
         """
+        ctx = kwargs.pop("ctx", None)
         super().__init__(*args)
-        self._unit = next(Component.INIT_UNIT_NUMBER)
+        self._ctx = ctx or _default_context
+        self._unit = next(self._ctx.unit_counter)
         self.name = kwargs.pop("name")
         self._meta = kwargs.pop("meta", None)
         self.studio = StudioHeader.from_component(self)
-        self.UNIT_GRAPH.add_node(self)
+        self._ctx.graph.add_node(self)
 
     def __del__(self):
         """Delete self."""
-        if self in self.UNIT_GRAPH:
-            self.UNIT_GRAPH.remove_node(self)
+        try:
+            if self in self._ctx.graph:
+                self._ctx.graph.remove_node(self)
+        except Exception:
+            pass
 
     def __hash__(self):
         """Return hash(self)."""
@@ -55,7 +57,7 @@ class Component(metaclass=ABCMeta):
         else:
             return self.unit_number == other
 
-    def copy(self):  # noqa: B027
+    def copy(self) -> "Component | None":  # noqa: B027
         """Return copy of self."""
 
     @property
@@ -63,7 +65,7 @@ class Component(metaclass=ABCMeta):
         """Return :class:`LinkStyles` of self."""
         return [
             data["LinkStyle"]
-            for u, v, key, data in self.UNIT_GRAPH.edges(keys=True, data=True)
+            for u, v, key, data in self._ctx.graph.edges(keys=True, data=True)
         ]
 
     def set_canvas_position(self, pt, trnsys_coords=False):
@@ -94,7 +96,7 @@ class Component(metaclass=ABCMeta):
             pt = Point(*pt)
         if trnsys_coords:
             pt = affine_transform(pt)
-        if pt.within(self.STUDIO_CANVAS.bbox):
+        if pt.within(self._ctx.canvas.bbox):
             self.studio.position = pt
         else:
             raise ValueError(
@@ -107,6 +109,23 @@ class Component(metaclass=ABCMeta):
         if isinstance(layers, str):
             layers = [layers]
         self.studio.layer = layers
+
+    def _set_unit(self, unit_number: int):
+        """Set the unit number, updating the graph node if needed.
+
+        This must be used instead of directly setting ``_unit`` whenever
+        the component is already registered in the context graph, because
+        ``__hash__`` depends on the unit number.
+        """
+        if self._unit == unit_number:
+            return
+        # Remove old node. We must iterate by identity because __hash__
+        # depends on _unit and another node may share the same hash.
+        to_remove = [n for n in list(self._ctx.graph.nodes) if n is self]
+        for n in to_remove:
+            self._ctx.graph.remove_node(n)
+        self._unit = unit_number
+        self._ctx.graph.add_node(self)
 
     @property
     def unit_number(self) -> int:
@@ -128,7 +147,7 @@ class Component(metaclass=ABCMeta):
         return f"Type{self.type_number}"
 
     @property
-    def model(self) -> str:
+    def model(self) -> "str | None":
         """Return the path of this model's proforma."""
         try:
             model = self._meta.model
@@ -153,11 +172,11 @@ class Component(metaclass=ABCMeta):
         return self.studio.position
 
     @abstractmethod
-    def _get_inputs(self):
+    def _get_inputs(self) -> Any:
         """Sorts by order number and resolves cycles each time it is called."""
 
     @abstractmethod
-    def _get_outputs(self):
+    def _get_outputs(self) -> Any:
         """Sorts by order number and resolves cycles each time it is called."""
 
     def set_link_style(
@@ -200,9 +219,9 @@ class Component(metaclass=ABCMeta):
             linestyle=linestyle,
             linewidth=linewidth,
         )
-        if self.UNIT_GRAPH.has_edge(self, other):
-            for key in self.UNIT_GRAPH[self][other]:
-                self.UNIT_GRAPH[self][other][key]["LinkStyle"] = style
+        if self._ctx.graph.has_edge(self, other):
+            for key in self._ctx.graph[self][other]:
+                self._ctx.graph[self][other][key]["LinkStyle"] = style
         else:
             raise KeyError(
                 "Trying to set a LinkStyle on a non-existent connection. "
@@ -251,21 +270,23 @@ class Component(metaclass=ABCMeta):
             )
             # Todo: Implement automapping logic here
         else:
-            # loop over the mapping and add edge to UNIT_GRAPH.
+            # loop over the mapping and add edge to graph.
             for from_self, to_other in mapping.items():
                 u = self.outputs[from_self]
                 v = other.inputs[to_other]
-                if self.UNIT_GRAPH.has_edge(self, other, (u, v)):
+                if self._ctx.graph.has_edge(self, other, (u, v)):
+                    u_model_name = u.model.name if u.model is not None else "<unknown>"
+                    v_model_name = v.model.name if v.model is not None else "<unknown>"
                     msg = (
                         f'The output "{u.idx}: {u.name}" of model '
-                        f'"{u.model.name}" is already connected to '
+                        f'"{u_model_name}" is already connected to '
                         f'the input "{v.idx}: {v.name}" of model '
-                        f'"{v.model.name}"'
+                        f'"{v_model_name}"'
                     )
                     raise ValueError(msg)
                 else:
                     loc = link_style_kwargs.pop("loc", "best")
-                    self.UNIT_GRAPH.add_edge(
+                    self._ctx.graph.add_edge(
                         u_for_edge=self,
                         v_for_edge=other,
                         key=(u, v),
@@ -275,7 +296,7 @@ class Component(metaclass=ABCMeta):
     @property
     def successors(self):
         """Other objects to which this TypeVariable is connected. Successors."""
-        return self.UNIT_GRAPH.successors(self)
+        return self._ctx.graph.successors(self)
 
     @property
     def is_connected(self):
@@ -288,20 +309,21 @@ class Component(metaclass=ABCMeta):
     @property
     def predecessors(self):
         """Other objects from which this TypeVariable is connected. Predecessors."""
-        return self.UNIT_GRAPH.predecessors(self)
+        return self._ctx.graph.predecessors(self)
 
     def invalidate_connections(self):
         """Iterate over successors and predecessors and remove the edges.
 
         Todo: restore paths in self.studio_canvas.grid
         """
-        edges = [(self, nbr) for nbr in self.UNIT_GRAPH.successors(self)]
-        edges += [(nbr, self) for nbr in self.UNIT_GRAPH.predecessors(self)]
+        edges = [(self, nbr) for nbr in self._ctx.graph.successors(self)]
+        edges += [(nbr, self) for nbr in self._ctx.graph.predecessors(self)]
         while edges:
             edge = edges.pop()
-            self.UNIT_GRAPH.remove_edge(*edge)
-            if self.UNIT_GRAPH.has_edge(*edge):
+            self._ctx.graph.remove_edge(*edge)
+            if self._ctx.graph.has_edge(*edge):
                 edges.append(edge)
 
-    def _to_deck(self):  # noqa: B027
+    def _to_deck(self) -> str:
         """Return deck representation of self."""
+        return ""

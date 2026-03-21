@@ -61,9 +61,10 @@ class InputCollection(VariableCollection):
                         )
                     )
                 elif isinstance(input.predecessor, TypeVariable):
+                    pred_model = input.predecessor._require_model()
                     _ins.append(
                         (
-                            f"{input.predecessor.model.unit_number},{input.predecessor.one_based_idx}",
+                            f"{pred_model.unit_number},{input.predecessor.one_based_idx}",
                             self._help_text(input),
                         )
                     )

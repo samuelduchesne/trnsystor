@@ -24,9 +24,6 @@ classifiers = [
 dependencies = [
     "beautifulsoup4",
     "lxml",
-    "matplotlib",
-    "numpy",
-    "pandas",
     "pint",
     "shapely",
     "sympy",
@@ -35,7 +32,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+viz = [
+    "matplotlib",
+]
 test = [
+    "matplotlib",
     "pytest>=8",
     "pytest-cov",
 ]
@@ -91,17 +92,8 @@ combine-as-imports = true
 
 [tool.pyright]
 pythonVersion = "3.10"
-typeCheckingMode = "basic"
+typeCheckingMode = "standard"
 exclude = ["tests", "docs"]
-reportOptionalMemberAccess = false
-reportAttributeAccessIssue = false
-reportArgumentType = false
-reportCallIssue = false
-reportOptionalOperand = false
-reportOptionalSubscript = false
-reportAssignmentType = false
-reportReturnType = false
-reportOperatorIssue = false
 
 [tool.coverage.run]
 omit = ["tests/*", "docs/*"]

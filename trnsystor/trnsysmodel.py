@@ -5,7 +5,6 @@ import copy
 import itertools
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import networkx as nx
 from bs4 import BeautifulSoup, Tag
 from shapely.affinity import translate
@@ -150,22 +149,23 @@ class MetaData:
     def check_extra_tags(self, kwargs):
         """Detect extra tags in the proforma and warn.
 
+        Raises:
+            UnknownProformaTagError: If unknown tags are present.
+
         Args:
             kwargs (dict): dictionary of extra keyword-arguments that would be
                 passed to the constructor.
         """
         if kwargs:
-            msg = (
-                "Unknown tags have been detected in this proforma: {}.\nIf "
-                "you wish to continue, the behavior of the object might be "
-                "affected. Please contact the package developers or submit "
-                "an issue.\n Do you wish to continue anyways?".format(
-                    ", ".join(kwargs.keys())
-                )
+            import logging
+
+            tag_names = ", ".join(kwargs.keys())
+            logging.getLogger(__name__).warning(
+                "Unknown tags detected in proforma: %s. "
+                "These tags will be ignored. If this causes issues, "
+                "please report it at https://github.com/samuelduchesne/trnsystor/issues",
+                tag_names,
             )
-            shall = input(f"{msg} (y/N) ").lower() == "y"
-            if not shall:
-                raise NotImplementedError()
 
     def __getitem__(self, item):
         """Get item. self[item]."""
@@ -187,7 +187,7 @@ class MetaData:
 class TrnsysModel(Component):
     """TrnsysModel class."""
 
-    def __init__(self, meta, name):
+    def __init__(self, meta, name, ctx=None):
         """Initialize object.
 
         Alone, this __init__ method does not do much. See the :func:`from_xml` class
@@ -196,8 +196,9 @@ class TrnsysModel(Component):
         Args:
             meta (MetaData): A class containing the model's metadata.
             name (str): A user-defined name for this model.
+            ctx (DeckContext, optional): Scoped context.
         """
-        super().__init__(name=name, meta=meta)
+        super().__init__(name=name, meta=meta, ctx=ctx)
 
     def __str__(self):
         """Return repr(self)."""
@@ -208,7 +209,7 @@ class TrnsysModel(Component):
         return f"[{self.unit_number}]Type{self.type_number}: {self.name}"
 
     @classmethod
-    def from_xml(cls, xml, **kwargs):
+    def from_xml(cls, xml, ctx=None, **kwargs):
         """Class method to create a :class:`TrnsysModel` from an xml string.
 
         Examples:
@@ -219,6 +220,7 @@ class TrnsysModel(Component):
 
         Args:
             xml (str or Path): The path of the xml file.
+            ctx (DeckContext, optional): Scoped context.
             **kwargs:
 
         Returns:
@@ -230,7 +232,7 @@ class TrnsysModel(Component):
             soup = BeautifulSoup(xml_f, "xml")
             my_objects = soup.find_all("TrnsysModel")
             for trnsystype in my_objects:
-                t = cls._from_tag(trnsystype, **kwargs)
+                t = cls._from_tag(trnsystype, ctx=ctx, **kwargs)
                 t._meta.model = xml_file
                 t.studio = StudioHeader.from_component(t)
                 all_types.append(t)
@@ -247,8 +249,8 @@ class TrnsysModel(Component):
                 will be reset.
         """
         new = copy.deepcopy(self)
-        new._unit = next(new.INIT_UNIT_NUMBER)
-        new.UNIT_GRAPH.add_node(new)
+        new._unit = next(new._ctx.unit_counter)
+        new._ctx.graph.add_node(new)
         if invalidate_connections:
             new.invalidate_connections()
 
@@ -295,11 +297,12 @@ class TrnsysModel(Component):
         return AnchorPoint(self).reverse_anchor_points
 
     @classmethod
-    def _from_tag(cls, tag, **kwargs):
+    def _from_tag(cls, tag, ctx=None, **kwargs):
         """Class method to create a :class:`TrnsysModel` from a tag.
 
         Args:
             tag (Tag): The XML tag with its attributes and contents.
+            ctx (DeckContext, optional): Scoped context.
             **kwargs:
 
         Returns:
@@ -308,7 +311,7 @@ class TrnsysModel(Component):
         name = kwargs.pop("name", tag.find("object").text).strip()
         meta = MetaData.from_tag(tag, **kwargs)
 
-        model = cls(meta, name)
+        model = cls(meta, name, ctx=ctx)
         type_vars = [
             TypeVariable.from_tag(tag, model=model)
             for tag in tag.find("variables")
@@ -335,7 +338,7 @@ class TrnsysModel(Component):
         )
         file_vars = (
             [
-                ExternalFile.from_tag(tag)
+                ExternalFile.from_tag(tag, file_counter=model._ctx.file_counter)
                 for tag in tag.find("externalFiles").children
                 if isinstance(tag, Tag)
             ]
@@ -513,17 +516,32 @@ class TrnsysModel(Component):
                         question_var._is_question = True
                         self._meta.variables.update({id(question_var): question_var})
                         output_dict.update({id(question_var): question_var})
-                        n_times.append(question_var.value.m)
-                    else:
-                        n_times.append(output_dict[existing].value.m)
-            else:
-                n_times = [
-                    next(
-                        filter(
-                            lambda elem: elem[1].name == cycle.paramName,
-                            self._meta.variables.items(),
+                        from pint import Quantity as _Qty
+                        qv = question_var.value
+                        n_times.append(
+                            qv.m if isinstance(qv, _Qty) else int(str(qv))
                         )
-                    )[1].value.m
+                    else:
+                        ev = output_dict[existing].value
+                        from pint import Quantity as _Qty
+                        n_times.append(
+                            ev.m if isinstance(ev, _Qty) else int(str(ev))
+                        )
+            else:
+                from pint import Quantity as _Qty
+
+                def _get_m(v):
+                    return v.m if isinstance(v, _Qty) else int(str(v))
+
+                n_times = [
+                    _get_m(
+                        next(
+                            filter(
+                                lambda elem: elem[1].name == cycle.paramName,
+                                self._meta.variables.items(),
+                            )
+                        )[1].value
+                    )
                     for cycle in cycle.cycles
                 ]
             item: TypeVariable
@@ -552,9 +570,11 @@ class TrnsysModel(Component):
                 if len(items) > len(n_times)
                 else zip(itertools.cycle(items), n_times)
             )
-            for item, n_time in items_list:
+            for item_or_none, n_time in items_list:
+                assert item_or_none is not None
+                item = item_or_none
                 item._iscyclebase = True
-                basename = item.name
+                basename = str(item.name)
                 item_base = self._meta.variables.get(id(item))
                 for n, _ in enumerate(range(int(n_time)), start=1):
                     existing = next(
@@ -565,13 +585,18 @@ class TrnsysModel(Component):
                         ),
                         None,
                     )
-                    item = mydict.get(existing, item_base.copy())
+                    if existing is not None:
+                        item = mydict.get(existing, item_base.copy())
+                    else:
+                        item = item_base.copy() if item_base else item
+                    assert item is not None
                     item._iscyclebase = False  # return it back to False
                     if item._iscycle:
                         self._meta.variables.update({id(item): item})
                     else:
-                        item.name = basename + f"-{n}"
-                        item.order += 1 if n_time > 1 else 0
+                        item.name = str(basename) + f"-{n}"
+                        if item.order is not None:
+                            item.order += 1 if n_time > 1 else 0
                         item._iscycle = True
                         self._meta.variables.update({id(item): item})
 
@@ -626,15 +651,22 @@ class TrnsysModel(Component):
                 {
                     id(ext): ext
                     for ext in {
-                        ExternalFile.from_tag(tag)
+                        ExternalFile.from_tag(tag, file_counter=self._ctx.file_counter)
                         for tag in tag
                         if isinstance(tag, Tag)
                     }
                 }
             )
 
-    def plot(self):
-        """Plot the model."""
+    def plot(self, show=True):
+        """Plot the model.
+
+        Args:
+            show (bool): If True (default), display the plot interactively.
+                Set to False in tests or non-interactive environments.
+        """
+        assert self._meta is not None, "plot() requires a fully-initialized model"
+        import matplotlib.pyplot as plt
 
         G = nx.DiGraph()
         G.add_edges_from(("type", output.name) for output in self.outputs.values())
@@ -655,5 +687,6 @@ class TrnsysModel(Component):
             },
             ax=ax,
         )
-        plt.show()
+        if show:
+            plt.show()
         return ax

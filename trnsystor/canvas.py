@@ -90,7 +90,7 @@ class StudioCanvas:
         goal = (v.x, v.y)
 
         queue = deque([start])
-        came_from = {start: None}
+        came_from: dict[tuple[float, float], tuple[float, float] | None] = {start: None}
         while queue:
             current = queue.popleft()
             if current == goal:

@@ -137,11 +137,23 @@ class TypeVariable:
 
     def __float__(self):
         """Return magnitude of self."""
-        return self.value.m
+        from pint import Quantity
+
+        if isinstance(self.value, Quantity):
+            return float(self.value.m)
+        if self.value is None:
+            return 0.0
+        return float(str(self.value))
 
     def __int__(self):
         """Return int(self)."""
-        return int(self.value.m)
+        from pint import Quantity
+
+        if isinstance(self.value, Quantity):
+            return int(self.value.m)
+        if self.value is None:
+            return 0
+        return int(float(str(self.value)))
 
     def __mul__(self, other):
         """Return self * other."""
@@ -170,6 +182,14 @@ class TypeVariable:
         new_self = copy.copy(self)
         return new_self
 
+    def _require_model(self):
+        """Return the associated model, raising if it is None."""
+        if self.model is None:
+            raise ValueError(
+                f"TypeVariable '{self.name}' has no associated model"
+            )
+        return self.model
+
     @property
     def is_connected(self):
         """Whether or not this TypeVariable is connected to another TypeVariable.
@@ -184,11 +204,13 @@ class TypeVariable:
 
         Predecessors
         """
-        if len(self.model.UNIT_GRAPH) == 0:
+        model = self._require_model()
+        graph = model._ctx.graph
+        if len(graph) == 0:
             return None
         predecessors = []
-        for pre in self.model.UNIT_GRAPH.predecessors(self.model):
-            for key in self.model.UNIT_GRAPH[pre][self.model]:
+        for pre in graph.predecessors(model):
+            for key in graph[pre][model]:
                 if self in key:
                     u, _v = key
                     predecessors.append(u)
@@ -202,22 +224,26 @@ class TypeVariable:
     @property
     def idx(self):
         """Get the 0-based variable index of self."""
+        model = self._require_model()
+        if model._meta is None:
+            raise ValueError(f"Model '{model.name}' has no metadata")
+        variables = model._meta.variables
         ordered_dict = collections.OrderedDict(
             (
-                standardize_name(self.model._meta.variables[attr].name),
-                [self.model._meta.variables[attr], 0],
+                standardize_name(variables[attr].name),
+                [variables[attr], 0],
             )
             for attr in sorted(
                 filter(
                     lambda kv: isinstance(
-                        self.model._meta.variables[kv], self.__class__
+                        variables[kv], self.__class__
                     )
-                    and self.model._meta.variables[kv]._iscyclebase is False,
-                    self.model._meta.variables,
+                    and variables[kv]._iscyclebase is False,
+                    variables,
                 ),
-                key=lambda key: self.model._meta.variables[key].order,
+                key=lambda key: variables[key].order,
             )
-            if not self.model._meta.variables[attr]._iscyclebase
+            if not variables[attr]._iscyclebase
         )
         for i, value in enumerate(ordered_dict.values()):
             value[1] = i
@@ -261,11 +287,13 @@ class TypeVariable:
         v = other
 
         loc = link_style_kwargs.pop("loc", "best")
-        self.model.UNIT_GRAPH.add_edge(
-            u_for_edge=self.model,
-            v_for_edge=other.model,
+        self_model = self._require_model()
+        other_model = other._require_model()
+        self_model._ctx.graph.add_edge(
+            u_for_edge=self_model,
+            v_for_edge=other_model,
             key=(u, v),
-            LinkStyle=LinkStyle(self.model, other.model, loc=loc, **link_style_kwargs),
+            LinkStyle=LinkStyle(self_model, other_model, loc=loc, **link_style_kwargs),
         )
 
     def __repr__(self):
@@ -328,9 +356,11 @@ class Output(TypeVariable):
     @property
     def successors(self):
         """Other TypeVariables to which this TypeVariable is connected. Successors."""
+        model = self._require_model()
+        graph = model._ctx.graph
         successors = []
-        for suc in self.model.UNIT_GRAPH.successors(self.model):
-            for key in self.model.UNIT_GRAPH[self.model][suc]:
+        for suc in graph.successors(model):
+            for key in graph[model][suc]:
                 if self in key:
                     _u, v = key
                     successors.append(v)

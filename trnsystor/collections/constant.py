@@ -15,7 +15,7 @@ class ConstantCollection(Component, collections.UserDict):
     the latter, the :attr:`Equation.name` attribute will be used as a key.
     """
 
-    def __init__(self, mutable=None, name=None, **kwargs):
+    def __init__(self, mutable=None, name=None, ctx=None, **kwargs):
         """Initialize a new ConstantCollection.
 
         Example:
@@ -28,9 +28,10 @@ class ConstantCollection(Component, collections.UserDict):
             name (str): A user defined name for this collection of constants.
                 This name will be used to identify this block of constants in
                 the .dck file;
+            ctx (DeckContext, optional): Scoped context.
         """
         _dict = {f.name: f for f in mutable} if isinstance(mutable, list) else mutable
-        super().__init__(_dict, meta=None, name=name, **kwargs)
+        super().__init__(_dict, meta=None, name=name, ctx=ctx, **kwargs)
 
     def __getitem__(self, key):
         """Get item."""
@@ -41,6 +42,11 @@ class ConstantCollection(Component, collections.UserDict):
         else:
             value = super().__getitem__(key)
         return value
+
+    def copy(self):
+        """Return a shallow copy of self."""
+        new = ConstantCollection(dict(self.data), name=self.name)
+        return new
 
     def __setitem__(self, key, value):
         """Set item."""
@@ -79,7 +85,7 @@ class ConstantCollection(Component, collections.UserDict):
             _e = {E.name: E}
         elif isinstance(E, list):
             _e = {cts.name: cts for cts in E}
-        else:
+        elif E is not None:
             for v in E.values():
                 if not isinstance(v, Constant):
                     raise TypeError(
@@ -87,6 +93,8 @@ class ConstantCollection(Component, collections.UserDict):
                         f"Constant, not a {type(v)}"
                     )
             _e = {v.name: v for v in E.values()}
+        else:
+            _e = {}
         for val in F.values():
             if isinstance(val, dict):
                 _f = {v.name: v for v in val.values()}
