@@ -15,7 +15,7 @@ class ConstantCollection(Component, collections.UserDict):
     the latter, the :attr:`Equation.name` attribute will be used as a key.
     """
 
-    def __init__(self, mutable=None, name=None, **kwargs):
+    def __init__(self, mutable=None, name=None, ctx=None, **kwargs):
         """Initialize a new ConstantCollection.
 
         Example:
@@ -28,9 +28,10 @@ class ConstantCollection(Component, collections.UserDict):
             name (str): A user defined name for this collection of constants.
                 This name will be used to identify this block of constants in
                 the .dck file;
+            ctx (DeckContext, optional): Scoped context.
         """
         _dict = {f.name: f for f in mutable} if isinstance(mutable, list) else mutable
-        super().__init__(_dict, meta=None, name=name, **kwargs)
+        super().__init__(_dict, meta=None, name=name, ctx=ctx, **kwargs)
 
     def __getitem__(self, key):
         """Get item."""

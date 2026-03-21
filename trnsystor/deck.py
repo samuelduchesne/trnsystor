@@ -9,8 +9,6 @@ import re
 from io import StringIO
 from pathlib import Path
 
-from pandas import to_datetime
-from pandas.io.common import _get_filepath_or_buffer, get_handle
 from shapely.geometry import LineString, Point
 
 from trnsystor.anchorpoint import AnchorPoint
@@ -18,6 +16,7 @@ from trnsystor.collections.components import ComponentCollection
 from trnsystor.collections.constant import ConstantCollection
 from trnsystor.collections.equation import EquationCollection
 from trnsystor.component import Component
+from trnsystor.context import DeckContext, _default_context
 from trnsystor.controlcards import ControlCards
 from trnsystor.linkstyle import _studio_to_linestyle
 from trnsystor.name import Name
@@ -57,39 +56,21 @@ class DeckFormatter:
         """Initialize object."""
         if path_or_buf is None:
             path_or_buf = StringIO()
-        io_args = _get_filepath_or_buffer(
-            path_or_buf, encoding=encoding, compression=None, mode=mode
-        )
-        self.path_or_buf = io_args.filepath_or_buffer
-        self.obj = obj
-        self.mode = mode
         if encoding is None:
             encoding = "utf-8"
+        self.path_or_buf = path_or_buf
+        self.obj = obj
+        self.mode = mode
         self.encoding = encoding
 
     def save(self):
         """Create the writer & save."""
+        deck_str = str(self.obj)
         if hasattr(self.path_or_buf, "write"):
-            f = self.path_or_buf
-            close = False
+            self.path_or_buf.write(deck_str)
         else:
-            io_handles = get_handle(
-                self.path_or_buf,
-                self.mode,
-                encoding=self.encoding,
-                compression=None,
-            )
-            f = io_handles.handle
-            handles = io_handles.created_handles
-            close = True
-        try:
-            deck_str = str(self.obj)
-            f.write(deck_str)
-        finally:
-            if close:
-                f.close()
-                for _fh in handles:
-                    _fh.close()
+            with open(self.path_or_buf, self.mode, encoding=self.encoding) as f:
+                f.write(deck_str)
 
 
 class Deck:
@@ -110,6 +91,7 @@ class Deck:
         models=None,
         canvas_width=1200,
         canvas_height=1000,
+        ctx=None,
     ):
         """Initialize a Deck object.
 
@@ -125,10 +107,13 @@ class Deck:
                 :class:`EquationCollection`, etc.). If a list is passed,
                 it is converted to a :class:`ComponentCollection`. name (str): A name
                 for this deck. Could be the name of the project.
+            ctx (DeckContext, optional): Scoped context. Defaults to the
+                module-level default context.
 
         Returns:
             Deck: The Deck object.
         """
+        self._ctx = ctx or _default_context
         if not models:
             self.models = ComponentCollection()
         else:
@@ -147,11 +132,10 @@ class Deck:
             self.control_cards = ControlCards.basic_template()
         self.name = name
         self.author = author
-        self.date_created = (
-            to_datetime(date_created, infer_datetime_format=True)
-            if date_created
-            else datetime.datetime.now()
-        )
+        if date_created:
+            self.date_created = datetime.datetime.fromisoformat(str(date_created))
+        else:
+            self.date_created = datetime.datetime.now()
 
     @classmethod
     def read_file(
@@ -363,7 +347,14 @@ class Deck:
         # prep model
         cc = ControlCards()
         if dck is None:
-            dck = cls(control_cards=cc, name=kwargs.pop("name", "unnamed"), **kwargs)
+            # Create a fresh context for parsing so that multiple calls to
+            # loads/read_file do not share state (unit counters, graphs, etc.).
+            # Start the counter high to avoid hash collisions with real unit
+            # numbers while components are being created and then reassigned
+            # to their deck-specified unit numbers.
+            ctx = DeckContext(unit_counter=itertools.count(100_000))
+            name = kwargs.pop("name", "unnamed")
+            dck = cls(control_cards=cc, name=name, ctx=ctx, **kwargs)
 
         # decode string of bytes, bytearray
         if isinstance(s, str):
@@ -387,6 +378,7 @@ class Deck:
 
     @classmethod
     def _parse_string(cls, cc, dck, proforma_root, s):
+        ctx = dck._ctx
         # iterate
         deck_lines = iter(s.splitlines())
         line = next(deck_lines)
@@ -405,10 +397,10 @@ class Deck:
             # identify a ConstantCollection
             if key == "constants":
                 n_cnts = match.group(key)
-                cb = ConstantCollection()
+                cb = ConstantCollection(ctx=ctx)
                 for _n in range(int(n_cnts)):
                     line = next(deck_lines)
-                    cb.update(Constant.from_expression(line))
+                    cb.update(Constant.from_expression(line, ctx=ctx))
                 cc.set_statement(cb)
             if key == "simulation":
                 start, stop, step, *_ = re.split(r"\s+", match.group(key))
@@ -466,7 +458,9 @@ class Deck:
                     value = head.strip()
                     # create equation
                     list_eq.append(Equation.from_expression(value))
-                component = EquationCollection(list_eq, name=Name("block"))
+                component = EquationCollection(
+                    list_eq, name=Name("block", registry=ctx.names), ctx=ctx
+                )
             if key == "userconstantend":
                 if component is not None:
                     dck.update_models(component)
@@ -481,7 +475,7 @@ class Deck:
                     pass
                 else:
                     dck.models.pop(model_)
-                component._unit = int(unit_number)
+                component._set_unit(int(unit_number))
                 dck.update_models(component)
             if key == "unitname":
                 unit_name = match.group(key).strip()
@@ -504,14 +498,16 @@ class Deck:
                     component = dck.models.loc[int(u)]
                 except KeyError:  # The model has not yet been instantiated
                     try:
-                        component = TrnsysModel.from_xml(next(iter(xml)), name=n)
+                        component = TrnsysModel.from_xml(
+                            next(iter(xml)), name=n, ctx=ctx
+                        )
                     except StopIteration:
                         # could not find a proforma. Initializing component without
                         # metadata in the hopes that we can parse the xml when key ==
                         # "model" a couple lines further in the file.
-                        component = TrnsysModel(None, name=n)
+                        component = TrnsysModel(None, name=n, ctx=ctx)
                     finally:
-                        component._unit = int(u)
+                        component._set_unit(int(u))
                         dck.update_models(component)
                 else:
                     pass
@@ -632,7 +628,7 @@ class Deck:
         try:
             value = int(name)
         except ValueError:
-            return Constant(name)
+            return Constant(name, ctx=self._ctx)
         else:
             return value
 
@@ -685,6 +681,8 @@ class Deck:
             # simply set the new value
             getattr(model, key)[i] = tvar
 
+    _rx_dict = None
+
     def _parse_line(self, line):
         """Search against all defined regexes and return (key, match).
 
@@ -694,14 +692,17 @@ class Deck:
         Returns:
             2-tuple: the key and the match.
         """
-        for key, rx in self._setup_re().items():
+        if self._rx_dict is None:
+            self._rx_dict = self._setup_re()
+        for key, rx in self._rx_dict.items():
             match = rx.search(line)
             if match:
                 return key, match
         # if there are no matches
         return None, None
 
-    def _setup_re(self):
+    @staticmethod
+    def _setup_re():
         """Set up regular expressions.
 
         Hint:

@@ -27,7 +27,7 @@ class EquationCollection(Component, collections.UserDict):
     compatible with its parent class (see :class:`Component`).
     """
 
-    def __init__(self, mutable=None, name=None, **kwargs):
+    def __init__(self, mutable=None, name=None, ctx=None, **kwargs):
         """Initialize a new EquationCollection.
 
         Example:
@@ -40,9 +40,10 @@ class EquationCollection(Component, collections.UserDict):
             name (str): A user defined name for this collection of equations.
                 This name will be used to identify this block of equations in
                 the .dck file;
+            ctx (DeckContext, optional): Scoped context.
         """
         _dict = {f.name: f for f in mutable} if isinstance(mutable, list) else mutable
-        super().__init__(_dict, meta=None, name=name, **kwargs)
+        super().__init__(_dict, meta=None, name=name, ctx=ctx, **kwargs)
 
     def __getitem__(self, key):
         """Get item."""

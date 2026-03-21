@@ -1,7 +1,8 @@
 """Constant module."""
 
+from __future__ import annotations
+
 import itertools
-from typing import ClassVar
 
 from trnsystor.statement.statement import Statement
 
@@ -15,9 +16,8 @@ class Constant(Statement):
     """
 
     _new_id = itertools.count(start=1)
-    instances: ClassVar[dict] = {}
 
-    def __init__(self, name=None, equals_to=None, doc=None):
+    def __init__(self, name=None, equals_to=None, doc=None, ctx=None):
         """Initialize object.
 
         Args:
@@ -25,10 +25,16 @@ class Constant(Statement):
             equals_to (str, TypeVariable): The right hand side of the equation.
             doc (str, optional): A small description optionally printed in the
                 deck file.
+            ctx (DeckContext, optional): Scoped context. Defaults to the
+                module-level default context.
         """
         super().__init__()
+        if ctx is None:
+            from trnsystor.context import _default_context
+
+            ctx = _default_context
         try:
-            c_ = Constant.instances[name]
+            c_ = ctx.constants[name]
         except KeyError:
             self._n = next(self._new_id)
             self.name = name
@@ -40,10 +46,10 @@ class Constant(Statement):
             self.equals_to = c_.equals_to
             self.doc = c_.doc
         finally:
-            Constant.instances.update({self.name: self})
+            ctx.constants[self.name] = self
 
     @classmethod
-    def from_expression(cls, expression, doc=None):
+    def from_expression(cls, expression, doc=None, ctx=None):
         """Create a Constant from a string expression.
 
         Anything before the equal sign ("=") will become the Constant's name and
@@ -60,6 +66,7 @@ class Constant(Statement):
             expression (str): A user-defined expression to parse.
             doc (str, optional): A small description optionally printed in the
                 deck file.
+            ctx (DeckContext, optional): Scoped context.
         """
         if "=" not in expression:
             raise ValueError(
@@ -67,7 +74,7 @@ class Constant(Statement):
                 "with the equal sign"
             )
         a, b = expression.split("=")
-        return cls(a.strip(), b.strip(), doc=doc)
+        return cls(a.strip(), b.strip(), doc=doc, ctx=ctx)
 
     @property
     def constant_number(self):

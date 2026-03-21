@@ -5,7 +5,6 @@ import copy
 import itertools
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import networkx as nx
 from bs4 import BeautifulSoup, Tag
 from shapely.affinity import translate
@@ -187,7 +186,7 @@ class MetaData:
 class TrnsysModel(Component):
     """TrnsysModel class."""
 
-    def __init__(self, meta, name):
+    def __init__(self, meta, name, ctx=None):
         """Initialize object.
 
         Alone, this __init__ method does not do much. See the :func:`from_xml` class
@@ -196,8 +195,9 @@ class TrnsysModel(Component):
         Args:
             meta (MetaData): A class containing the model's metadata.
             name (str): A user-defined name for this model.
+            ctx (DeckContext, optional): Scoped context.
         """
-        super().__init__(name=name, meta=meta)
+        super().__init__(name=name, meta=meta, ctx=ctx)
 
     def __str__(self):
         """Return repr(self)."""
@@ -208,7 +208,7 @@ class TrnsysModel(Component):
         return f"[{self.unit_number}]Type{self.type_number}: {self.name}"
 
     @classmethod
-    def from_xml(cls, xml, **kwargs):
+    def from_xml(cls, xml, ctx=None, **kwargs):
         """Class method to create a :class:`TrnsysModel` from an xml string.
 
         Examples:
@@ -219,6 +219,7 @@ class TrnsysModel(Component):
 
         Args:
             xml (str or Path): The path of the xml file.
+            ctx (DeckContext, optional): Scoped context.
             **kwargs:
 
         Returns:
@@ -230,7 +231,7 @@ class TrnsysModel(Component):
             soup = BeautifulSoup(xml_f, "xml")
             my_objects = soup.find_all("TrnsysModel")
             for trnsystype in my_objects:
-                t = cls._from_tag(trnsystype, **kwargs)
+                t = cls._from_tag(trnsystype, ctx=ctx, **kwargs)
                 t._meta.model = xml_file
                 t.studio = StudioHeader.from_component(t)
                 all_types.append(t)
@@ -247,8 +248,8 @@ class TrnsysModel(Component):
                 will be reset.
         """
         new = copy.deepcopy(self)
-        new._unit = next(new.INIT_UNIT_NUMBER)
-        new.UNIT_GRAPH.add_node(new)
+        new._unit = next(new._ctx.unit_counter)
+        new._ctx.graph.add_node(new)
         if invalidate_connections:
             new.invalidate_connections()
 
@@ -295,11 +296,12 @@ class TrnsysModel(Component):
         return AnchorPoint(self).reverse_anchor_points
 
     @classmethod
-    def _from_tag(cls, tag, **kwargs):
+    def _from_tag(cls, tag, ctx=None, **kwargs):
         """Class method to create a :class:`TrnsysModel` from a tag.
 
         Args:
             tag (Tag): The XML tag with its attributes and contents.
+            ctx (DeckContext, optional): Scoped context.
             **kwargs:
 
         Returns:
@@ -308,7 +310,7 @@ class TrnsysModel(Component):
         name = kwargs.pop("name", tag.find("object").text).strip()
         meta = MetaData.from_tag(tag, **kwargs)
 
-        model = cls(meta, name)
+        model = cls(meta, name, ctx=ctx)
         type_vars = [
             TypeVariable.from_tag(tag, model=model)
             for tag in tag.find("variables")
@@ -335,7 +337,7 @@ class TrnsysModel(Component):
         )
         file_vars = (
             [
-                ExternalFile.from_tag(tag)
+                ExternalFile.from_tag(tag, file_counter=model._ctx.file_counter)
                 for tag in tag.find("externalFiles").children
                 if isinstance(tag, Tag)
             ]
@@ -626,7 +628,7 @@ class TrnsysModel(Component):
                 {
                     id(ext): ext
                     for ext in {
-                        ExternalFile.from_tag(tag)
+                        ExternalFile.from_tag(tag, file_counter=self._ctx.file_counter)
                         for tag in tag
                         if isinstance(tag, Tag)
                     }
@@ -635,6 +637,7 @@ class TrnsysModel(Component):
 
     def plot(self):
         """Plot the model."""
+        import matplotlib.pyplot as plt
 
         G = nx.DiGraph()
         G.add_edges_from(("type", output.name) for output in self.outputs.values())

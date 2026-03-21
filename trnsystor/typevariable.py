@@ -184,11 +184,12 @@ class TypeVariable:
 
         Predecessors
         """
-        if len(self.model.UNIT_GRAPH) == 0:
+        graph = self.model._ctx.graph
+        if len(graph) == 0:
             return None
         predecessors = []
-        for pre in self.model.UNIT_GRAPH.predecessors(self.model):
-            for key in self.model.UNIT_GRAPH[pre][self.model]:
+        for pre in graph.predecessors(self.model):
+            for key in graph[pre][self.model]:
                 if self in key:
                     u, _v = key
                     predecessors.append(u)
@@ -261,7 +262,7 @@ class TypeVariable:
         v = other
 
         loc = link_style_kwargs.pop("loc", "best")
-        self.model.UNIT_GRAPH.add_edge(
+        self.model._ctx.graph.add_edge(
             u_for_edge=self.model,
             v_for_edge=other.model,
             key=(u, v),
@@ -328,9 +329,10 @@ class Output(TypeVariable):
     @property
     def successors(self):
         """Other TypeVariables to which this TypeVariable is connected. Successors."""
+        graph = self.model._ctx.graph
         successors = []
-        for suc in self.model.UNIT_GRAPH.successors(self.model):
-            for key in self.model.UNIT_GRAPH[self.model][suc]:
+        for suc in graph.successors(self.model):
+            for key in graph[self.model][suc]:
                 if self in key:
                     _u, v = key
                     successors.append(v)

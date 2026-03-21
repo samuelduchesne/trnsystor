@@ -1,15 +1,9 @@
-import itertools
 from pathlib import Path
 
-import networkx as nx
-
-from trnsystor.component import Component
 from trnsystor.deck import Deck
 
 
 def _parse_deck():
-    Component.INIT_UNIT_NUMBER = itertools.count(start=1)
-    Component.UNIT_GRAPH = nx.MultiDiGraph()
     return Deck.read_file(
         Path("tests/input_files/test_deck.dck"), proforma_root="tests/input_files"
     )
