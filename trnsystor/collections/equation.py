@@ -1,6 +1,12 @@
 """EquationCollection module."""
 
 import collections
+import sys
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 import tabulate
 
@@ -55,6 +61,10 @@ class EquationCollection(Component, collections.UserDict):
             value = super().__getitem__(key)
         return value
 
+    def copy(self) -> Self:
+        """Return a shallow copy of self."""
+        return collections.UserDict.copy(self)  # type: ignore[return-value]
+
     def __hash__(self):
         """Return hash(self)."""
         return self.unit_number
@@ -91,7 +101,7 @@ class EquationCollection(Component, collections.UserDict):
             _e = {E.name: E}
         elif isinstance(E, list):
             _e = {eq.name: eq for eq in E}
-        else:
+        elif E is not None:
             for v in E.values():
                 if not isinstance(v, Equation):
                     raise TypeError(
@@ -99,6 +109,8 @@ class EquationCollection(Component, collections.UserDict):
                         f"Equation, not a {type(v)}"
                     )
             _e = {v.name: v for v in E.values()}
+        else:
+            _e = {}
         for val in F.values():
             if isinstance(val, dict):
                 _f = {v.name: v for v in val.values()}

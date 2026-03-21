@@ -1,6 +1,7 @@
 """Component module."""
 
 from abc import ABCMeta, abstractmethod
+from typing import Any
 
 from bs4 import Tag
 from shapely.geometry import Point
@@ -56,7 +57,7 @@ class Component(metaclass=ABCMeta):
         else:
             return self.unit_number == other
 
-    def copy(self):  # noqa: B027
+    def copy(self) -> "Component | None":  # noqa: B027
         """Return copy of self."""
 
     @property
@@ -146,7 +147,7 @@ class Component(metaclass=ABCMeta):
         return f"Type{self.type_number}"
 
     @property
-    def model(self) -> str:
+    def model(self) -> "str | None":
         """Return the path of this model's proforma."""
         try:
             model = self._meta.model
@@ -171,11 +172,11 @@ class Component(metaclass=ABCMeta):
         return self.studio.position
 
     @abstractmethod
-    def _get_inputs(self):
+    def _get_inputs(self) -> Any:
         """Sorts by order number and resolves cycles each time it is called."""
 
     @abstractmethod
-    def _get_outputs(self):
+    def _get_outputs(self) -> Any:
         """Sorts by order number and resolves cycles each time it is called."""
 
     def set_link_style(
@@ -274,11 +275,13 @@ class Component(metaclass=ABCMeta):
                 u = self.outputs[from_self]
                 v = other.inputs[to_other]
                 if self._ctx.graph.has_edge(self, other, (u, v)):
+                    u_model_name = u.model.name if u.model is not None else "<unknown>"
+                    v_model_name = v.model.name if v.model is not None else "<unknown>"
                     msg = (
                         f'The output "{u.idx}: {u.name}" of model '
-                        f'"{u.model.name}" is already connected to '
+                        f'"{u_model_name}" is already connected to '
                         f'the input "{v.idx}: {v.name}" of model '
-                        f'"{v.model.name}"'
+                        f'"{v_model_name}"'
                     )
                     raise ValueError(msg)
                 else:
@@ -321,5 +324,6 @@ class Component(metaclass=ABCMeta):
             if self._ctx.graph.has_edge(*edge):
                 edges.append(edge)
 
-    def _to_deck(self):  # noqa: B027
+    def _to_deck(self) -> str:
         """Return deck representation of self."""
+        return ""

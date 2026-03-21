@@ -65,11 +65,14 @@ class DeckFormatter:
 
     def save(self):
         """Create the writer & save."""
+        from os import PathLike
+
         deck_str = str(self.obj)
         if hasattr(self.path_or_buf, "write"):
             self.path_or_buf.write(deck_str)
         else:
-            with open(self.path_or_buf, self.mode, encoding=self.encoding) as f:
+            path: str | bytes | PathLike[str] = self.path_or_buf  # type: ignore[assignment]
+            with open(path, self.mode, encoding=self.encoding) as f:
                 f.write(deck_str)
 
 
@@ -468,6 +471,7 @@ class Deck:
                     print("Empty UserConstants block")
             # read studio markup
             if key == "unitnumber":
+                assert component is not None
                 unit_number = match.group(key)
                 try:
                     model_ = dck.models.iloc[unit_number]
@@ -478,12 +482,15 @@ class Deck:
                 component._set_unit(int(unit_number))
                 dck.update_models(component)
             if key == "unitname":
+                assert component is not None
                 unit_name = match.group(key).strip()
                 component.name = unit_name
             if key == "layer":
+                assert component is not None
                 layer = match.group(key).strip()
                 component.set_component_layer(layer)
             if key == "position":
+                assert component is not None
                 pos = match.group(key)
                 component.set_canvas_position(map(float, pos.strip().split()), False)
             # identify a unit (TrnsysModel)
@@ -507,12 +514,14 @@ class Deck:
                         # "model" a couple lines further in the file.
                         component = TrnsysModel(None, name=n, ctx=ctx)
                     finally:
+                        assert component is not None
                         component._set_unit(int(u))
                         dck.update_models(component)
                 else:
                     pass
             if (
                 key in ("parameters", "inputs")
+                and component is not None
                 and component._meta is not None
                 and component._meta.variables
             ):

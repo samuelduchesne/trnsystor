@@ -121,12 +121,12 @@ def _parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
     is_bound = xmin <= f <= xmax
     if is_bound:
         if unit_:
-            return Q_(f, unit_)
+            return Q_(f, unit_)  # type: ignore[arg-type]
     else:
         # out of bounds
         msg = (
             f'Value {name} "{f}" is out of bounds. '
-            f"{Q_(xmin, unit_)} <= value <= {Q_(xmax, unit_)}"
+            f"{Q_(xmin, unit_)} <= value <= {Q_(xmax, unit_)}"  # type: ignore[arg-type]
         )
         raise ValueError(msg)
 
@@ -275,9 +275,9 @@ class TypeVariableSymbol(Symbol):
         cls._sanitize(assumptions, cls)
         return TypeVariableSymbol.__xnew_cached_(cls, type_variable, **assumptions)
 
-    def __new_stage2__(cls, model, **assumptions):
+    def __new_stage2__(cls, model, **assumptions):  # type: ignore[override]
         """Return new stage."""
-        obj = Expr.__new__(cls)
+        obj = Expr.__new__(cls)  # type: ignore[arg-type]
         obj.name = model.name
         obj.model = model
 
@@ -292,5 +292,5 @@ class TypeVariableSymbol(Symbol):
         obj._assumptions0 = tuple(sorted(assumptions0.items()))
         return obj
 
-    __xnew__ = staticmethod(__new_stage2__)  # never cached (e.g. dummy)
-    __xnew_cached_ = staticmethod(cacheit(__new_stage2__))  # symbols are always cached
+    __xnew__ = staticmethod(__new_stage2__)  # type: ignore[assignment]  # never cached (e.g. dummy)
+    __xnew_cached_ = staticmethod(cacheit(__new_stage2__))  # type: ignore[assignment]  # symbols are always cached

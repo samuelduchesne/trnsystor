@@ -516,17 +516,32 @@ class TrnsysModel(Component):
                         question_var._is_question = True
                         self._meta.variables.update({id(question_var): question_var})
                         output_dict.update({id(question_var): question_var})
-                        n_times.append(question_var.value.m)
-                    else:
-                        n_times.append(output_dict[existing].value.m)
-            else:
-                n_times = [
-                    next(
-                        filter(
-                            lambda elem: elem[1].name == cycle.paramName,
-                            self._meta.variables.items(),
+                        from pint import Quantity as _Qty
+                        qv = question_var.value
+                        n_times.append(
+                            qv.m if isinstance(qv, _Qty) else int(qv)  # type: ignore[arg-type]
                         )
-                    )[1].value.m
+                    else:
+                        ev = output_dict[existing].value
+                        from pint import Quantity as _Qty
+                        n_times.append(
+                            ev.m if isinstance(ev, _Qty) else int(ev)  # type: ignore[arg-type]
+                        )
+            else:
+                from pint import Quantity as _Qty
+
+                def _get_m(v):
+                    return v.m if isinstance(v, _Qty) else int(v)  # type: ignore[union-attr]
+
+                n_times = [
+                    _get_m(
+                        next(
+                            filter(
+                                lambda elem: elem[1].name == cycle.paramName,
+                                self._meta.variables.items(),
+                            )
+                        )[1].value
+                    )
                     for cycle in cycle.cycles
                 ]
             item: TypeVariable
@@ -555,7 +570,9 @@ class TrnsysModel(Component):
                 if len(items) > len(n_times)
                 else zip(itertools.cycle(items), n_times)
             )
-            for item, n_time in items_list:
+            for _item_maybe, n_time in items_list:
+                item: TypeVariable = _item_maybe  # type: ignore[assignment]
+                assert item is not None
                 item._iscyclebase = True
                 basename = item.name
                 item_base = self._meta.variables.get(id(item))
@@ -568,13 +585,16 @@ class TrnsysModel(Component):
                         ),
                         None,
                     )
-                    item = mydict.get(existing, item_base.copy())
+                    _next_item = mydict.get(existing, item_base.copy())  # type: ignore[arg-type]
+                    assert _next_item is not None
+                    item = _next_item
                     item._iscyclebase = False  # return it back to False
                     if item._iscycle:
                         self._meta.variables.update({id(item): item})
                     else:
-                        item.name = basename + f"-{n}"
-                        item.order += 1 if n_time > 1 else 0
+                        item.name = str(basename) + f"-{n}"
+                        if item.order is not None:
+                            item.order += 1 if n_time > 1 else 0
                         item._iscycle = True
                         self._meta.variables.update({id(item): item})
 
@@ -643,6 +663,7 @@ class TrnsysModel(Component):
             show (bool): If True (default), display the plot interactively.
                 Set to False in tests or non-interactive environments.
         """
+        assert self._meta is not None, "plot() requires a fully-initialized model"
         import matplotlib.pyplot as plt
 
         G = nx.DiGraph()

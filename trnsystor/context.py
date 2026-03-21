@@ -8,12 +8,17 @@ connection graph, unit counter, canvas, and name/constant registries.
 from __future__ import annotations
 
 import itertools
-from collections.abc import Iterator
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 import networkx as nx
 
 from trnsystor.canvas import StudioCanvas
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+    from trnsystor.statement.constant import Constant
 
 
 @dataclass
@@ -24,7 +29,7 @@ class DeckContext:
     unit_counter: Iterator[int] = field(default_factory=lambda: itertools.count(1))
     canvas: StudioCanvas = field(default_factory=StudioCanvas)
     names: set[str] = field(default_factory=set)
-    constants: dict[str, object] = field(default_factory=dict)
+    constants: dict[str, Constant] = field(default_factory=dict)
     file_counter: Iterator[int] = field(default_factory=lambda: itertools.count(30))
 
     def __deepcopy__(self, memo):

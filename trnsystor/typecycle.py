@@ -51,12 +51,12 @@ class TypeCycle:
 
     def __repr__(self):
         """Return repr(self)."""
-        return self.role + f" {self.firstRow} to {self.lastRow}"
+        return str(self.role) + f" {self.firstRow} to {self.lastRow}"
 
     @property
     def default(self):
         """Return the default value of self."""
-        return int(self.minSize)
+        return int(self.minSize)  # type: ignore[arg-type]
 
     @property
     def idxs(self):
@@ -65,7 +65,7 @@ class TypeCycle:
             list(
                 itertools.chain(
                     *(
-                        range(int(cycle.firstRow) - 1, int(cycle.lastRow))
+                        range(int(cycle.firstRow) - 1, int(cycle.lastRow))  # type: ignore[arg-type]
                         for cycle in self.cycles
                     )
                 )

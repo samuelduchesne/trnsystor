@@ -1,6 +1,12 @@
 """ConstantCollection module."""
 
 import collections
+import sys
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 import tabulate
 
@@ -43,6 +49,10 @@ class ConstantCollection(Component, collections.UserDict):
             value = super().__getitem__(key)
         return value
 
+    def copy(self) -> Self:
+        """Return a shallow copy of self."""
+        return collections.UserDict.copy(self)  # type: ignore[return-value]
+
     def __setitem__(self, key, value):
         """Set item."""
         # optional processing here
@@ -80,7 +90,7 @@ class ConstantCollection(Component, collections.UserDict):
             _e = {E.name: E}
         elif isinstance(E, list):
             _e = {cts.name: cts for cts in E}
-        else:
+        elif E is not None:
             for v in E.values():
                 if not isinstance(v, Constant):
                     raise TypeError(
@@ -88,6 +98,8 @@ class ConstantCollection(Component, collections.UserDict):
                         f"Constant, not a {type(v)}"
                     )
             _e = {v.name: v for v in E.values()}
+        else:
+            _e = {}
         for val in F.values():
             if isinstance(val, dict):
                 _f = {v.name: v for v in val.values()}

@@ -29,12 +29,13 @@ class Constant(Statement):
                 module-level default context.
         """
         super().__init__()
+        self.model: object = None  # set by ConstantCollection when added
         if ctx is None:
             from trnsystor.context import _default_context
 
             ctx = _default_context
         try:
-            c_ = ctx.constants[name]
+            c_ = ctx.constants[name]  # type: ignore[index]
         except KeyError:
             self._n = next(self._new_id)
             self.name = name
@@ -46,7 +47,7 @@ class Constant(Statement):
             self.equals_to = c_.equals_to
             self.doc = c_.doc
         finally:
-            ctx.constants[self.name] = self
+            ctx.constants[self.name] = self  # type: ignore[index]
 
     @classmethod
     def from_expression(cls, expression, doc=None, ctx=None):
@@ -81,6 +82,6 @@ class Constant(Statement):
         """The equation number (unique)."""
         return self._n
 
-    def _to_deck(self):
+    def _to_deck(self) -> str:
         """Return deck representation of self."""
-        return self.equals_to
+        return str(self.equals_to) if self.equals_to is not None else ""

@@ -205,7 +205,7 @@ class LinkStyle:
         elif hasattr(raw_path, "coords"):
             coords = [tuple(int(v) for v in pt) for pt in raw_path.coords]
         else:
-            coords = [tuple(int(v) for v in pt) for pt in raw_path]
+            coords = [tuple(int(v) for v in pt) for pt in raw_path]  # type: ignore[misc]
         # Handle single-point case (flatten 1-d)
         if coords and not isinstance(coords[0], tuple | list):
             coords = [tuple(coords)]

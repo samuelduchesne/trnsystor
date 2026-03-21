@@ -23,7 +23,9 @@ class ExternalFile:
     manual), the "Designate" checkbox will have to be clicked.
     """
 
-    def __init__(self, question, default, answers, parameter, designate, file_counter=None):
+    def __init__(
+        self, question, default, answers, parameter, designate, file_counter=None
+    ):
         """Initialize object from arguments.
 
         Args:
@@ -68,4 +70,6 @@ class ExternalFile:
         ]
         parameter = tag.find("parameter").text
         designate = tag.find("designate").text
-        return cls(question, default, answers, parameter, designate, file_counter=file_counter)
+        return cls(
+            question, default, answers, parameter, designate, file_counter=file_counter
+        )

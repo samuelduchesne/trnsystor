@@ -17,6 +17,6 @@ class Statement:
         """Return deck representation of self."""
         return self._to_deck()
 
-    def _to_deck(self):
+    def _to_deck(self) -> str:
         """Return deck representation of self."""
         return ""

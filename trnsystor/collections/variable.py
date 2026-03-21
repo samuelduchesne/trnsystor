@@ -47,12 +47,20 @@ class VariableCollection(collections.UserDict):
             super().__setitem__(key, value)
         elif isinstance(value, int | float | str):
             """a str, float, int, etc. is passed"""
+            existing: TypeVariable = self[key]  # type: ignore[assignment]
             value = _parse_value(
-                value, self[key].type, self[key].unit, (self[key].min, self[key].max)
+                value, existing.type, existing.unit, (existing.min, existing.max)
             )
-            self[key].__setattr__("value", value)
+            existing.__setattr__("value", value)
         elif isinstance(value, Quantity):
-            self[key].__setattr__("value", value.to(self[key].value.units))
+            existing_q: TypeVariable = self[key]  # type: ignore[assignment]
+            target_units = (  # type: ignore[union-attr]
+                existing_q.value.units
+                if isinstance(existing_q.value, Quantity)
+                else None
+            )
+            new_val = value.to(target_units) if target_units is not None else value
+            existing_q.__setattr__("value", new_val)
         elif isinstance(value, Equation | Constant):
             self[key].__setattr__("value", value)
         else:
@@ -60,12 +68,13 @@ class VariableCollection(collections.UserDict):
                 f"Cannot set a value of type {type(value)} in this VariableCollection"
             )
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return Deck representation."""
         return self._to_deck()
 
-    def _to_deck(self):
+    def _to_deck(self) -> str:
         """Return deck representation of self."""
+        return ""
 
     @classmethod
     def from_dict(cls, dictionary):
