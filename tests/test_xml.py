@@ -459,7 +459,7 @@ class TestTrnsysModel:
         fan_type.set_link_style(fan_type)
 
     def test_plot(self, fan_type: TrnsysModel):
-        fan_type.plot()
+        fan_type.plot(show=False)
 
     def test_set_link_style(self, fan_type):
         fan2 = fan_type.copy()
@@ -865,28 +865,28 @@ class TestDeck:
         assert len(dck.models) == 3
 
     def test_deck_graph(self, G):
-        import matplotlib.pyplot as plt
+        import matplotlib
         import networkx as nx
 
+        matplotlib.use("Agg")
         assert not nx.is_empty(G)
         pos = {
             unit: (pos.x, pos.y) if pos else (50, 50)
             for unit, pos in G.nodes(data="pos")
         }
         nx.draw_networkx(G, pos=pos)
-        plt.show()
 
     @pytest.mark.xfail(
         "pygraphviz" not in sys.modules,
         reason="Skipping this test on Travis CI.",
     )
     def test_deck_graphviz(self, G):
-        import matplotlib.pyplot as plt
+        import matplotlib
         import networkx as nx
 
+        matplotlib.use("Agg")
         pos = nx.nx_agraph.graphviz_layout(G, "dot")
         nx.draw_networkx(G, pos=pos)
-        plt.show()
 
     def test_cycles(self, G):
         import networkx as nx

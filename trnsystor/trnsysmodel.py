@@ -635,8 +635,13 @@ class TrnsysModel(Component):
                 }
             )
 
-    def plot(self):
-        """Plot the model."""
+    def plot(self, show=True):
+        """Plot the model.
+
+        Args:
+            show (bool): If True (default), display the plot interactively.
+                Set to False in tests or non-interactive environments.
+        """
         import matplotlib.pyplot as plt
 
         G = nx.DiGraph()
@@ -658,5 +663,6 @@ class TrnsysModel(Component):
             },
             ax=ax,
         )
-        plt.show()
+        if show:
+            plt.show()
         return ax
