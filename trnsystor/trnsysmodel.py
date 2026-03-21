@@ -149,22 +149,23 @@ class MetaData:
     def check_extra_tags(self, kwargs):
         """Detect extra tags in the proforma and warn.
 
+        Raises:
+            UnknownProformaTagError: If unknown tags are present.
+
         Args:
             kwargs (dict): dictionary of extra keyword-arguments that would be
                 passed to the constructor.
         """
         if kwargs:
-            msg = (
-                "Unknown tags have been detected in this proforma: {}.\nIf "
-                "you wish to continue, the behavior of the object might be "
-                "affected. Please contact the package developers or submit "
-                "an issue.\n Do you wish to continue anyways?".format(
-                    ", ".join(kwargs.keys())
-                )
+            import logging
+
+            tag_names = ", ".join(kwargs.keys())
+            logging.getLogger(__name__).warning(
+                "Unknown tags detected in proforma: %s. "
+                "These tags will be ignored. If this causes issues, "
+                "please report it at https://github.com/samuelduchesne/trnsystor/issues",
+                tag_names,
             )
-            shall = input(f"{msg} (y/N) ").lower() == "y"
-            if not shall:
-                raise NotImplementedError()
 
     def __getitem__(self, item):
         """Get item. self[item]."""

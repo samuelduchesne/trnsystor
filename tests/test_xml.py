@@ -4,8 +4,6 @@ import os
 import sys
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryFile
-from unittest.mock import patch
-
 import pytest
 from shapely.geometry import LineString, Point
 
@@ -36,9 +34,7 @@ def pipe_type():
 def tank_type():
     from trnsystor.trnsysmodel import TrnsysModel
 
-    with patch("builtins.input", return_value="y"):
-        tank = TrnsysModel.from_xml("tests/input_files/Type4a.xml")
-        yield tank
+    return TrnsysModel.from_xml("tests/input_files/Type4a.xml")
 
 
 @pytest.fixture
@@ -51,18 +47,12 @@ def plotter():
 def weather_type():
     from trnsystor.trnsysmodel import TrnsysModel
 
-    with patch("builtins.input", return_value="y"):
-        weather = TrnsysModel.from_xml("tests/input_files/Type15-3.xml")
-        yield weather
+    return TrnsysModel.from_xml("tests/input_files/Type15-3.xml")
 
 
 class TestTrnsysModel:
-    @patch("builtins.input", return_value="y")
-    def test_chiller_type(self, input):
-        """Fixture to create a TrnsysModel from xml that contains unknown tags.
-
-        Should prompt user. Passes when input == 'y'
-        """
+    def test_chiller_type(self):
+        """Test loading a proforma with unknown tags (logs a warning)."""
         from trnsystor.trnsysmodel import TrnsysModel
 
         fan1 = TrnsysModel.from_xml("tests/input_files/Type107-simplified.xml")
@@ -134,25 +124,27 @@ class TestTrnsysModel:
 
         assert weather_type.outputs[26].name == "Beam radiation for surface-2"
 
-    def test_cancel_missing_tag(self, tank_type):
+    def test_unknown_tag_warns(self, tank_type, caplog):
+        """Unknown tags in a proforma should log a warning, not block."""
+        import logging
+
         from bs4 import BeautifulSoup
 
         from trnsystor.trnsysmodel import TrnsysModel
 
-        with (
-            pytest.raises(NotImplementedError),
-            patch("builtins.input", return_value="N"),
-        ):
-            with open("tests/input_files/Type4a.xml") as xml:
-                soup = BeautifulSoup(xml, "xml")
-                new_tag = soup.new_tag("obscureTag")
-                new_tag.string = "this is a test"
-                soup.find("TrnsysModel").append(new_tag)
-            with NamedTemporaryFile("w", delete=False) as tmp:
-                tmp.write(str(soup))
-                tmp.close()
-                TrnsysModel.from_xml(tmp.name)
-                os.unlink(tmp.name)
+        with open("tests/input_files/Type4a.xml") as xml:
+            soup = BeautifulSoup(xml, "xml")
+            new_tag = soup.new_tag("obscureTag")
+            new_tag.string = "this is a test"
+            soup.find("TrnsysModel").append(new_tag)
+        with NamedTemporaryFile("w", delete=False) as tmp:
+            tmp.write(str(soup))
+            tmp.close()
+            with caplog.at_level(logging.WARNING, logger="trnsystor.trnsysmodel"):
+                model = TrnsysModel.from_xml(tmp.name)
+            os.unlink(tmp.name)
+        assert "obscureTag" in caplog.text
+        assert model is not None
 
     def test_out_of_bounds(self, pipe_type):
         """Trigger ValueError because out of bounds."""
@@ -828,18 +820,14 @@ class TestDeck:
     def pvt_deck(self, deck_file):
         from trnsystor.deck import Deck
 
-        with patch("builtins.input", return_value="y"):
-            dck = Deck.read_file(deck_file, proforma_root="tests/input_files")
-            yield dck
+        return Deck.read_file(deck_file, proforma_root="tests/input_files")
 
     @pytest.fixture(scope="class")
     def irregular_deck(self):
         from trnsystor.deck import Deck
 
         file = "tests/input_files/Case600h10.dck"
-        with patch("builtins.input", return_value="y"):
-            dck = Deck.read_file(file, proforma_root="tests/input_files")
-            yield dck
+        return Deck.read_file(file, proforma_root="tests/input_files")
 
     @pytest.fixture(scope="class")
     def G(self, pvt_deck):
