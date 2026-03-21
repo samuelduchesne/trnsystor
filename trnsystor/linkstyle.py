@@ -1,11 +1,49 @@
 """LinkStyle module."""
 
-import numpy as np
-from matplotlib.colors import colorConverter
 from shapely.geometry import LineString
 
 from trnsystor.anchorpoint import AnchorPoint
 from trnsystor.utils import get_int_from_rgb, redistribute_vertices
+
+# Minimal named color table (CSS3 subset most commonly used in TRNSYS Studio).
+_NAMED_COLORS = {
+    "black": (0.0, 0.0, 0.0),
+    "white": (1.0, 1.0, 1.0),
+    "red": (1.0, 0.0, 0.0),
+    "green": (0.0, 0.5, 0.0),
+    "blue": (0.0, 0.0, 1.0),
+    "yellow": (1.0, 1.0, 0.0),
+    "cyan": (0.0, 1.0, 1.0),
+    "magenta": (1.0, 0.0, 1.0),
+    "orange": (1.0, 0.647, 0.0),
+    "gray": (0.502, 0.502, 0.502),
+    "grey": (0.502, 0.502, 0.502),
+}
+
+
+def _to_rgb(color):
+    """Convert a color specification to an (r, g, b) tuple with values in [0, 1].
+
+    Supports hex strings (#RRGGBB), named colors, and RGB/RGBA tuples.
+    """
+    if isinstance(color, tuple | list):
+        return tuple(float(c) for c in color[:3])
+    if isinstance(color, str):
+        color = color.strip().lower()
+        if color.startswith("#"):
+            h = color.lstrip("#")
+            if len(h) == 3:
+                h = "".join(c * 2 for c in h)
+            return (int(h[0:2], 16) / 255, int(h[2:4], 16) / 255, int(h[4:6], 16) / 255)
+        if color in _NAMED_COLORS:
+            return _NAMED_COLORS[color]
+        # Try as a grayscale float string (e.g. '0.8')
+        try:
+            g = float(color)
+            return (g, g, g)
+        except ValueError:
+            pass
+    raise ValueError(f"Unrecognized color: {color!r}")
 
 
 class LinkStyle:
@@ -38,10 +76,9 @@ class LinkStyle:
                 destination :class:`TrnsysModel` (other). The location can also
                 be a 2-tuple giving the coordinates of the origin
                 :class:`TrnsysModel` and the destination :class:`TrnsysModel`.
-            color (str or tuple): The color of the line. Accepts any matplotlib
-                color. You can specify colors in many ways, including full names
-                ('green'), hex strings ('#008000'), RGB or RGBA tuples
-                ((0,1,0,1)) or grayscale intensities as a string ('0.8').
+            color (str or tuple): The color of the line. Accepts hex strings
+                ('#008000'), named colors ('green', 'black'), RGB tuples
+                ((0,1,0)), or grayscale strings ('0.8').
             linestyle (str): Possible values: '-' or 'solid', '--' or 'dashed',
                 '-.' or 'dashdot', ':' or 'dotted', '-.' or 'dashdotdot'.
             linewidth (float): The link line width in points.
@@ -157,24 +194,22 @@ class LinkStyle:
             + ":"
         )
 
+        rgb = _to_rgb(self.get_color())
         color = (
-            str(
-                get_int_from_rgb(
-                    tuple([u * 255 for u in colorConverter.to_rgb(self.get_color())])
-                )
-            )
+            str(get_int_from_rgb(tuple(c * 255 for c in rgb)))
             + ":"
         )
         raw_path = self.path
         if raw_path is None:
-            coords = np.empty((0, 2))
+            coords = []
         elif hasattr(raw_path, "coords"):
-            coords = np.array(raw_path.coords)
+            coords = [tuple(int(v) for v in pt) for pt in raw_path.coords]
         else:
-            coords = np.array(raw_path)
-        if coords.ndim == 1:
-            coords = coords.reshape(1, -1)
-        path = ",".join([":".join(map(str, n.astype(int).tolist())) for n in coords])
+            coords = [tuple(int(v) for v in pt) for pt in raw_path]
+        # Handle single-point case (flatten 1-d)
+        if coords and not isinstance(coords[0], tuple | list):
+            coords = [tuple(coords)]
+        path = ",".join([":".join(map(str, pt)) for pt in coords])
         linestyle = str(_linestyle_to_studio(self.get_linestyle())) + ":"
         linewidth = str(self.get_linewidth()) + ":"
         connection_set = anchors + "1:" + color + linestyle + linewidth + "1:" + path

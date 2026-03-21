@@ -4,7 +4,6 @@ import contextlib
 import math
 import re
 
-import numpy as np
 from pint import Quantity, UnitRegistry
 from shapely.affinity import affine_transform as _affine_transform
 from shapely.geometry import LineString
@@ -24,12 +23,18 @@ def affine_transform(geom, matrix=None):
 
     Args:
         geom (BaseGeometry): The geometry.
-        matrix (np.array): The coefficient matrix is provided as a list or
-            tuple.
+        matrix (list): The 3x3 coefficient matrix as a list of lists.
     """
     if not matrix:
-        matrix = np.array([[1, 0, 0], [0, -1, 0], [0, 0, 0]])
-    matrix_l = matrix[0:2, 0:2].flatten().tolist() + matrix[0:2, 2].flatten().tolist()
+        # Default: flip geometry along the x axis
+        # [a, b, d, e, xoff, yoff] for shapely affine_transform
+        matrix_l = [1, 0, 0, -1, 0, 0]
+    else:
+        matrix_l = [
+            matrix[0][0], matrix[0][1],
+            matrix[1][0], matrix[1][1],
+            matrix[0][2], matrix[1][2],
+        ]
     return _affine_transform(geom, matrix_l)
 
 

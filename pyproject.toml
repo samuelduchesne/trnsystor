@@ -24,9 +24,6 @@ classifiers = [
 dependencies = [
     "beautifulsoup4",
     "lxml",
-    "matplotlib",
-    "numpy",
-    "pandas",
     "pint",
     "shapely",
     "sympy",
@@ -35,7 +32,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+viz = [
+    "matplotlib",
+]
 test = [
+    "matplotlib",
     "pytest>=8",
     "pytest-cov",
 ]
