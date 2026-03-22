@@ -345,3 +345,36 @@ class TestParser:
         # Check that we got all expected units from the test deck
         for expected in [2, 3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 16, 17, 18, 21, 23, 24, 25, 26]:
             assert expected in unit_numbers, f"Unit {expected} not found"
+
+
+class TestRoundTrip:
+    def test_serialize_is_idempotent(self):
+        """Calling str(deck) twice produces the same output."""
+        from trnsystor.deck import Deck
+
+        dck = Deck.read_file(DCK_FILE, proforma_root="tests/input_files")
+        first = str(dck)
+        second = str(dck)
+        assert first == second
+
+    def test_roundtrip_preserves_structure(self):
+        """Parse → serialize → re-parse produces the same component set."""
+        from trnsystor.deck import Deck
+
+        dck1 = Deck.read_file(DCK_FILE, proforma_root="tests/input_files")
+        text1 = str(dck1)
+
+        dck2 = Deck.loads(text1, proforma_root="tests/input_files")
+
+        # Same number of models
+        assert len(dck1.models) == len(dck2.models)
+
+        # Same unit numbers
+        units1 = sorted(m.unit_number for m in dck1.models)
+        units2 = sorted(m.unit_number for m in dck2.models)
+        assert units1 == units2
+
+        # Same model types
+        types1 = sorted(type(m).__name__ for m in dck1.models)
+        types2 = sorted(type(m).__name__ for m in dck2.models)
+        assert types1 == types2

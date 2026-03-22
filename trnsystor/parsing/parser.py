@@ -116,6 +116,9 @@ class _Parser:
         self._uc_loc: SourceLocation | None = None
         self._uc_return = False
 
+        # Track the last finished equation block for studio metadata attachment
+        self._last_eq_block: ParsedEquationsBlock | None = None
+
         # For links
         self._link_u = 0
         self._link_v = 0
@@ -197,6 +200,9 @@ class _Parser:
             TokenKind.DFQ,
             TokenKind.WIDTH,
             TokenKind.LIST,
+            TokenKind.NOLIST,
+            TokenKind.MAP,
+            TokenKind.NOCHECK,
             TokenKind.SOLVER,
             TokenKind.NAN_CHECK,
             TokenKind.OVERWRITE_CHECK,
@@ -242,7 +248,15 @@ class _Parser:
             TokenKind.STUDIO_LAYER,
             TokenKind.STUDIO_UNIT_NUMBER,
         ):
-            self._collect_studio_markup(token, loc)
+            markup = ParsedStudioMarkup(
+                token.kind.name.lower().removeprefix("studio_"),
+                token.payload,
+                loc,
+            )
+            self._current_studio.append(markup)
+            # Attach to the last finished equation block if present
+            if self._last_eq_block is not None:
+                self._last_eq_block.studio = tuple(self._current_studio)
 
     # -----------------------------------------------------------------
     # State: IN_UNIT
@@ -363,6 +377,8 @@ class _Parser:
             self._state = _State.IN_USER_CONSTANTS
         else:
             self._deck.equation_blocks.append(block)
+            self._last_eq_block = block
+            self._current_studio = []
             self._state = _State.TOP_LEVEL
 
     # -----------------------------------------------------------------
@@ -558,6 +574,7 @@ class _Parser:
 
     def _start_unit(self, token: Token) -> None:
         """Start a new UNIT block, finalizing any previous one."""
+        self._last_eq_block = None
         self._finalize_unit()
         m = _UNIT_RE.match(token.payload)
         if m:

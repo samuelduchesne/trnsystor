@@ -11,6 +11,16 @@ from sympy import Expr, Symbol, cacheit
 from sympy.printing import StrPrinter
 
 
+def find_closest(mappinglist, coordinate):
+    """Find the closest point in *mappinglist* to *coordinate*."""
+    from shapely.geometry import Point
+
+    return min(
+        mappinglist,
+        key=lambda x: Point(x).distance(Point(coordinate)),
+    )
+
+
 def affine_transform(geom, matrix=None):
     """Apply affine transformation to geometry.
 

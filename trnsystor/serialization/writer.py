@@ -13,7 +13,7 @@ def serialize_deck(obj: Deck) -> str:
     """Return deck string representation of a Deck object."""
     from trnsystor.statement import End
 
-    end = obj.control_cards.__dict__.pop("end", End())
+    end = obj.control_cards.__dict__.get("end", End())
     cc = str(obj.control_cards)
 
     models = "\n\n".join([model._to_deck() for model in obj.models])

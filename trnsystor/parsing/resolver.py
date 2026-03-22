@@ -49,7 +49,7 @@ from trnsystor.statement import (
     Width,
 )
 from trnsystor.trnsysmodel import TrnsysModel
-from trnsystor.utils import get_rgb_from_int
+from trnsystor.utils import find_closest, get_rgb_from_int
 
 if TYPE_CHECKING:
     from trnsystor.component import Component
@@ -72,16 +72,6 @@ _CONNECTION_SET_RE = re.compile(
     r"(?P<order>[^:]*):(?P<color>[^:]*):(?P<linestyle>[^:]*):"
     r"(?P<linewidth>[^:]*):(?P<ignored>[^:]*):(?P<path>.*)"
 )
-
-
-def _find_closest(mappinglist, coordinate):
-    """Find the closest point in mappinglist to coordinate."""
-    from shapely.geometry import Point
-
-    return min(
-        mappinglist,
-        key=lambda x: Point(x).distance(Point(coordinate)),
-    )
 
 
 def resolve(
@@ -171,10 +161,15 @@ def _build_control_cards(parsed: ParsedDeck, ctx: DeckContext) -> ControlCards:
         )
 
     # Generic statements (DFQ, WIDTH, SOLVER, etc.)
+    from trnsystor.statement import Map, NoCheck, NoList
+
     _STATEMENT_MAP = {
         "dfq": DFQ,
         "width": Width,
         "list": List,
+        "nolist": NoList,
+        "map": Map,
+        "nocheck": NoCheck,
         "solver": Solver,
         "nan_check": NaNCheck,
         "overwrite_check": OverwriteCheck,
@@ -204,7 +199,7 @@ def _build_components(
 
     # Build equation blocks (standalone, not in user constants)
     for eq_block in parsed.equation_blocks:
-        _build_equation_block(eq_block, dck, ctx)
+        _build_equation_block(eq_block, dck, ctx, studio=eq_block.studio)
 
     # Build user constants blocks (equation blocks with studio metadata)
     for uc_block in parsed.user_constants_blocks:
@@ -319,14 +314,24 @@ def _resolve_connections(parsed: ParsedDeck, dck: Deck) -> None:
         # Set input connections
         for i, conn in enumerate(ub.inputs.connections):
             raw = conn.raw
-            with contextlib.suppress(KeyError, IndexError, ValueError):
+            try:
                 DeckClass.set_typevariable(dck, i, component, raw, "inputs")
+            except (KeyError, IndexError, ValueError) as exc:
+                log.debug(
+                    "Unit %d input %d (%s): %s",
+                    ub.unit.unit_number, i, raw, exc,
+                )
 
         # Set initial input values
         for i, val in enumerate(ub.inputs.initial_values):
-            with contextlib.suppress(KeyError, IndexError, ValueError):
+            try:
                 DeckClass.set_typevariable(
                     dck, i, component, val, "initial_input_values"
+                )
+            except (KeyError, IndexError, ValueError) as exc:
+                log.debug(
+                    "Unit %d initial value %d (%s): %s",
+                    ub.unit.unit_number, i, val, exc,
                 )
 
 
@@ -355,8 +360,8 @@ def _apply_one_link(link: ParsedLink, dck: Deck) -> None:
         u_coords = (int(m.group("u1")), int(m.group("u2")))
         v_coords = (int(m.group("v1")), int(m.group("v2")))
         loc = (
-            mapping[_find_closest(mapping.keys(), u_coords)],
-            mapping[_find_closest(mapping.keys(), v_coords)],
+            mapping[find_closest(mapping.keys(), u_coords)],
+            mapping[find_closest(mapping.keys(), v_coords)],
         )
         color = get_rgb_from_int(int(m.group("color")))
         linestyle = _studio_to_linestyle(int(m.group("linestyle")))

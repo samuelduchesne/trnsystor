@@ -81,10 +81,11 @@ class ParsedEquation:
     loc: SourceLocation
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class ParsedEquationsBlock:
     equations: tuple[ParsedEquation, ...]
     loc: SourceLocation
+    studio: tuple[ParsedStudioMarkup, ...] = ()
 
 
 # ---------------------------------------------------------------------------

@@ -89,6 +89,7 @@ combine-as-imports = true
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["ANN", "PT011", "PT012"]
+"trnsystor/parsing/resolver.py" = ["PERF203"]  # try/except in loops needed for per-iteration debug logging
 
 [tool.pyright]
 pythonVersion = "3.10"

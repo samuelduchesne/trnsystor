@@ -21,6 +21,9 @@ class TokenKind(Enum):
     DFQ = auto()
     WIDTH = auto()
     LIST = auto()
+    NOLIST = auto()
+    MAP = auto()
+    NOCHECK = auto()
     SOLVER = auto()
     NAN_CHECK = auto()
     OVERWRITE_CHECK = auto()
@@ -103,9 +106,9 @@ _KEYWORD_MAP: dict[str, TokenKind] = {
     "labels": TokenKind.LABELS,
     "derivatives": TokenKind.DERIVATIVES,
     "assign": TokenKind.ASSIGN,
-    "nolist": TokenKind.LIST,  # NOLIST maps to LIST for parsing purposes
-    "map": TokenKind.LIST,  # MAP maps to LIST for parsing purposes
-    "nocheck": TokenKind.LIST,  # NOCHECK maps to LIST for parsing purposes
+    "nolist": TokenKind.NOLIST,
+    "map": TokenKind.MAP,
+    "nocheck": TokenKind.NOCHECK,
     "end": TokenKind.END,
 }
 
