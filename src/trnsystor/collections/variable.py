@@ -2,7 +2,7 @@
 
 import collections
 
-from pint import Quantity
+from trnsystor.quantity import Quantity
 
 from trnsystor.statement import Constant, Equation
 from trnsystor.typevariable import TypeVariable
@@ -17,6 +17,8 @@ class VariableCollection(collections.UserDict):
 
     def __getattr__(self, key):
         """Get attribute."""
+        if key.startswith("_"):
+            raise AttributeError(key)
         if isinstance(key, int):
             value = list(self.data.values())[key]
         else:
@@ -56,6 +58,7 @@ class VariableCollection(collections.UserDict):
                 value, existing.type, existing.unit, (existing.min, existing.max)
             )
             existing.__setattr__("value", value)
+            self._invalidate_model_cache(existing)
         elif isinstance(value, Quantity):
             existing_q = (
                 self.data[key]
@@ -69,12 +72,20 @@ class VariableCollection(collections.UserDict):
             )
             new_val = value.to(target_units) if target_units is not None else value
             existing_q.__setattr__("value", new_val)
+            self._invalidate_model_cache(existing_q)
         elif isinstance(value, Equation | Constant):
             self[key].__setattr__("value", value)
         else:
             raise TypeError(
                 f"Cannot set a value of type {type(value)} in this VariableCollection"
             )
+
+    @staticmethod
+    def _invalidate_model_cache(var):
+        """Invalidate the parent model's property cache after a value change."""
+        if hasattr(var, "model") and var.model is not None:
+            if hasattr(var.model, "_invalidate_cache"):
+                var.model._invalidate_cache()
 
     def __str__(self) -> str:
         """Return Deck representation."""
@@ -89,12 +100,15 @@ class VariableCollection(collections.UserDict):
         """Return VariableCollection from dict.
 
         Sets also the class attribute using ``named_key``.
+        Precomputes ``_idx`` on each variable for O(1) index lookups.
         """
         item = cls()
-        for key in dictionary:
-            named_key = standardize_name(dictionary[key].name)
-            item.__setitem__(named_key, dictionary[key])
-            setattr(item, named_key, dictionary[key])
+        for idx, key in enumerate(dictionary):
+            var = dictionary[key]
+            var._idx = idx  # precompute index
+            named_key = standardize_name(var.name)
+            item.__setitem__(named_key, var)
+            setattr(item, named_key, var)
         return item
 
     @property

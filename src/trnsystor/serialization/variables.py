@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 def serialize_parameters(obj: ParameterCollection) -> str:
     """Return deck representation of ParameterCollection."""
-    from pint import Quantity
+    from trnsystor.quantity import Quantity
 
     from trnsystor.statement import Equation
 
@@ -108,7 +108,7 @@ def _input_help_text(input_type) -> str:
 
 def serialize_initial_input_values(obj: InitialInputValuesCollection) -> str:
     """Return deck representation of InitialInputValuesCollection."""
-    from pint import Quantity
+    from trnsystor.quantity import Quantity
 
     if obj.size == 0:
         return ""

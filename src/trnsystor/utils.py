@@ -1,14 +1,16 @@
 """Utils module."""
 
-import contextlib
+import functools
 import math
 import re
 
-from pint import Quantity, UnitRegistry
 from shapely.affinity import affine_transform as _affine_transform
 from shapely.geometry import LineString
-from sympy import Expr, Symbol, cacheit
-from sympy.printing import StrPrinter
+
+from trnsystor.quantity import Quantity
+
+# Pre-compiled regexes
+_STANDARDIZE_RE = re.compile("[^0-9a-zA-Z]+")
 
 
 def find_closest(mappinglist, coordinate):
@@ -117,7 +119,7 @@ def _parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
     if not name:
         name = ""
     _type = parse_type(_type)
-    Q_, unit_ = parse_unit(unit)
+    unit_ = parse_unit(unit)
 
     try:
         f = _type(value)
@@ -134,12 +136,12 @@ def _parse_value(value, _type, unit, bounds=(-math.inf, math.inf), name=None):
     is_bound = xmin <= f <= xmax
     if is_bound:
         if unit_:
-            return Q_(f, unit_)  # type: ignore[arg-type]
+            return Quantity(f, unit_)
     else:
         # out of bounds
         msg = (
             f'Value {name} "{f}" is out of bounds. '
-            f"{Q_(xmin, unit_)} <= value <= {Q_(xmax, unit_)}"  # type: ignore[arg-type]
+            f"{Quantity(xmin, unit_)} <= value <= {Quantity(xmax, unit_)}"
         )
         raise ValueError(msg)
 
@@ -160,37 +162,39 @@ def parse_type(_type):
 
 def standardize_name(name):
     """Replace invalid characters with underscores."""
-    return re.sub("[^0-9a-zA-Z]+", "_", name)
+    return _STANDARDIZE_RE.sub("_", name)
 
 
-def parse_unit(unit):
-    """Return supported unit.
+# ---------------------------------------------------------------------------
+# Unit mapping: TRNSYS proforma unit strings → canonical unit names
+# ---------------------------------------------------------------------------
+_UNIT_MAP: dict[str, str] = {
+    "% (base 100)": "percent",
+    "c": "degC",
+    "deltac": "delta_degC",
+    "fraction": "fraction",
+    "any": "dimensionless",
+}
 
-    Units defined in the xml proformas follow a convention that is not quite
-    compatible with `Pint` . This method will catch known discrepancies.
+
+@functools.lru_cache(maxsize=64)
+def parse_unit(unit: str | None) -> str:
+    """Return the canonical unit string for a TRNSYS proforma unit.
 
     Args:
-        unit (str): A string unit.
+        unit: A string unit from a proforma XML.
 
     Returns:
-        2-tuple: The Quantity class and the Unit class
-            * ureg.Quantity: The Quantity class
-            * ureg.Unit: The Unit class
+        The canonical unit string (e.g. ``"degC"``, ``"kg/hr"``).
     """
-    Q_ = ureg.Quantity
     if unit in {"-", None}:
-        return Q_, ureg.parse_expression("dimensionless")
+        return "dimensionless"
     unit_l = unit.lower()
-    unit_map = {
-        "% (base 100)": ureg.percent,
-        "c": ureg.degC,
-        "deltac": ureg.delta_degC,
-        "fraction": ureg.fraction,
-        "any": ureg.parse_expression("dimensionless"),
-    }
-    if unit_l in unit_map:
-        return Q_, unit_map[unit_l]
-    return Q_, ureg.parse_units(unit)
+    mapped = _UNIT_MAP.get(unit_l)
+    if mapped is not None:
+        return mapped
+    # Pass through standard units as-is (e.g. "kg/hr", "m^2", "kJ/hr.m.K")
+    return unit
 
 
 def redistribute_vertices(geom, distance):
@@ -219,91 +223,110 @@ def redistribute_vertices(geom, distance):
         raise TypeError("unhandled geometry %s", (geom.geom_type,))
 
 
-ureg = UnitRegistry()
+# ---------------------------------------------------------------------------
+# Sympy-dependent utilities (lazy-loaded)
+# ---------------------------------------------------------------------------
 
 
-# Define custom units once to avoid repeated ``ureg.define`` calls in
-# ``parse_unit``.  Pint raises an error if a unit is redefined, so we make
-# sure the definitions exist before ``parse_unit`` is ever invoked.
-_CUSTOM_UNITS = {
-    "percent": "percent = 0.01*count = %",
-    "fraction": "fraction = 1*count = -",
-}
+def _get_deck_file_printer_class():
+    """Return the DeckFilePrinter class, importing sympy on first call."""
+    from sympy.printing import StrPrinter
 
-for name, definition in _CUSTOM_UNITS.items():
-    if name not in ureg:
-        ureg.define(definition)
+    class DeckFilePrinter(StrPrinter):
+        """Print derivative of a function of symbols in deck file form."""
 
-# Ensure "hr" is used for hour so quantities display as "kg/hr" instead of "kg/h".
-with contextlib.suppress(Exception):
-    ureg.define("hr = hour")
+        def _print_Symbol(self, expr):
+            """Print the TypeVariable's unit_number and output number."""
+            try:
+                return f"[{expr.model.model.unit_number}, {expr.model.one_based_idx}]"
+            except AttributeError:
+                return expr.name
+
+    return DeckFilePrinter
 
 
-class DeckFilePrinter(StrPrinter):
-    """Print derivative of a function of symbols in deck file form.
+def _get_type_variable_symbol_class():
+    """Return the TypeVariableSymbol class, importing sympy on first call."""
+    from sympy import Expr, Symbol, cacheit
 
-    This will override the :func:`sympy.printing.str.StrPrinter#_print_Symbol` method to
-    print the TypeVariable's unit_number and output number.
-    """
+    class TypeVariableSymbol(Symbol):
+        """Subclass of sympy Symbol for TypeVariable references."""
 
-    def _print_Symbol(self, expr):
-        """Print the TypeVariable's unit_number and output number."""
+        def __new__(cls, type_variable, **assumptions):
+            """:class:`TypeVariableSymbol` are identified by TypeVariable and assumptions.
+
+            Args:
+                type_variable (TypeVariable): The TypeVariable to defined as a
+                    Symbol.
+                **assumptions: See :mod:`sympy.core.assumptions` for more details.
+            """
+            cls._sanitize(assumptions, cls)
+            return TypeVariableSymbol.__xnew_cached_(cls, type_variable, **assumptions)
+
+        def __new_stage2__(cls, model, **assumptions):  # type: ignore[override]
+            """Return new stage."""
+            obj = Expr.__new__(cls)  # type: ignore[arg-type]
+            obj.name = model.name
+            obj.model = model
+
+            tmp_asm_copy = assumptions.copy()
+
+            assumptions_kb, assumptions_orig, assumptions0 = (
+                Symbol._canonical_assumptions(**assumptions)
+            )
+            obj._assumptions = assumptions_kb
+            obj._assumptions._generator = tmp_asm_copy  # Issue #8873
+            obj._assumptions_orig = assumptions_orig
+            obj._assumptions0 = tuple(sorted(assumptions0.items()))
+            return obj
+
+        __xnew__ = staticmethod(__new_stage2__)  # type: ignore[assignment]
+        __xnew_cached_ = staticmethod(cacheit(__new_stage2__))  # type: ignore[assignment]
+
+    return TypeVariableSymbol
+
+
+# Lazy singletons — instantiated on first access
+_DeckFilePrinter = None
+_TypeVariableSymbol = None
+
+
+def _ensure_sympy():
+    """Ensure sympy classes are loaded, raising a clear error if missing."""
+    global _DeckFilePrinter, _TypeVariableSymbol  # noqa: PLW0603
+    if _DeckFilePrinter is None:
         try:
-            return f"[{expr.model.model.unit_number}, {expr.model.one_based_idx}]"
-        except AttributeError:
-            # 'Symbol' object has no attribute 'model'
-            return expr.name
+            _DeckFilePrinter = _get_deck_file_printer_class()
+            _TypeVariableSymbol = _get_type_variable_symbol_class()
+        except ImportError as e:
+            raise ImportError(
+                "sympy is required for symbolic equation support. "
+                "Install it with: pip install trnsystor[symbolic]"
+            ) from e
+
+
+class _LazyDeckFilePrinter:
+    """Proxy that lazily loads the real DeckFilePrinter."""
+
+    def __call__(self):
+        _ensure_sympy()
+        return _DeckFilePrinter()
+
+
+class _LazyTypeVariableSymbol:
+    """Proxy that lazily loads the real TypeVariableSymbol."""
+
+    def __call__(self, *args, **kwargs):
+        _ensure_sympy()
+        return _TypeVariableSymbol(*args, **kwargs)
+
+
+# Public names that match the old API
+DeckFilePrinter = _LazyDeckFilePrinter()
+TypeVariableSymbol = _LazyTypeVariableSymbol()
 
 
 def print_my_latex(expr):
-    """Most of the printers define their own wrappers for print().
-
-    These wrappers usually take printer settings. Our printer does not have any
-    settings.
-    """
-    return DeckFilePrinter().doprint(expr)
-
-
-class TypeVariableSymbol(Symbol):
-    """This is a subclass of the sympy Symbol class.
-
-    It is a bit of a hack, so hopefully nothing bad will happen.
-    """
-
-    def __new__(cls, type_variable, **assumptions):
-        """:class:`TypeVariableSymbol` are identified by TypeVariable and assumptions.
-
-        >>> from trnsystor.utils import TypeVariableSymbol
-        >>> TypeVariableSymbol("x") == TypeVariableSymbol("x")
-        True
-        >>> TypeVariableSymbol("x", real=True) == TypeVariableSymbol("x",
-        real=False)
-        False
-
-        Args:
-            type_variable (TypeVariable): The TypeVariable to defined as a
-                Symbol.
-            **assumptions: See :mod:`sympy.core.assumptions` for more details.
-        """
-        cls._sanitize(assumptions, cls)
-        return TypeVariableSymbol.__xnew_cached_(cls, type_variable, **assumptions)
-
-    def __new_stage2__(cls, model, **assumptions):  # type: ignore[override]
-        """Return new stage."""
-        obj = Expr.__new__(cls)  # type: ignore[arg-type]
-        obj.name = model.name
-        obj.model = model
-
-        tmp_asm_copy = assumptions.copy()
-
-        assumptions_kb, assumptions_orig, assumptions0 = Symbol._canonical_assumptions(
-            **assumptions
-        )
-        obj._assumptions = assumptions_kb
-        obj._assumptions._generator = tmp_asm_copy  # Issue #8873
-        obj._assumptions_orig = assumptions_orig
-        obj._assumptions0 = tuple(sorted(assumptions0.items()))
-        return obj
-
-    __xnew__ = staticmethod(__new_stage2__)  # type: ignore[assignment]  # never cached (e.g. dummy)
-    __xnew_cached_ = staticmethod(cacheit(__new_stage2__))  # type: ignore[assignment]  # symbols are always cached
+    """Print expression in deck file format using DeckFilePrinter."""
+    printer = DeckFilePrinter()
+    return printer.doprint(expr)

@@ -11,8 +11,6 @@ import itertools
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-import networkx as nx
-
 from trnsystor.canvas import StudioCanvas
 
 if TYPE_CHECKING:
@@ -21,11 +19,18 @@ if TYPE_CHECKING:
     from trnsystor.statement.constant import Constant
 
 
+def _make_graph():
+    """Create a new MultiDiGraph, lazily importing networkx."""
+    import networkx as nx
+
+    return nx.MultiDiGraph()
+
+
 @dataclass
 class DeckContext:
     """Scoped mutable state for a single deck's lifecycle."""
 
-    graph: nx.MultiDiGraph = field(default_factory=nx.MultiDiGraph)
+    graph: object = field(default_factory=_make_graph)
     unit_counter: Iterator[int] = field(default_factory=lambda: itertools.count(1))
     canvas: StudioCanvas = field(default_factory=StudioCanvas)
     names: set[str] = field(default_factory=set)

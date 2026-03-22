@@ -7,7 +7,11 @@ import re
 from bs4 import Tag
 
 from trnsystor.linkstyle import LinkStyle
+from trnsystor.quantity import Quantity
 from trnsystor.utils import _parse_value, parse_type, standardize_name
+
+# Pre-compiled regex for unit parenthesization
+_UNIT_SLASH_RE = re.compile(r"([\s\S\.]*)\/([\s\S\.]*)")
 
 
 class TypeVariable:
@@ -60,16 +64,16 @@ class TypeVariable:
                 requires for the specified dimension (C, F, K etc.)
             type (type or str): The type of the variable: Real, integer,
                 Boolean, or string.
-            min (int, float or pint.Quantity): The minimum value. The minimum
+            min (int, float or Quantity): The minimum value. The minimum
                 and maximum can be "-INF" or "+INF" to indicate no limit
                 (infinity). +/-INF is the default value.
-            max (int, float or pint.Quantity): The maximum value. The minimum
+            max (int, float or Quantity): The maximum value. The minimum
                 and maximum can be "-INF" or "+INF" to indicate no limit
                 (infinity). +/-INF is the default value.
             boundaries (str): This setting determines if the minimum and maximum
                 are included or not in the range. choices are "[;]", "[;[",
                 "];]" ,"];["
-            default (int, float or pint.Quantity): the default value of the
+            default (int, float or Quantity): the default value of the
                 variable. The default value is replaced by the initial value for
                 the inputs and derivatives and suppressed for the outputs.
             symbol (str): The symbol of the unit (not used).
@@ -80,6 +84,7 @@ class TypeVariable:
         self._is_question = False
         self._iscycle = False
         self._iscyclebase = False
+        self._idx: int | None = None  # precomputed index
         self.order = order
         self.name = name
         self.role = role
@@ -87,7 +92,7 @@ class TypeVariable:
         self.unit = (
             unit
             if unit is None
-            else re.sub(r"([\s\S\.]*)\/([\s\S\.]*)", r"(\1)/(\2)", unit)
+            else _UNIT_SLASH_RE.sub(r"(\1)/(\2)", unit)
         )
         self.type = type
         self.min = min
@@ -137,8 +142,6 @@ class TypeVariable:
 
     def __float__(self):
         """Return magnitude of self."""
-        from pint import Quantity
-
         if isinstance(self.value, Quantity):
             return float(self.value.m)
         if self.value is None:
@@ -147,8 +150,6 @@ class TypeVariable:
 
     def __int__(self):
         """Return int(self)."""
-        from pint import Quantity
-
         if isinstance(self.value, Quantity):
             return int(self.value.m)
         if self.value is None:
@@ -222,6 +223,10 @@ class TypeVariable:
     @property
     def idx(self):
         """Get the 0-based variable index of self."""
+        # Fast path: use precomputed index if available
+        if self._idx is not None:
+            return self._idx
+        # Fallback: compute from metadata
         model = self._require_model()
         if model._meta is None:
             raise ValueError(f"Model '{model.name}' has no metadata")

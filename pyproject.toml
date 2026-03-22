@@ -24,9 +24,7 @@ classifiers = [
 dependencies = [
     "beautifulsoup4",
     "lxml",
-    "pint",
     "shapely",
-    "sympy",
     "tabulate",
     "networkx",
 ]
@@ -46,6 +44,9 @@ dev = [
 
 
 [project.optional-dependencies]
+symbolic = [
+    "sympy",
+]
 viz = [
     "matplotlib",
 ]

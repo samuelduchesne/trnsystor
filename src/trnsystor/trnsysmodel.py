@@ -5,7 +5,6 @@ import copy
 import itertools
 from pathlib import Path
 
-import networkx as nx
 from bs4 import BeautifulSoup, Tag
 from shapely.affinity import translate
 
@@ -130,6 +129,14 @@ class MetaData:
 
         self.check_extra_tags(kwargs)
 
+    # Fields that only carry text and don't need live Tag objects.
+    _TEXT_FIELDS = frozenset({
+        "object", "author", "organization", "editor", "creationDate",
+        "modifictionDate", "mode", "validation", "icon", "type",
+        "maxInstance", "keywords", "details", "comment", "plugin",
+        "variablesComment", "source", "compileCommand",
+    })
+
     @classmethod
     def from_tag(cls, tag, **kwargs):
         """Create a TrnsysModel from an xml tag.
@@ -138,11 +145,15 @@ class MetaData:
             tag (Tag): The XML tag with its attributes and contents.
             **kwargs:
         """
-        meta_args = {
-            child.name: child.__copy__()
-            for child in tag.children
-            if isinstance(child, Tag)
-        }
+        # Text-only fields get their text extracted immediately.
+        # Structural fields keep a reference (consumed once by _from_tag).
+        meta_args: dict = {}
+        for child in tag.children:
+            if isinstance(child, Tag):
+                if child.name in cls._TEXT_FIELDS:
+                    meta_args[child.name] = child.text
+                else:
+                    meta_args[child.name] = child  # reference, no copy
         meta_args.update(kwargs)
         return cls(**{attr: meta_args[attr] for attr in meta_args})
 
@@ -198,7 +209,12 @@ class TrnsysModel(Component):
             name (str): A user-defined name for this model.
             ctx (DeckContext, optional): Scoped context.
         """
+        self._cache: dict = {}
         super().__init__(name=name, meta=meta, ctx=ctx)
+
+    def _invalidate_cache(self):
+        """Clear cached property values."""
+        self._cache.clear()
 
     def __str__(self):
         """Return repr(self)."""
@@ -261,27 +277,37 @@ class TrnsysModel(Component):
     @property
     def derivatives(self) -> DerivativesCollection:
         """Return derivatives of self."""
-        return self._get_derivatives()
+        if "derivatives" not in self._cache:
+            self._cache["derivatives"] = self._get_derivatives()
+        return self._cache["derivatives"]
 
     @property
     def special_cards(self) -> SpecialCardsCollection:
         """Return special cards of self."""
-        return self._get_special_cards()
+        if "special_cards" not in self._cache:
+            self._cache["special_cards"] = self._get_special_cards()
+        return self._cache["special_cards"]
 
     @property
     def initial_input_values(self) -> InitialInputValuesCollection:
         """Return initial input values of self."""
-        return self._get_initial_input_values()
+        if "initial_input_values" not in self._cache:
+            self._cache["initial_input_values"] = self._get_initial_input_values()
+        return self._cache["initial_input_values"]
 
     @property
     def parameters(self) -> ParameterCollection:
         """Return parameters of self."""
-        return self._get_parameters()
+        if "parameters" not in self._cache:
+            self._cache["parameters"] = self._get_parameters()
+        return self._cache["parameters"]
 
     @property
     def external_files(self) -> ExternalFileCollection:
         """Return external files of self."""
-        return self._get_external_files()
+        if "external_files" not in self._cache:
+            self._cache["external_files"] = self._get_external_files()
+        return self._cache["external_files"]
 
     @property
     def anchor_points(self) -> dict:
@@ -349,10 +375,11 @@ class TrnsysModel(Component):
             {id(var): var for var in file_vars} if file_vars else None
         )
 
-        model._get_inputs()
-        model._get_outputs()
-        model._get_parameters()
-        model._get_external_files()
+        # Eagerly populate cache
+        model._cache["inputs"] = model._get_inputs()
+        model._cache["outputs"] = model._get_outputs()
+        model._cache["parameters"] = model._get_parameters()
+        model._cache["external_files"] = model._get_external_files()
 
         return model
 
@@ -516,20 +543,20 @@ class TrnsysModel(Component):
                         question_var._is_question = True
                         self._meta.variables.update({id(question_var): question_var})
                         output_dict.update({id(question_var): question_var})
-                        from pint import Quantity as _Qty
+                        from trnsystor.quantity import Quantity as _Qty
 
                         qv = question_var.value
-                        n_times.append(qv.m if isinstance(qv, _Qty) else int(str(qv)))
+                        n_times.append(qv.m if isinstance(qv, _Qty) else int(float(str(qv))))
                     else:
                         ev = output_dict[existing].value
-                        from pint import Quantity as _Qty
+                        from trnsystor.quantity import Quantity as _Qty
 
-                        n_times.append(ev.m if isinstance(ev, _Qty) else int(str(ev)))
+                        n_times.append(ev.m if isinstance(ev, _Qty) else int(float(str(ev))))
             else:
-                from pint import Quantity as _Qty
+                from trnsystor.quantity import Quantity as _Qty
 
                 def _get_m(v):
-                    return v.m if isinstance(v, _Qty) else int(str(v))
+                    return v.m if isinstance(v, _Qty) else int(float(str(v)))
 
                 n_times = [
                     _get_m(
@@ -649,6 +676,7 @@ class TrnsysModel(Component):
         """
         assert self._meta is not None, "plot() requires a fully-initialized model"
         import matplotlib.pyplot as plt
+        import networkx as nx
 
         G = nx.DiGraph()
         G.add_edges_from(("type", output.name) for output in self.outputs.values())

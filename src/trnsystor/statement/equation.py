@@ -2,12 +2,9 @@
 
 import itertools
 
-from sympy import Symbol
-
 from trnsystor.statement.constant import Constant
 from trnsystor.statement.statement import Statement
 from trnsystor.typevariable import TypeVariable
-from trnsystor.utils import TypeVariableSymbol
 
 
 class Equation(Statement, TypeVariable):
@@ -152,8 +149,10 @@ class Equation(Statement, TypeVariable):
         Returns:
             Equation: The Equation Statement object.
         """
-        from sympy import Piecewise
+        from sympy import Piecewise, Symbol
         from sympy.parsing.sympy_parser import parse_expr
+
+        from trnsystor.utils import TypeVariableSymbol
 
         def _lt(a, b):
             return Piecewise((1, a < b), (0, True))

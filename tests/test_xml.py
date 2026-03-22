@@ -225,11 +225,11 @@ class TestTrnsysModel:
         """Assert initial input values repr and modification."""
         assert (
             repr(fan_type.initial_input_values)
-            == '7 Initial Input Values:\n"Inlet_Air_Temperature": 20.0 '
+            == '7 Initial Input Values:\n"Inlet_Air_Temperature": 20 '
             '°C\n"Inlet_Air_Humidity_Ratio": 0.008\n'
-            '"Inlet_Air_Relative_Humidity": 50.0 %\n"Air_Flow_Rate": 2000.0 kg/hr\n'
-            '"Inlet_Air_Pressure": 1.0 atm\n"Control_Signal": 1.0\n'
-            '"Air_Side_Pressure_Increase": 0.0 atm'
+            '"Inlet_Air_Relative_Humidity": 50 %\n"Air_Flow_Rate": 2000 kg/hr\n'
+            '"Inlet_Air_Pressure": 1 atm\n"Control_Signal": 1\n'
+            '"Air_Side_Pressure_Increase": 0 atm'
         )
 
         assert fan_type.initial_input_values[0].value.m == 20
@@ -289,7 +289,7 @@ class TestTrnsysModel:
         for a in tank_type.inputs.values():
             assert float(a) == 45.0
             assert (
-                repr(a) == "Hot-side temperature; units=C; value=45.0 °C\nThe"
+                repr(a) == "Hot-side temperature; units=C; value=45 °C\nThe"
                 " temperature of the fluid flowing into the tank from "
                 "the heat source. The inlet location for this hot-side "
                 "fluid is one element below the upper auxiliary heating"
@@ -299,7 +299,7 @@ class TestTrnsysModel:
         for a in tank_type.outputs.values():
             assert float(a) == 0.0
             assert (
-                repr(a) == "Temperature to heat source; units=C; value=0.0 "
+                repr(a) == "Temperature to heat source; units=C; value=0 "
                 "°C\nThe temperature of the fluid flowing from the"
                 " bottom of the storage tank and returning to the heat "
                 "source (the temperature of the bottom node)."
@@ -435,7 +435,7 @@ class TestTrnsysModel:
         from trnsystor.trnsysmodel import TrnsysModel
 
         dr = TrnsysModel.from_xml("tests/input_files/Type9c.xml")
-        assert dr._meta.compileCommand.text == r"df /c"
+        assert dr._meta.compileCommand == r"df /c"
 
     def test_set_position(self, fan_type):
         fan_type.set_canvas_position((50, 40))

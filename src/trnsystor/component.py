@@ -135,11 +135,8 @@ class Component(metaclass=ABCMeta):
     @property
     def type_number(self) -> int:
         """Return the model's type number, eg.: ``104`` for Type104."""
-        return int(
-            self._meta.type
-            if not isinstance(self._meta.type, Tag)
-            else self._meta.type.text
-        )
+        t = self._meta.type
+        return int(t if not isinstance(t, Tag) else t.text)
 
     @property
     def unit_name(self) -> str:
@@ -150,21 +147,31 @@ class Component(metaclass=ABCMeta):
     def model(self) -> "str | None":
         """Return the path of this model's proforma."""
         try:
-            model = self._meta.model
+            m = self._meta.model
         except AttributeError:
             return None
         else:
-            return model if not isinstance(model, Tag) else model.text
+            return m if not isinstance(m, Tag) else m.text
 
     @property
     def inputs(self):
         """InputCollection: returns the model's inputs."""
-        return self._get_inputs()
+        if hasattr(self, "_cache") and "inputs" in self._cache:
+            return self._cache["inputs"]
+        result = self._get_inputs()
+        if hasattr(self, "_cache"):
+            self._cache["inputs"] = result
+        return result
 
     @property
     def outputs(self):
         """OutputCollection: returns the model's outputs."""
-        return self._get_outputs()
+        if hasattr(self, "_cache") and "outputs" in self._cache:
+            return self._cache["outputs"]
+        result = self._get_outputs()
+        if hasattr(self, "_cache"):
+            self._cache["outputs"] = result
+        return result
 
     @property
     def centroid(self):

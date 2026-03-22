@@ -1,6 +1,6 @@
 """InitialInputValuesCollection module."""
 
-from pint import Quantity
+from trnsystor.quantity import Quantity
 
 from trnsystor.collections.variable import VariableCollection
 from trnsystor.statement import Constant, Equation
