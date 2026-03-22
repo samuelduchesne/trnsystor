@@ -128,8 +128,8 @@ proforma as for a regular input or parameter.
 
 ```python
 >>> pipe1.parameters['Number_of_Fluid_Nodes'] = 50
->>> pipe_type.initial_input_values["Inlet_Fluid_Temperature_Pipe_1"] = 70
->>> pipe_type.initial_input_values["Inlet_Fluid_Temperature_Pipe_1"].default  # or, pipe_type.initial_input_values[0]
+>>> pipe1.initial_input_values["Inlet_Fluid_Temperature_Pipe_1"] = 70
+>>> pipe1.initial_input_values["Inlet_Fluid_Temperature_Pipe_1"].default  # or, pipe1.initial_input_values[0]
 70.0 <Unit('degC')>
 ```
 

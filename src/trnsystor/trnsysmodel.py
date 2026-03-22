@@ -216,7 +216,7 @@ class TrnsysModel(Component):
             Simply pass the xml path to the constructor.
 
             >>> from trnsystor import TrnsysModel
-            >>> fan1 = TrnsysModel.from_xml("Tests/input_files/Type146.xml")
+            >>> fan1 = TrnsysModel.from_xml("tests/input_files/Type146.xml")
 
         Args:
             xml (str or Path): The path of the xml file.

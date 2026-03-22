@@ -58,6 +58,8 @@ title: API Reference
 
 ::: trnsystor.statement.Solver
 
+::: trnsystor.statement.Width
+
 ## Helper Classes
 
 ::: trnsystor.trnsysmodel.MetaData
@@ -75,6 +77,10 @@ title: API Reference
 ::: trnsystor.linkstyle.LinkStyle
 
 ::: trnsystor.anchorpoint.AnchorPoint
+
+::: trnsystor.canvas.StudioCanvas
+
+::: trnsystor.context.DeckContext
 
 ## Collections
 
@@ -95,6 +101,10 @@ title: API Reference
 ::: trnsystor.collections.OutputCollection
 
 ::: trnsystor.collections.ParameterCollection
+
+::: trnsystor.collections.DerivativesCollection
+
+::: trnsystor.collections.InitialInputValuesCollection
 
 ## Utils
 
