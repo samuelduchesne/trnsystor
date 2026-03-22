@@ -16,6 +16,8 @@ title: API Reference
 
 ::: trnsystor.TrnsysModel
 
+::: trnsystor.quantity.Quantity
+
 ::: trnsystor.typevariable.Parameter
 
 ::: trnsystor.typevariable.Input
@@ -106,6 +108,22 @@ title: API Reference
 
 ::: trnsystor.collections.InitialInputValuesCollection
 
+## Parsing
+
+::: trnsystor.parsing.tokenize
+
+::: trnsystor.parsing.parse
+
+::: trnsystor.parsing.Token
+
+::: trnsystor.parsing.TokenKind
+
+::: trnsystor.parsing.SourceLocation
+
+::: trnsystor.parsing.DeckParseError
+
+::: trnsystor.serialization.serialize_deck
+
 ## Utils
 
 ::: trnsystor.utils.affine_transform
@@ -114,8 +132,4 @@ title: API Reference
 
 ::: trnsystor.utils.get_rgb_from_int
 
-::: trnsystor.utils.DeckFilePrinter
-
 ::: trnsystor.utils.print_my_latex
-
-::: trnsystor.utils.TypeVariableSymbol

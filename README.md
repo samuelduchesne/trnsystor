@@ -15,6 +15,12 @@ specify parameters, connect components together and more through python code.
 pip install trnsystor
 ```
 
+For symbolic equation support (e.g., `Equation.from_symbolic_expression`):
+
+```shell
+pip install trnsystor[symbolic]
+```
+
 ## Studio Canvas Grid
 
 Paths between component ports are routed on a logical grid.  The
@@ -53,7 +59,7 @@ the new value as you would change a dict value:
 ```python
 >>> pipe1.parameters['Number_of_Fluid_Nodes'] = 50
 >>> pipe1.parameters['Number_of_Fluid_Nodes']
-NNumber of Fluid Nodes; units=-; value=50
+Number of Fluid Nodes; units=-; value=50
 The number of nodes into which each pipe will be divided. Increasing the number of nodes will improve the accuracy but cost simulation run-time.
 ```
 
@@ -67,10 +73,10 @@ The new outputs are now accessible and can also be accessed with loops:
 ```python
 >>> for i in range(1,50):
 ...    print(pipe1.outputs["Average_Fluid_Temperature_Pipe_1_{}".format(i)])
-Average Fluid Temperature - Pipe 1-1; units=C; value=0.0 celsius
+Average Fluid Temperature - Pipe 1-1; units=C; value=0 °C
 The average temperature of the fluid in the specified node of the first buried pipe.
 ... *skipping redundant lines*
-Average Fluid Temperature - Pipe 1-49; units=C; value=0.0 celsius
+Average Fluid Temperature - Pipe 1-49; units=C; value=0 °C
 The average temperature of the fluid in the specified node of the first buried pipe.
 ```
 
@@ -130,13 +136,13 @@ proforma as for a regular input or parameter.
 >>> pipe1.parameters['Number_of_Fluid_Nodes'] = 50
 >>> pipe1.initial_input_values["Inlet_Fluid_Temperature_Pipe_1"] = 70
 >>> pipe1.initial_input_values["Inlet_Fluid_Temperature_Pipe_1"].default  # or, pipe1.initial_input_values[0]
-70.0 <Unit('degC')>
+70.0 °C
 ```
 
 ## Creating a Deck file
 
-A deck file (.dck) is created by instanciating a `Deck` object and calling the instance
-method `.save()`. The Deck object contains the Simulation Cards and the different models
+A deck file (.dck) is created by instantiating a `Deck` object and calling the instance
+method `.to_file()`. The Deck object contains the Simulation Cards and the different models
 (components) for the project. The following code block shows one way of creating a Deck
 and saving it to file.
 
@@ -150,7 +156,7 @@ and saving it to file.
 >>>
 >>> deck.update_models(list_models)
 >>>
->>> deck.save("my_project.dck")
+>>> deck.to_file("my_project.dck")
 ```
 
 ### Simulation Cards

@@ -64,5 +64,3 @@ plugins:
           inventories:
             - https://docs.python.org/3/objects.inv
             - https://networkx.org/documentation/stable/objects.inv
-            - https://pint.readthedocs.io/en/stable/objects.inv
-            - https://docs.sympy.org/latest/objects.inv
