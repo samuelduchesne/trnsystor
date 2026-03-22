@@ -1,6 +1,5 @@
 """InputCollection module."""
 
-
 from trnsystor.collections.variable import VariableCollection
 
 

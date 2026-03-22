@@ -128,15 +128,12 @@ def _build_control_cards(parsed: ParsedDeck, ctx: DeckContext) -> ControlCards:
     for block in parsed.constants_blocks:
         cb = ConstantCollection(ctx=ctx)
         for pc in block.constants:
-            cb.update(
-                Constant.from_expression(
-                    f"{pc.name}={pc.expression}", ctx=ctx
-                )
-            )
+            cb.update(Constant.from_expression(f"{pc.name}={pc.expression}", ctx=ctx))
         cc.set_statement(cb)
 
     if parsed.simulation:
         s = parsed.simulation
+
         # start/stop/step may be constant names or literal numbers
         def _parse_sim_val(val: str) -> int | Constant:
             try:
@@ -144,9 +141,7 @@ def _build_control_cards(parsed: ParsedDeck, ctx: DeckContext) -> ControlCards:
             except ValueError:
                 return Constant(val, ctx=ctx)
 
-        start, stop, step = (
-            _parse_sim_val(v) for v in (s.start, s.stop, s.step)
-        )
+        start, stop, step = (_parse_sim_val(v) for v in (s.start, s.stop, s.step))
         cc.set_statement(Simulation(start, stop, step))  # type: ignore[arg-type]
 
     if parsed.tolerances:
@@ -156,9 +151,7 @@ def _build_control_cards(parsed: ParsedDeck, ctx: DeckContext) -> ControlCards:
 
     if parsed.limits:
         lim = parsed.limits
-        cc.set_statement(
-            Limits(lim.max_iterations, lim.max_warnings, lim.trace_limit)
-        )
+        cc.set_statement(Limits(lim.max_iterations, lim.max_warnings, lim.trace_limit))
 
     # Generic statements (DFQ, WIDTH, SOLVER, etc.)
     from trnsystor.statement import Map, NoCheck, NoList
@@ -319,7 +312,10 @@ def _resolve_connections(parsed: ParsedDeck, dck: Deck) -> None:
             except (KeyError, IndexError, ValueError) as exc:
                 log.debug(
                     "Unit %d input %d (%s): %s",
-                    ub.unit.unit_number, i, raw, exc,
+                    ub.unit.unit_number,
+                    i,
+                    raw,
+                    exc,
                 )
 
         # Set initial input values
@@ -331,7 +327,10 @@ def _resolve_connections(parsed: ParsedDeck, dck: Deck) -> None:
             except (KeyError, IndexError, ValueError) as exc:
                 log.debug(
                     "Unit %d initial value %d (%s): %s",
-                    ub.unit.unit_number, i, val, exc,
+                    ub.unit.unit_number,
+                    i,
+                    val,
+                    exc,
                 )
 
 
@@ -367,9 +366,7 @@ def _apply_one_link(link: ParsedLink, dck: Deck) -> None:
         linestyle = _studio_to_linestyle(int(m.group("linestyle")))
         linewidth = int(m.group("linewidth"))
 
-        path = LineString(
-            [list(map(int, p.split(","))) for p in path_str]
-        )
+        path = LineString([list(map(int, p.split(","))) for p in path_str])
 
         u_model.set_link_style(
             v_model,

@@ -48,7 +48,8 @@ class VariableCollection(collections.UserDict):
         elif isinstance(value, int | float | str):
             """a str, float, int, etc. is passed"""
             existing = (
-                self.data[key] if isinstance(key, str)
+                self.data[key]
+                if isinstance(key, str)
                 else list(self.data.values())[key]
             )
             value = _parse_value(
@@ -57,7 +58,8 @@ class VariableCollection(collections.UserDict):
             existing.__setattr__("value", value)
         elif isinstance(value, Quantity):
             existing_q = (
-                self.data[key] if isinstance(key, str)
+                self.data[key]
+                if isinstance(key, str)
                 else list(self.data.values())[key]
             )
             target_units = (

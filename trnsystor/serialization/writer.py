@@ -25,10 +25,7 @@ def serialize_deck(obj: Deck) -> str:
                 str,
                 list(
                     itertools.chain.from_iterable(
-                        [
-                            model.studio.link_styles.values()
-                            for model in obj.models
-                        ]
+                        [model.studio.link_styles.values() for model in obj.models]
                     )
                 ),
             )

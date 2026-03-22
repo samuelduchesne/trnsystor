@@ -51,16 +51,12 @@ class Deck:
         elif isinstance(models, list):
             self.models = ComponentCollection(models)
         else:
-            raise TypeError(
-                f"Can't create a Deck with models of type '{type(models)}'"
-            )
+            raise TypeError(f"Can't create a Deck with models of type '{type(models)}'")
         self.control_cards = control_cards or ControlCards.basic_template()
         self.name = name
         self.author = author
         if date_created:
-            self.date_created = datetime.datetime.fromisoformat(
-                str(date_created)
-            )
+            self.date_created = datetime.datetime.fromisoformat(str(date_created))
         else:
             self.date_created = datetime.datetime.now()
 
@@ -284,9 +280,7 @@ class Deck:
                 other.connect_to(model, mapping={output_number - 1: i})
             else:
                 try:
-                    other = next(
-                        n for n in dck.models if (tvar in n.outputs)
-                    )
+                    other = next(n for n in dck.models if (tvar in n.outputs))
                     other[tvar].connect_to(getattr(model, key)[i])
                 except StopIteration:
                     pass

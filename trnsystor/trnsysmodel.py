@@ -517,16 +517,14 @@ class TrnsysModel(Component):
                         self._meta.variables.update({id(question_var): question_var})
                         output_dict.update({id(question_var): question_var})
                         from pint import Quantity as _Qty
+
                         qv = question_var.value
-                        n_times.append(
-                            qv.m if isinstance(qv, _Qty) else int(str(qv))
-                        )
+                        n_times.append(qv.m if isinstance(qv, _Qty) else int(str(qv)))
                     else:
                         ev = output_dict[existing].value
                         from pint import Quantity as _Qty
-                        n_times.append(
-                            ev.m if isinstance(ev, _Qty) else int(str(ev))
-                        )
+
+                        n_times.append(ev.m if isinstance(ev, _Qty) else int(str(ev)))
             else:
                 from pint import Quantity as _Qty
 

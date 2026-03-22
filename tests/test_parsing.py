@@ -236,7 +236,7 @@ class TestParser:
             "UNIT 4 TYPE 15\t Boulder, CO\n"
             "PARAMETERS 1\n"
             "2\n"
-            '*** External files\n'
+            "*** External files\n"
             'ASSIGN "C:\\path\\file.tm2" 30\n'
         )
         deck = parse(text)
@@ -311,9 +311,7 @@ class TestParser:
 
         # Constants
         assert len(deck.constants_blocks) >= 1
-        total_constants = sum(
-            len(b.constants) for b in deck.constants_blocks
-        )
+        total_constants = sum(len(b.constants) for b in deck.constants_blocks)
         assert total_constants == 3  # START, STOP, STEP
 
         # User constants (equation block)
@@ -343,8 +341,25 @@ class TestParser:
         unit_numbers = [u.unit.unit_number for u in deck.units]
         # Check that we got all expected units from the test deck
         expected_units = [
-            2, 3, 4, 5, 7, 9, 10, 11, 12,
-            14, 15, 16, 17, 18, 21, 23, 24, 25, 26,
+            2,
+            3,
+            4,
+            5,
+            7,
+            9,
+            10,
+            11,
+            12,
+            14,
+            15,
+            16,
+            17,
+            18,
+            21,
+            23,
+            24,
+            25,
+            26,
         ]
         for expected in expected_units:
             assert expected in unit_numbers, f"Unit {expected} not found"

@@ -143,7 +143,7 @@ def _classify_line(line: str, line_number: int) -> Token:
             value = ""
         else:
             key = rest[:space_idx].lower()
-            value = rest[space_idx + 1:].strip()
+            value = rest[space_idx + 1 :].strip()
         kind = _STUDIO_MAP.get(key)
         if kind is not None:
             return Token(kind, value, line_number, raw)
@@ -188,7 +188,7 @@ def _classify_line(line: str, line_number: int) -> Token:
     kind = _KEYWORD_MAP.get(first_word)
     if kind is not None:
         # Payload is everything after the keyword
-        rest = content[len(first_word):].strip()
+        rest = content[len(first_word) :].strip()
         return Token(kind, rest, line_number, raw)
 
     # Data line (parameter values, equation expressions, etc.)

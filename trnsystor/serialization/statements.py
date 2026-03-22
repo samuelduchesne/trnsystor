@@ -66,9 +66,7 @@ def serialize_width(obj: Width) -> str:
 def serialize_solver(obj: Solver) -> str:
     """Return deck representation of Solver."""
     return (
-        f"SOLVER {obj.k} {obj.rf_min} {obj.rf_max}"
-        if obj.k == 0
-        else f"SOLVER {obj.k}"
+        f"SOLVER {obj.k} {obj.rf_min} {obj.rf_max}" if obj.k == 0 else f"SOLVER {obj.k}"
     )
 
 
@@ -106,10 +104,7 @@ def serialize_nocheck(obj: NoCheck) -> str:
     """Return deck representation of NoCheck."""
     head = f"NOCHECK {len(obj.inputs)}\n"
     core = "\t".join(
-        [
-            f"{input.model.unit_number}, {input.one_based_idx}"
-            for input in obj.inputs
-        ]
+        [f"{input.model.unit_number}, {input.one_based_idx}" for input in obj.inputs]
     )
     return str(head) + str(core)
 

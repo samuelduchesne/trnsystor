@@ -42,23 +42,14 @@ def serialize_link_style(obj: LinkStyle) -> str:
     )
 
     rgb = _to_rgb(obj.get_color())
-    color = (
-        str(get_int_from_rgb(tuple(c * 255 for c in rgb)))
-        + ":"
-    )
+    color = str(get_int_from_rgb(tuple(c * 255 for c in rgb))) + ":"
     raw_path = obj.path
     if raw_path is None:
         coords = []
     elif isinstance(raw_path, LineString):
-        coords = [
-            tuple(int(v) for v in pt)
-            for pt in raw_path.coords
-        ]
+        coords = [tuple(int(v) for v in pt) for pt in raw_path.coords]
     elif isinstance(raw_path, list):
-        coords = [
-            tuple(int(v) for v in pt)
-            for pt in raw_path
-        ]
+        coords = [tuple(int(v) for v in pt) for pt in raw_path]
     else:
         coords = []
     # Handle single-point case (flatten 1-d)

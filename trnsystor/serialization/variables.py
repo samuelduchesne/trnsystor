@@ -131,9 +131,7 @@ def serialize_derivatives(obj: DerivativesCollection) -> str:
         return ""
 
     head = f"DERIVATIVES {obj.size}\n"
-    _ins = [
-        (derivative.value.m, f"! {derivative.name}") for derivative in obj.values()
-    ]
+    _ins = [(derivative.value.m, f"! {derivative.name}") for derivative in obj.values()]
     core = _tabulate.tabulate(_ins, tablefmt="plain", numalign="left")
     return head + core + "\n"
 

@@ -63,9 +63,7 @@ class _State(Enum):
 
 
 # Regex for UNIT line payload: "2 TYPE 50 PV/T" or "2 50 PV/T"
-_UNIT_RE = re.compile(
-    r"(\d+)\s+(?:type\s+)?(\d+)\s*(.*)", re.IGNORECASE
-)
+_UNIT_RE = re.compile(r"(\d+)\s+(?:type\s+)?(\d+)\s*(.*)", re.IGNORECASE)
 
 # Regex for ASSIGN payload: '"path" logical_unit'
 _ASSIGN_RE = re.compile(r'"([^"]+)"\s+(\d+)')
@@ -173,9 +171,7 @@ class _Parser:
         loc = self._loc(token)
 
         if token.kind == TokenKind.VERSION:
-            self._deck.version = ParsedVersion(
-                token.payload.strip(), loc
-            )
+            self._deck.version = ParsedVersion(token.payload.strip(), loc)
 
         elif token.kind == TokenKind.SIMULATION:
             parts = token.payload.split()
@@ -342,9 +338,7 @@ class _Parser:
                     ParsedConstant(name.strip(), expr.strip(), self._loc(token))
                 )
         loc = SourceLocation(token.line_number - len(self._collected))
-        self._deck.constants_blocks.append(
-            ParsedConstantsBlock(tuple(constants), loc)
-        )
+        self._deck.constants_blocks.append(ParsedConstantsBlock(tuple(constants), loc))
         self._state = _State.TOP_LEVEL
 
     # -----------------------------------------------------------------
@@ -411,9 +405,7 @@ class _Parser:
             )
             self._collecting_derivatives = False
         else:
-            self._current_unit.parameters = ParsedParameters(
-                values, SourceLocation(0)
-            )
+            self._current_unit.parameters = ParsedParameters(values, SourceLocation(0))
 
         self._state = _State.IN_UNIT
 
@@ -425,9 +417,7 @@ class _Parser:
         if token.kind == TokenKind.DATA_LINE:
             loc = self._loc(token)
             for val in token.payload.split():
-                self._input_connections.append(
-                    ParsedInputConnection(val, loc)
-                )
+                self._input_connections.append(ParsedInputConnection(val, loc))
             if len(self._input_connections) >= self._input_count:
                 self._state = _State.IN_INITIAL_VALUES
         else:
@@ -535,7 +525,8 @@ class _Parser:
         if token.kind == TokenKind.LINK_CONNECTION_SET:
             self._deck.links.append(
                 ParsedLink(
-                    self._link_u, self._link_v,
+                    self._link_u,
+                    self._link_v,
                     token.payload,
                     self._link_loc or self._loc(token),
                 )
@@ -555,7 +546,8 @@ class _Parser:
         elif token.kind == TokenKind.LINK_CONNECTION_SET:
             self._deck.links.append(
                 ParsedLink(
-                    self._link_u, self._link_v,
+                    self._link_u,
+                    self._link_v,
                     token.payload,
                     self._link_loc or self._loc(token),
                 )
@@ -580,8 +572,10 @@ class _Parser:
         if m:
             self._current_unit = ParsedUnitBlock(
                 unit=ParsedUnit(
-                    int(m.group(1)), int(m.group(2)),
-                    m.group(3).strip(), self._loc(token),
+                    int(m.group(1)),
+                    int(m.group(2)),
+                    m.group(3).strip(),
+                    self._loc(token),
                 ),
             )
             self._current_studio = []
@@ -610,10 +604,8 @@ class _Parser:
             self._last_eq_block_idx = -1
             return
         old = self._deck.equation_blocks[self._last_eq_block_idx]
-        self._deck.equation_blocks[self._last_eq_block_idx] = (
-            ParsedEquationsBlock(
-                old.equations, old.loc, tuple(self._current_studio)
-            )
+        self._deck.equation_blocks[self._last_eq_block_idx] = ParsedEquationsBlock(
+            old.equations, old.loc, tuple(self._current_studio)
         )
         self._last_eq_block_idx = -1
         self._current_studio = []

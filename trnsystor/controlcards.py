@@ -1,6 +1,5 @@
 """ControlCards module."""
 
-
 from trnsystor.statement import (
     DFQ,
     End,

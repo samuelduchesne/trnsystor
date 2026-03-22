@@ -23,6 +23,7 @@ class SourceLocation:
 # Control-card tokens
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True, slots=True)
 class ParsedVersion:
     version: str
@@ -92,6 +93,7 @@ class ParsedEquationsBlock:
 # Studio markup
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True, slots=True)
 class ParsedStudioMarkup:
     """One studio comment line: *$UNIT_NAME, *$MODEL, etc."""
@@ -104,6 +106,7 @@ class ParsedStudioMarkup:
 # ---------------------------------------------------------------------------
 # Unit (component) blocks
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True, slots=True)
 class ParsedUnit:
@@ -175,6 +178,7 @@ class ParsedUnitBlock:
 # User-constants wrapper (equation blocks inside *$USER_CONSTANTS)
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True, slots=True)
 class ParsedUserConstantsBlock:
     equations_block: ParsedEquationsBlock | None
@@ -185,6 +189,7 @@ class ParsedUserConstantsBlock:
 # ---------------------------------------------------------------------------
 # Link styles
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True, slots=True)
 class ParsedLink:
@@ -198,6 +203,7 @@ class ParsedLink:
 # Top-level result
 # ---------------------------------------------------------------------------
 
+
 @dataclass(slots=True)
 class ParsedDeck:
     """Complete parsed representation of a .dck file."""
@@ -209,8 +215,6 @@ class ParsedDeck:
     statements: list[ParsedStatement] = field(default_factory=list)
     constants_blocks: list[ParsedConstantsBlock] = field(default_factory=list)
     equation_blocks: list[ParsedEquationsBlock] = field(default_factory=list)
-    user_constants_blocks: list[ParsedUserConstantsBlock] = field(
-        default_factory=list
-    )
+    user_constants_blocks: list[ParsedUserConstantsBlock] = field(default_factory=list)
     units: list[ParsedUnitBlock] = field(default_factory=list)
     links: list[ParsedLink] = field(default_factory=list)
