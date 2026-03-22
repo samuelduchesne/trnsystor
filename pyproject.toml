@@ -60,12 +60,13 @@ docs = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["trnsystor"]
+packages = ["src/trnsystor"]
 
 [tool.ruff]
 line-length = 88
 target-version = "py310"
 fix = true
+src = ["src"]
 
 [tool.ruff.lint]
 select = [
@@ -90,11 +91,14 @@ combine-as-imports = true
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["ANN", "PT011", "PT012"]
-"trnsystor/parsing/resolver.py" = ["PERF203"]  # try/except in loops needed for per-iteration debug logging
+"src/trnsystor/parsing/resolver.py" = ["PERF203"]  # try/except in loops needed for per-iteration debug logging
 
 [tool.pyright]
 pythonVersion = "3.10"
 typeCheckingMode = "standard"
+venvPath = "."
+venv = ".venv"
+pythonPlatform = "All"
 exclude = ["tests", "docs"]
 
 [tool.deptry]
@@ -109,5 +113,5 @@ omit = ["tests/*", "docs/*"]
 fail_under = 90
 
 [tool.pytest.ini_options]
-addopts = "--cov=trnsystor --cov-report=term-missing --import-mode=importlib"
+addopts = "--cov=src/trnsystor --cov-report=term-missing --import-mode=importlib"
 testpaths = ["tests"]

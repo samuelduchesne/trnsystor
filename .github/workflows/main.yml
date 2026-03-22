@@ -44,7 +44,7 @@ jobs:
         run: uv run python -m pytest tests --cov --cov-config=pyproject.toml --cov-report=xml
 
       - name: Check typing
-        run: uv run pyright trnsystor/
+        run: uv run pyright src/trnsystor/
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5

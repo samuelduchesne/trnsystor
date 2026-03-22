@@ -15,9 +15,9 @@ check: ## Run code quality tools.
 	@echo "🚀 Linting code: Running pre-commit"
 	@uv run pre-commit run -a
 	@echo "🚀 Static type checking: Running pyright"
-	@uv run pyright trnsystor/
+	@uv run pyright src/trnsystor/
 	@echo "🚀 Checking for obsolete dependencies: Running deptry"
-	@uv run deptry trnsystor
+	@uv run deptry src/trnsystor
 
 .PHONY: test
 test: ## Test the code with pytest
