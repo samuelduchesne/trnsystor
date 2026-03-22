@@ -5,7 +5,6 @@ from pathlib import Path
 from trnsystor.parsing.lexer import TokenKind, tokenize
 from trnsystor.parsing.parser import parse
 
-
 DCK_FILE = Path("tests/input_files/test_deck.dck")
 
 
@@ -343,7 +342,10 @@ class TestParser:
         deck = parse(text)
         unit_numbers = [u.unit.unit_number for u in deck.units]
         # Check that we got all expected units from the test deck
-        expected_units = [2, 3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 16, 17, 18, 21, 23, 24, 25, 26]
+        expected_units = [
+            2, 3, 4, 5, 7, 9, 10, 11, 12,
+            14, 15, 16, 17, 18, 21, 23, 24, 25, 26,
+        ]
         for expected in expected_units:
             assert expected in unit_numbers, f"Unit {expected} not found"
 

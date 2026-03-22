@@ -51,6 +51,7 @@ dev-dependencies = [
     "pre-commit",
     "ruff",
     "pyright",
+    "matplotlib",
     "pytest>=8",
     "pytest-cov",
     "sphinx>=7",

@@ -1835,6 +1835,7 @@ viz = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "matplotlib" },
     { name = "myst-parser", version = "4.0.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "myst-parser", version = "5.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pre-commit" },
@@ -1868,6 +1869,7 @@ provides-extras = ["viz", "test", "docs"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "matplotlib" },
     { name = "myst-parser" },
     { name = "pre-commit" },
     { name = "pyright" },
