@@ -2,8 +2,6 @@
 
 import collections
 
-import tabulate
-
 from trnsystor.component import Component
 from trnsystor.statement import Equation
 
@@ -150,21 +148,9 @@ class EquationCollection(Component, collections.UserDict):
             •
             NAMEn = ... equation n ...
         """
-        header_comment = f'* EQUATIONS "{self.name}"\n*\n'
-        head = f"EQUATIONS {len(self)}\n"
-        v_ = ((equa.name, "=", equa._to_deck()) for equa in self.values())
-        core = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
+        from trnsystor.serialization.components import serialize_equation_collection
 
-        def _studio(self):
-            """Return deck representation of self."""
-            unit_name = f"*$UNIT_NAME {self.unit_name}"
-            layer = "*$LAYER {}".format(" ".join(self.studio.layer))
-            position = f"*$POSITION {self.studio.position.x} {self.studio.position.y}"
-            unit_number = f"*$UNIT_NUMBER {self.unit_number}"
-            return "\n" + "\n".join([unit_name, layer, position, unit_number]) + "\n"
-
-        tail = _studio(self)
-        return str(header_comment) + str(head) + str(core) + str(tail)
+        return serialize_equation_collection(self)
 
     def _get_inputs(self):
         """Sort by order number each time it is called."""

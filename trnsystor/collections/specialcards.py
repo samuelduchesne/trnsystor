@@ -2,8 +2,6 @@
 
 import collections
 
-import tabulate
-
 
 class SpecialCardsCollection(collections.UserList):
     """Subclass of :class:`VariableCollection` specific to Derivatives."""
@@ -18,14 +16,9 @@ class SpecialCardsCollection(collections.UserList):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        if self.size == 0:
-            # Don't need to print empty inputs
-            return ""
+        from trnsystor.serialization.variables import serialize_special_cards
 
-        _ins = [[" ".join(a for a in [sc.name, sc.default] if a)] for sc in self]
-        core = tabulate.tabulate(_ins, tablefmt="plain")
-
-        return core
+        return serialize_special_cards(self)
 
     @property
     def size(self):

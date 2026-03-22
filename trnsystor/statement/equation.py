@@ -2,12 +2,12 @@
 
 import itertools
 
-from sympy import Expr, Symbol
+from sympy import Symbol
 
 from trnsystor.statement.constant import Constant
 from trnsystor.statement.statement import Statement
 from trnsystor.typevariable import TypeVariable
-from trnsystor.utils import TypeVariableSymbol, print_my_latex
+from trnsystor.utils import TypeVariableSymbol
 
 
 class Equation(Statement, TypeVariable):
@@ -203,12 +203,6 @@ class Equation(Statement, TypeVariable):
 
     def _to_deck(self) -> str:
         """Return deck representation of self."""
-        if isinstance(self.equals_to, TypeVariable):
-            tv_model = self.equals_to._require_model()
-            unit = tv_model.unit_number
-            idx = self.equals_to.one_based_idx
-            return f"[{unit}, {idx}]"
-        elif isinstance(self.equals_to, Expr):
-            return print_my_latex(self.equals_to)
-        else:
-            return str(self.equals_to) if self.equals_to is not None else ""
+        from trnsystor.serialization.statements import serialize_equation_statement
+
+        return serialize_equation_statement(self)

@@ -1,8 +1,5 @@
 """ControlCards module."""
 
-import tabulate
-
-from trnsystor.component import Component
 from trnsystor.statement import (
     DFQ,
     End,
@@ -191,20 +188,9 @@ class ControlCards:
 
         If the :attr:`doc` is specified, a small description is printed in comments.
         """
-        version = str(self.version) + "\n"
-        head = "*** Control Cards\n"
-        v_ = []
-        for param in self.__dict__.values():
-            if isinstance(param, Version):
-                continue
-            if isinstance(param, Component):
-                v_.append((str(param), None))
-            if hasattr(param, "doc"):
-                v_.append((str(param), f"! {getattr(param, 'doc', '')}"))
-            else:
-                pass
-        statements = tabulate.tabulate(tuple(v_), tablefmt="plain", numalign="left")
-        return version + head + statements
+        from trnsystor.serialization.statements import serialize_control_cards
+
+        return serialize_control_cards(self)
 
     def set_statement(self, statement):
         """Set `statement`."""

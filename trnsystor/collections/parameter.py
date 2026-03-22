@@ -1,15 +1,6 @@
 """Parameter module."""
 
-from typing import TYPE_CHECKING
-
-import tabulate
-from pint import Quantity
-
 from trnsystor.collections.variable import VariableCollection
-from trnsystor.statement import Equation
-
-if TYPE_CHECKING:
-    from trnsystor.typevariable import TypeVariable
 
 
 class ParameterCollection(VariableCollection):
@@ -25,37 +16,9 @@ class ParameterCollection(VariableCollection):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        head = f"PARAMETERS {self.size}\n"
-        # loop through parameters and print the (value, name) tuples.
-        v_ = []
-        param: TypeVariable
-        for param in self.values():
-            if not param._is_question:
-                if isinstance(param.value, Equation):
-                    v_.append(
-                        (
-                            param.value.name,
-                            f"! {param.one_based_idx} {param.name}",
-                        )
-                    )
-                elif isinstance(param.value, Quantity):
-                    v_.append(
-                        (
-                            param.value.m,
-                            f"! {param.one_based_idx} {param.name}",
-                        )
-                    )
-                else:
-                    model_name = (
-                        param.model.name if param.model is not None else "<unknown>"
-                    )
-                    raise NotImplementedError(
-                        f"Printing parameter '{param.name}' of type "
-                        f"'{type(param.value)}' from unit "
-                        f"'{model_name}' is not supported"
-                    )
-        params_str = tabulate.tabulate(v_, tablefmt="plain", numalign="left")
-        return head + params_str + "\n"
+        from trnsystor.serialization.variables import serialize_parameters
+
+        return serialize_parameters(self)
 
     @property
     def size(self):

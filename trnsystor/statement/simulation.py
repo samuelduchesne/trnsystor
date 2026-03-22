@@ -36,4 +36,6 @@ class Simulation(Statement):
 
         SIMULATION to tf Δt
         """
-        return f"SIMULATION {self.start} {self.stop} {self.step}"
+        from trnsystor.serialization.statements import serialize_simulation
+
+        return serialize_simulation(self)

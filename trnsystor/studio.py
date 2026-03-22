@@ -42,8 +42,6 @@ class StudioHeader:
 
     def _to_deck(self):
         """Return deck representation of self."""
-        unit_name = f"*$UNIT_NAME {self.unit_name}"
-        model = f"*$MODEL {self.model.expanduser().resolve()}"
-        position = f"*$POSITION {self.position.x} {self.position.y}"
-        layer = "*$LAYER {}".format(" ".join(self.layer))
-        return "\n".join([unit_name, model, position, layer]) + "\n"
+        from trnsystor.serialization.studio import serialize_studio_header
+
+        return serialize_studio_header(self)

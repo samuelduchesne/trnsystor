@@ -185,9 +185,7 @@ class TypeVariable:
     def _require_model(self):
         """Return the associated model, raising if it is None."""
         if self.model is None:
-            raise ValueError(
-                f"TypeVariable '{self.name}' has no associated model"
-            )
+            raise ValueError(f"TypeVariable '{self.name}' has no associated model")
         return self.model
 
     @property
@@ -235,9 +233,7 @@ class TypeVariable:
             )
             for attr in sorted(
                 filter(
-                    lambda kv: isinstance(
-                        variables[kv], self.__class__
-                    )
+                    lambda kv: isinstance(variables[kv], self.__class__)
                     and variables[kv]._iscyclebase is False,
                     variables,
                 ),

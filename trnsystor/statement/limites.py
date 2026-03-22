@@ -37,5 +37,6 @@ class Limits(Statement):
         Examples:
             TOLERANCES 0.001 0.001
         """
-        head = f"LIMITS {self.m} {self.n} {self.p}"
-        return str(head)
+        from trnsystor.serialization.statements import serialize_limits
+
+        return serialize_limits(self)

@@ -18,4 +18,6 @@ class End(Statement):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        return "END"
+        from trnsystor.serialization.statements import serialize_end
+
+        return serialize_end(self)

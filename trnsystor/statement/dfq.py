@@ -34,4 +34,6 @@ class DFQ(Statement):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        return str(f"DFQ {self.k}")
+        from trnsystor.serialization.statements import serialize_dfq
+
+        return serialize_dfq(self)

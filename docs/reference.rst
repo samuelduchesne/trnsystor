@@ -47,6 +47,7 @@ Trnsys Statements
     EqSolver
     End
     Solver
+    Width
 
 Helper Classes
 --------------
@@ -65,6 +66,8 @@ Helper Classes
     studio.StudioHeader
     linkstyle.LinkStyle
     anchorpoint.AnchorPoint
+    canvas.StudioCanvas
+    context.DeckContext
 
 Collections
 -----------
@@ -84,6 +87,8 @@ Collections
     InputCollection
     OutputCollection
     ParameterCollection
+    DerivativesCollection
+    InitialInputValuesCollection
 
 
 Utils
@@ -101,4 +106,34 @@ Utils
     DeckFilePrinter
     print_my_latex
     TypeVariableSymbol
+
+
+Parsing
+-------
+
+.. currentmodule:: trnsystor.parsing
+.. autosummary::
+    :template: autosummary.rst
+    :nosignatures:
+    :toctree: reference
+
+    tokenize
+    parse
+    Token
+    TokenKind
+    ParsedDeck
+    DeckParseError
+    SourceLocation
+
+
+Serialization
+-------------
+
+.. currentmodule:: trnsystor.serialization
+.. autosummary::
+    :template: autosummary.rst
+    :nosignatures:
+    :toctree: reference
+
+    serialize_deck
 

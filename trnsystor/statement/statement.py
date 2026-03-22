@@ -19,4 +19,6 @@ class Statement:
 
     def _to_deck(self) -> str:
         """Return deck representation of self."""
-        return ""
+        from trnsystor.serialization.statements import serialize_statement
+
+        return serialize_statement(self)

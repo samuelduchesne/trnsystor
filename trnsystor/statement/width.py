@@ -26,7 +26,9 @@ class Width(Statement):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        return str(f"WIDTH {self.k}")
+        from trnsystor.serialization.statements import serialize_width
+
+        return serialize_width(self)
 
     @staticmethod
     def _check_range(n):

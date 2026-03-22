@@ -517,16 +517,14 @@ class TrnsysModel(Component):
                         self._meta.variables.update({id(question_var): question_var})
                         output_dict.update({id(question_var): question_var})
                         from pint import Quantity as _Qty
+
                         qv = question_var.value
-                        n_times.append(
-                            qv.m if isinstance(qv, _Qty) else int(str(qv))
-                        )
+                        n_times.append(qv.m if isinstance(qv, _Qty) else int(str(qv)))
                     else:
                         ev = output_dict[existing].value
                         from pint import Quantity as _Qty
-                        n_times.append(
-                            ev.m if isinstance(ev, _Qty) else int(str(ev))
-                        )
+
+                        n_times.append(ev.m if isinstance(ev, _Qty) else int(str(ev)))
             else:
                 from pint import Quantity as _Qty
 
@@ -602,25 +600,9 @@ class TrnsysModel(Component):
 
     def _to_deck(self):
         """Return deck representation of self."""
-        unit_type = f"UNIT {self.unit_number} TYPE  {self.type_number} {self.name}\n"
-        studio = self.studio
-        params = self.parameters
-        inputs = self.inputs
-        initial_input_values = self.initial_input_values
-        special_cards = self.special_cards
-        derivatives = self.derivatives
-        externals = self.external_files
+        from trnsystor.serialization.components import serialize_trnsys_model
 
-        return (
-            str(unit_type)
-            + str(studio)
-            + str(params)
-            + str(inputs)
-            + str(initial_input_values)
-            + str(special_cards)
-            + str(derivatives)
-            + str(externals)
-        )
+        return serialize_trnsys_model(self)
 
     def update_meta(self, new_meta):
         """Update self with new :class:`MetaData`."""
