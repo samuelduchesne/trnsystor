@@ -142,7 +142,7 @@ and saving it to file.
 
 ```python
 >>> from trnsystor import Deck, ControlCards
->>> 
+>>>
 >>> control_card = ControlCards.debug_template()  # Specifies a predefined set of control cards. See section below.
 >>> deck = Deck(name="mydeck", control_cards=control_card, author="jovyan")
 >>>
@@ -242,4 +242,3 @@ If the same string was in a file, it could be as easily parsed using Deck.load()
 >>> with open("file.txt", "r") as fp:
 >>>     dck = Deck.load(fp, proforma_root="tests/input_files")
 ```
-

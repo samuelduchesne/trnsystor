@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "trnsystor"
-version = "0.0.0"
+version = "1.4.1"
 description = "A python TRNSYS type parser"
 readme = "README.md"
 authors = [{ name = "Samuel Letellier-Duchesne", email = "samuel.letellier-duchesne@polymtl.ca" }]
@@ -31,6 +31,20 @@ dependencies = [
     "networkx",
 ]
 
+[dependency-groups]
+dev = [
+    "deptry>=0.25.1",
+    "pre-commit",
+    "ruff",
+    "pyright",
+    "matplotlib",
+    "pytest>=8",
+    "pytest-cov",
+    "zensical>=0.0.17",
+    "mkdocstrings[python]",
+]
+
+
 [project.optional-dependencies]
 viz = [
     "matplotlib",
@@ -41,22 +55,8 @@ test = [
     "pytest-cov",
 ]
 docs = [
-    "sphinx>=7",
-    "myst-parser",
-    "sphinx_rtd_theme",
-]
-
-[tool.uv]
-dev-dependencies = [
-    "pre-commit",
-    "ruff",
-    "pyright",
-    "matplotlib",
-    "pytest>=8",
-    "pytest-cov",
-    "sphinx>=7",
-    "myst-parser",
-    "sphinx_rtd_theme",
+    "zensical>=0.0.17",
+    "mkdocstrings[python]",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -96,6 +96,11 @@ combine-as-imports = true
 pythonVersion = "3.10"
 typeCheckingMode = "standard"
 exclude = ["tests", "docs"]
+
+[tool.deptry]
+ignore = ["DEP003"]
+per_rule_ignores = { "DEP002" = ["lxml"] }
+optional_dependencies_dev_groups = ["test", "docs"]
 
 [tool.coverage.run]
 omit = ["tests/*", "docs/*"]
