@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "trnsystor"
-version = "0.0.0"
+version = "1.4.1"
 description = "A python TRNSYS type parser"
 readme = "README.md"
 authors = [{ name = "Samuel Letellier-Duchesne", email = "samuel.letellier-duchesne@polymtl.ca" }]
