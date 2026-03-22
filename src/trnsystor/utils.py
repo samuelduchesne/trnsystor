@@ -253,7 +253,8 @@ def _get_type_variable_symbol_class():
         """Subclass of sympy Symbol for TypeVariable references."""
 
         def __new__(cls, type_variable, **assumptions):
-            """:class:`TypeVariableSymbol` are identified by TypeVariable and assumptions.
+            """:class:`TypeVariableSymbol` are identified by TypeVariable and
+            assumptions
 
             Args:
                 type_variable (TypeVariable): The TypeVariable to defined as a
@@ -293,7 +294,7 @@ _TypeVariableSymbol = None
 
 def _ensure_sympy():
     """Ensure sympy classes are loaded, raising a clear error if missing."""
-    global _DeckFilePrinter, _TypeVariableSymbol  # noqa: PLW0603
+    global _DeckFilePrinter, _TypeVariableSymbol
     if _DeckFilePrinter is None:
         try:
             _DeckFilePrinter = _get_deck_file_printer_class()

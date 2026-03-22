@@ -130,12 +130,28 @@ class MetaData:
         self.check_extra_tags(kwargs)
 
     # Fields that only carry text and don't need live Tag objects.
-    _TEXT_FIELDS = frozenset({
-        "object", "author", "organization", "editor", "creationDate",
-        "modifictionDate", "mode", "validation", "icon", "type",
-        "maxInstance", "keywords", "details", "comment", "plugin",
-        "variablesComment", "source", "compileCommand",
-    })
+    _TEXT_FIELDS = frozenset(
+        {
+            "object",
+            "author",
+            "organization",
+            "editor",
+            "creationDate",
+            "modifictionDate",
+            "mode",
+            "validation",
+            "icon",
+            "type",
+            "maxInstance",
+            "keywords",
+            "details",
+            "comment",
+            "plugin",
+            "variablesComment",
+            "source",
+            "compileCommand",
+        }
+    )
 
     @classmethod
     def from_tag(cls, tag, **kwargs):
@@ -546,12 +562,16 @@ class TrnsysModel(Component):
                         from trnsystor.quantity import Quantity as _Qty
 
                         qv = question_var.value
-                        n_times.append(qv.m if isinstance(qv, _Qty) else int(float(str(qv))))
+                        n_times.append(
+                            qv.m if isinstance(qv, _Qty) else int(float(str(qv)))
+                        )
                     else:
                         ev = output_dict[existing].value
                         from trnsystor.quantity import Quantity as _Qty
 
-                        n_times.append(ev.m if isinstance(ev, _Qty) else int(float(str(ev))))
+                        n_times.append(
+                            ev.m if isinstance(ev, _Qty) else int(float(str(ev)))
+                        )
             else:
                 from trnsystor.quantity import Quantity as _Qty
 

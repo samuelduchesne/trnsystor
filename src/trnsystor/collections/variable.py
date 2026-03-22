@@ -3,7 +3,6 @@
 import collections
 
 from trnsystor.quantity import Quantity
-
 from trnsystor.statement import Constant, Equation
 from trnsystor.typevariable import TypeVariable
 from trnsystor.utils import _parse_value, standardize_name
@@ -83,9 +82,12 @@ class VariableCollection(collections.UserDict):
     @staticmethod
     def _invalidate_model_cache(var):
         """Invalidate the parent model's property cache after a value change."""
-        if hasattr(var, "model") and var.model is not None:
-            if hasattr(var.model, "_invalidate_cache"):
-                var.model._invalidate_cache()
+        if (
+            hasattr(var, "model")
+            and var.model is not None
+            and hasattr(var.model, "_invalidate_cache")
+        ):
+            var.model._invalidate_cache()
 
     def __str__(self) -> str:
         """Return Deck representation."""

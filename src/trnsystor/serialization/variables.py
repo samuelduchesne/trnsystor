@@ -18,7 +18,6 @@ if TYPE_CHECKING:
 def serialize_parameters(obj: ParameterCollection) -> str:
     """Return deck representation of ParameterCollection."""
     from trnsystor.quantity import Quantity
-
     from trnsystor.statement import Equation
 
     head = f"PARAMETERS {obj.size}\n"

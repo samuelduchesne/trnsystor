@@ -10,7 +10,6 @@ from __future__ import annotations
 import math
 import re
 
-
 # ---------------------------------------------------------------------------
 # Conversion factors: source_unit -> {target_unit: factor}
 # Q(value, source).to(target) == Q(value * factor, target)
@@ -125,11 +124,10 @@ class Quantity:
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Quantity):
-            return (
-                math.isclose(self._magnitude, other._magnitude, rel_tol=1e-9)
-                and _strip_parens(self._units) == _strip_parens(other._units)
-            )
-        if isinstance(other, (int, float)):
+            return math.isclose(
+                self._magnitude, other._magnitude, rel_tol=1e-9
+            ) and _strip_parens(self._units) == _strip_parens(other._units)
+        if isinstance(other, int | float):
             return math.isclose(self._magnitude, float(other), rel_tol=1e-9)
         return NotImplemented
 
@@ -140,7 +138,7 @@ class Quantity:
         return not result
 
     def __mul__(self, other: float | int) -> Quantity:
-        if isinstance(other, (int, float)):
+        if isinstance(other, int | float):
             return Quantity(self._magnitude * other, self._units)
         return NotImplemented
 
@@ -148,7 +146,7 @@ class Quantity:
         return self.__mul__(other)
 
     def __truediv__(self, other: float | int) -> Quantity:
-        if isinstance(other, (int, float)):
+        if isinstance(other, int | float):
             return Quantity(self._magnitude / other, self._units)
         return NotImplemented
 
@@ -157,7 +155,7 @@ class Quantity:
             if self._units != other._units:
                 raise ValueError(f"Cannot add '{self._units}' and '{other._units}'")
             return Quantity(self._magnitude + other._magnitude, self._units)
-        if isinstance(other, (int, float)):
+        if isinstance(other, int | float):
             return Quantity(self._magnitude + other, self._units)
         return NotImplemented
 
@@ -168,7 +166,7 @@ class Quantity:
                     f"Cannot subtract '{other._units}' from '{self._units}'"
                 )
             return Quantity(self._magnitude - other._magnitude, self._units)
-        if isinstance(other, (int, float)):
+        if isinstance(other, int | float):
             return Quantity(self._magnitude - other, self._units)
         return NotImplemented
 

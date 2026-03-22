@@ -89,11 +89,7 @@ class TypeVariable:
         self.name = name
         self.role = role
         self.dimension = dimension
-        self.unit = (
-            unit
-            if unit is None
-            else _UNIT_SLASH_RE.sub(r"(\1)/(\2)", unit)
-        )
+        self.unit = unit if unit is None else _UNIT_SLASH_RE.sub(r"(\1)/(\2)", unit)
         self.type = type
         self.min = min
         self.max = max
