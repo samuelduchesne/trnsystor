@@ -17,12 +17,12 @@ class TestLexer:
 
     def test_tokenize_simulation(self):
         tokens = tokenize("SIMULATION \t START\t STOP\t STEP\t! comment")
-        t = [t for t in tokens if t.kind == TokenKind.SIMULATION][0]
+        t = next(t for t in tokens if t.kind == TokenKind.SIMULATION)
         assert "START" in t.payload
 
     def test_tokenize_unit(self):
         tokens = tokenize("UNIT 2 TYPE 50\t PV/T")
-        t = [t for t in tokens if t.kind == TokenKind.UNIT][0]
+        t = next(t for t in tokens if t.kind == TokenKind.UNIT)
         assert "2" in t.payload
         assert "50" in t.payload
 
@@ -111,8 +111,8 @@ class TestLexer:
     def test_line_numbers_preserved(self):
         text = "VERSION 18\n\nUNIT 2 TYPE 50 PV/T"
         tokens = tokenize(text)
-        version = [t for t in tokens if t.kind == TokenKind.VERSION][0]
-        unit = [t for t in tokens if t.kind == TokenKind.UNIT][0]
+        version = next(t for t in tokens if t.kind == TokenKind.VERSION)
+        unit = next(t for t in tokens if t.kind == TokenKind.UNIT)
         assert version.line_number == 1
         assert unit.line_number == 3
 
@@ -343,7 +343,8 @@ class TestParser:
         deck = parse(text)
         unit_numbers = [u.unit.unit_number for u in deck.units]
         # Check that we got all expected units from the test deck
-        for expected in [2, 3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 16, 17, 18, 21, 23, 24, 25, 26]:
+        expected_units = [2, 3, 4, 5, 7, 9, 10, 11, 12, 14, 15, 16, 17, 18, 21, 23, 24, 25, 26]
+        for expected in expected_units:
             assert expected in unit_numbers, f"Unit {expected} not found"
 
 

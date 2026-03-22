@@ -116,8 +116,9 @@ class _Parser:
         self._uc_loc: SourceLocation | None = None
         self._uc_return = False
 
-        # Track the last finished equation block for studio metadata attachment
-        self._last_eq_block: ParsedEquationsBlock | None = None
+        # Index of the last finished equation block in deck.equation_blocks,
+        # or -1 if none. Used to attach trailing studio metadata.
+        self._last_eq_block_idx: int = -1
 
         # For links
         self._link_u = 0
@@ -135,7 +136,8 @@ class _Parser:
             self._dispatch(token)
             self._pos += 1
 
-        # Finalize any open unit block
+        # Finalize any pending state
+        self._finalize_eq_studio()
         self._finalize_unit()
 
         return self._deck
@@ -221,12 +223,14 @@ class _Parser:
             self._start_counting(token, _State.IN_CONSTANTS)
 
         elif token.kind == TokenKind.EQUATIONS:
+            self._finalize_eq_studio()
             self._start_counting(token, _State.IN_EQUATIONS)
 
         elif token.kind == TokenKind.UNIT:
             self._start_unit(token)
 
         elif token.kind == TokenKind.USER_CONSTANTS:
+            self._finalize_eq_studio()
             self._uc_equations = None
             self._uc_studio = []
             self._uc_loc = loc
@@ -248,15 +252,11 @@ class _Parser:
             TokenKind.STUDIO_LAYER,
             TokenKind.STUDIO_UNIT_NUMBER,
         ):
-            markup = ParsedStudioMarkup(
-                token.kind.name.lower().removeprefix("studio_"),
-                token.payload,
-                loc,
-            )
-            self._current_studio.append(markup)
-            # Attach to the last finished equation block if present
-            if self._last_eq_block is not None:
-                self._last_eq_block.studio = tuple(self._current_studio)
+            self._collect_studio_markup(token, loc)
+
+        else:
+            # Any other token at top level finalizes pending eq studio
+            self._finalize_eq_studio()
 
     # -----------------------------------------------------------------
     # State: IN_UNIT
@@ -377,7 +377,7 @@ class _Parser:
             self._state = _State.IN_USER_CONSTANTS
         else:
             self._deck.equation_blocks.append(block)
-            self._last_eq_block = block
+            self._last_eq_block_idx = len(self._deck.equation_blocks) - 1
             self._current_studio = []
             self._state = _State.TOP_LEVEL
 
@@ -574,7 +574,7 @@ class _Parser:
 
     def _start_unit(self, token: Token) -> None:
         """Start a new UNIT block, finalizing any previous one."""
-        self._last_eq_block = None
+        self._finalize_eq_studio()
         self._finalize_unit()
         m = _UNIT_RE.match(token.payload)
         if m:
@@ -596,6 +596,27 @@ class _Parser:
                 loc,
             )
         )
+
+    def _finalize_eq_studio(self) -> None:
+        """Attach collected studio metadata to the last equation block.
+
+        Replaces the equation block at ``_last_eq_block_idx`` with a new
+        frozen instance that includes the accumulated studio tuple, then
+        resets the tracking state.
+        """
+        if self._last_eq_block_idx < 0:
+            return
+        if not self._current_studio:
+            self._last_eq_block_idx = -1
+            return
+        old = self._deck.equation_blocks[self._last_eq_block_idx]
+        self._deck.equation_blocks[self._last_eq_block_idx] = (
+            ParsedEquationsBlock(
+                old.equations, old.loc, tuple(self._current_studio)
+            )
+        )
+        self._last_eq_block_idx = -1
+        self._current_studio = []
 
     def _finalize_unit(self) -> None:
         """Flush pending state and push the current unit block onto the deck."""

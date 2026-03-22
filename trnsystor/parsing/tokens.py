@@ -81,7 +81,7 @@ class ParsedEquation:
     loc: SourceLocation
 
 
-@dataclass(slots=True)
+@dataclass(frozen=True, slots=True)
 class ParsedEquationsBlock:
     equations: tuple[ParsedEquation, ...]
     loc: SourceLocation
