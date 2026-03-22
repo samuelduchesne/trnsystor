@@ -2,7 +2,7 @@
 
 import os
 import sys
-from importlib.metadata import version
+from importlib.metadata import version as get_version
 
 sys.path.insert(0, os.path.abspath("."))
 sys.path.insert(0, os.path.abspath("trnsystor"))
@@ -10,10 +10,11 @@ sys.path.insert(0, os.path.abspath("trnsystor"))
 # -- Project information -----------------------------------------------------
 
 project = "trnsystor"
-copyright = "2019, Samuel Letellier-Duchesne"
+copyright = "2019-2026, Samuel Letellier-Duchesne"
 author = "Samuel Letellier-Duchesne"
 
-release = version("trnsystor")
+release = get_version("trnsystor")
+version = release
 
 # -- General configuration ---------------------------------------------------
 
@@ -56,8 +57,6 @@ autodoc_member_order = "bysource"
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
-    "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
-    "numpy": ("https://numpy.org/doc/stable/", None),
     "networkx": ("https://networkx.org/documentation/stable/", None),
     "pint": ("https://pint.readthedocs.io/en/stable/", None),
     "sympy": ("https://docs.sympy.org/latest/", None),
