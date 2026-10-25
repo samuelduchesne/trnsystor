@@ -1696,6 +1696,7 @@ test = [
     { name = "matplotlib" },
     { name = "pytest" },
     { name = "pytest-cov" },
+    { name = "sympy" },
 ]
 viz = [
     { name = "matplotlib" },
@@ -1711,6 +1712,7 @@ dev = [
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff" },
+    { name = "sympy" },
     { name = "zensical" },
 ]
 
@@ -1726,6 +1728,7 @@ requires-dist = [
     { name = "pytest-cov", marker = "extra == 'test'" },
     { name = "shapely" },
     { name = "sympy", marker = "extra == 'symbolic'" },
+    { name = "sympy", marker = "extra == 'test'" },
     { name = "tabulate" },
     { name = "zensical", marker = "extra == 'docs'", specifier = ">=0.0.17" },
 ]
@@ -1741,6 +1744,7 @@ dev = [
     { name = "pytest", specifier = ">=8" },
     { name = "pytest-cov" },
     { name = "ruff" },
+    { name = "sympy" },
     { name = "zensical", specifier = ">=0.0.17" },
 ]
 

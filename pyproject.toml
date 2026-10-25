@@ -38,6 +38,7 @@ dev = [
     "matplotlib",
     "pytest>=8",
     "pytest-cov",
+    "sympy",
     "zensical>=0.0.17",
     "mkdocstrings[python]",
 ]
@@ -54,6 +55,7 @@ test = [
     "matplotlib",
     "pytest>=8",
     "pytest-cov",
+    "sympy",
 ]
 docs = [
     "zensical>=0.0.17",
