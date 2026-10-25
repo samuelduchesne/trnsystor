@@ -14,22 +14,26 @@ XML_FILES = sorted(INPUT_DIR.glob("*.xml"))
 
 def profile_xml_parsing():
     from trnsystor.trnsysmodel import TrnsysModel
+
     for xml in XML_FILES:
         TrnsysModel.from_xml(xml)
 
 
 def profile_deck_read():
     from trnsystor.deck import Deck
+
     Deck.read_file(DCK_FILE, proforma_root=str(INPUT_DIR))
 
 
 def profile_deck_read_case600():
     from trnsystor.deck import Deck
+
     Deck.read_file(DCK_FILE_2, proforma_root=str(INPUT_DIR))
 
 
 def profile_roundtrip():
     from trnsystor.deck import Deck
+
     dck = Deck.read_file(DCK_FILE, proforma_root=str(INPUT_DIR))
     text = str(dck)
     Deck.loads(text, proforma_root=str(INPUT_DIR))
@@ -38,6 +42,7 @@ def profile_roundtrip():
 def profile_lexer_parser():
     from trnsystor.parsing.lexer import tokenize
     from trnsystor.parsing.parser import parse
+
     for dck_path in [DCK_FILE, DCK_FILE_2]:
         if dck_path.exists():
             text = dck_path.read_text()
@@ -49,6 +54,7 @@ def profile_lexer_parser():
 def profile_component_connect():
     from trnsystor.context import DeckContext
     from trnsystor.trnsysmodel import TrnsysModel
+
     ctx = DeckContext()
     fan = TrnsysModel.from_xml(INPUT_DIR / "Type146.xml", context=ctx)
     tank = TrnsysModel.from_xml(INPUT_DIR / "Type4a.xml", context=ctx)
@@ -58,6 +64,7 @@ def profile_component_connect():
 
 def profile_cycle_expansion():
     from trnsystor.trnsysmodel import TrnsysModel
+
     pipe = TrnsysModel.from_xml(INPUT_DIR / "Type951.xml")
     with contextlib.suppress(Exception):
         pipe.parameters["Number_of_Fluid_Nodes"].value = 10
