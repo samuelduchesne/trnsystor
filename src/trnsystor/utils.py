@@ -187,7 +187,7 @@ def parse_unit(unit: str | None) -> str:
     Returns:
         The canonical unit string (e.g. ``"degC"``, ``"kg/hr"``).
     """
-    if unit in {"-", None}:
+    if unit is None or unit == "-":
         return "dimensionless"
     unit_l = unit.lower()
     mapped = _UNIT_MAP.get(unit_l)
@@ -311,6 +311,7 @@ class _LazyDeckFilePrinter:
 
     def __call__(self):
         _ensure_sympy()
+        assert _DeckFilePrinter is not None
         return _DeckFilePrinter()
 
 
@@ -319,6 +320,7 @@ class _LazyTypeVariableSymbol:
 
     def __call__(self, *args, **kwargs):
         _ensure_sympy()
+        assert _TypeVariableSymbol is not None
         return _TypeVariableSymbol(*args, **kwargs)
 
 
