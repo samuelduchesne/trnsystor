@@ -20,6 +20,9 @@ class Component(metaclass=ABCMeta):
     :class:`EquationCollection` implement this class.
     """
 
+    # Only set by subclasses that cache their collections (e.g. TrnsysModel).
+    _cache: dict[str, Any]
+
     def __init__(self, *args, **kwargs):
         """Initialize class.
 

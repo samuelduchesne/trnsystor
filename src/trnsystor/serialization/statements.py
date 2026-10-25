@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from typing import TYPE_CHECKING
 
 import tabulate as _tabulate
@@ -121,8 +122,6 @@ def serialize_constant_statement(obj: Constant) -> str:
 
 def serialize_equation_statement(obj: Equation) -> str:
     """Return deck representation of Equation statement."""
-    from sympy import Expr
-
     from trnsystor.typevariable import TypeVariable
     from trnsystor.utils import print_my_latex
 
@@ -131,7 +130,10 @@ def serialize_equation_statement(obj: Equation) -> str:
         unit = tv_model.unit_number
         idx = obj.equals_to.one_based_idx
         return f"[{unit}, {idx}]"
-    elif isinstance(obj.equals_to, Expr):
+    # Only symbolic equations hold sympy expressions; if sympy was never
+    # imported, equals_to cannot be one, so don't require the optional extra.
+    sympy = sys.modules.get("sympy")
+    if sympy is not None and isinstance(obj.equals_to, sympy.Expr):
         return print_my_latex(obj.equals_to)
     else:
         return str(obj.equals_to) if obj.equals_to is not None else ""

@@ -16,10 +16,12 @@ from trnsystor.canvas import StudioCanvas
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
+    import networkx as nx
+
     from trnsystor.statement.constant import Constant
 
 
-def _make_graph():
+def _make_graph() -> nx.MultiDiGraph:
     """Create a new MultiDiGraph, lazily importing networkx."""
     import networkx as nx
 
@@ -30,7 +32,7 @@ def _make_graph():
 class DeckContext:
     """Scoped mutable state for a single deck's lifecycle."""
 
-    graph: object = field(default_factory=_make_graph)
+    graph: nx.MultiDiGraph = field(default_factory=_make_graph)
     unit_counter: Iterator[int] = field(default_factory=lambda: itertools.count(1))
     canvas: StudioCanvas = field(default_factory=StudioCanvas)
     names: set[str] = field(default_factory=set)
