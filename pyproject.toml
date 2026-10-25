@@ -116,3 +116,7 @@ fail_under = 90
 [tool.pytest.ini_options]
 addopts = "--cov=src/trnsystor --cov-report=term-missing --import-mode=importlib"
 testpaths = ["tests"]
+
+[tool.uv]
+# GHSA-58r4-6rv3-gfh8 and other Pillow advisories are fixed in 13.0.0, which requires Python >= 3.11.
+constraint-dependencies = ["pillow>=13.0.0; python_version >= '3.11'"]
